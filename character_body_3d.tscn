@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://dlygyllacfx4x"]
+
+[ext_resource type="Script" uid="uid://d1rflb5mclp0d" path="res://Scripts/character_controller.gd" id="1_iwpo4"]
+[ext_resource type="Script" uid="uid://y1ywe8tvdv0c" path="res://Components/axis_input_component.gd" id="2_fb3t6"]
+[ext_resource type="Script" uid="uid://t1u66x74hcm6" path="res://Components/axis_to_vector.gd" id="3_vd578"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_g4v7s"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_iwpo4"]
+
+[node name="CharacterBody3D" type="CharacterBody3D" unique_id=99017869]
+script = ExtResource("1_iwpo4")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=220183467]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("CapsuleMesh_g4v7s")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=997496742]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_iwpo4")
+
+[node name="AxisToVector3D" type="Node3D" parent="." unique_id=1012072495 node_paths=PackedStringArray("target_object")]
+script = ExtResource("3_vd578")
+target_object = NodePath("..")
+target_method_string = "set_direction"
+metadata/_custom_type_script = "uid://t1u66x74hcm6"
+
+[node name="AxisInputComponent" type="Node3D" parent="AxisToVector3D" unique_id=1736105387 node_paths=PackedStringArray("target_object")]
+script = ExtResource("2_fb3t6")
+target_object = NodePath("..")
+target_method_string = "set_component_x"
+input_name_positive = "ui_right"
+input_name_negative = "ui_left"
+multiplier = 1.0
+metadata/_custom_type_script = "uid://y1ywe8tvdv0c"
+
+[node name="AxisInputComponent2" type="Node3D" parent="AxisToVector3D" unique_id=1314114967 node_paths=PackedStringArray("target_object")]
+script = ExtResource("2_fb3t6")
+target_object = NodePath("..")
+target_method_string = "set_component_z"
+input_name_positive = "ui_up"
+input_name_negative = "ui_down"
+multiplier = 1.0
+metadata/_custom_type_script = "uid://y1ywe8tvdv0c"

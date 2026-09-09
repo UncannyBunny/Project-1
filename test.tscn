@@ -1,0 +1,50 @@
+[gd_scene format=3 uid="uid://bisuxvwdp0013"]
+
+[ext_resource type="PackedScene" uid="uid://dlygyllacfx4x" path="res://character_body_3d.tscn" id="1_37kl0"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_37kl0"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_8uh7m"]
+sky_material = SubResource("ProceduralSkyMaterial_37kl0")
+
+[sub_resource type="Environment" id="Environment_6uqi0"]
+background_mode = 2
+sky = SubResource("Sky_8uh7m")
+glow_enabled = true
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_37kl0"]
+size = Vector3(100, 26.6875, 100)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vd578"]
+albedo_color = Color(0.57700837, 0.5770084, 0.57700837, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_g4v7s"]
+material = SubResource("StandardMaterial3D_vd578")
+
+[node name="Test" type="Node3D" unique_id=1798671199]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=749221237]
+environment = SubResource("Environment_6uqi0")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=632787901]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+
+[node name="CharacterBody3D" parent="." unique_id=99017869 instance=ExtResource("1_37kl0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+movement_speed = 10.0
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=524520069]
+transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 4, 7)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=376527176]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=604168635]
+transform = Transform3D(23.813545, 0, 0, 0, 1, 0, 0, 0, 23.813545, 0, -13.34375, 0)
+shape = SubResource("BoxShape3D_37kl0")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D" unique_id=452215819]
+transform = Transform3D(23.813547, 0, 0, 0, 1, 0, 0, 0, 23.813547, 0, 0, 0)
+mesh = SubResource("PlaneMesh_g4v7s")
