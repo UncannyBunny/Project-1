@@ -3,6 +3,8 @@
 [ext_resource type="Script" uid="uid://d1rflb5mclp0d" path="res://Scripts/character_controller.gd" id="1_iwpo4"]
 [ext_resource type="Script" uid="uid://y1ywe8tvdv0c" path="res://Components/axis_input_component.gd" id="2_fb3t6"]
 [ext_resource type="Script" uid="uid://t1u66x74hcm6" path="res://Components/axis_to_vector.gd" id="3_vd578"]
+[ext_resource type="Script" uid="uid://r1wo016j1ww5" path="res://Components/mouse_movement_component_3d.gd" id="4_c7tqt"]
+[ext_resource type="Script" uid="uid://ch2c44r2rtwru" path="res://Components/rotation_component.gd" id="4_nl27k"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_g4v7s"]
 
@@ -13,6 +15,7 @@ script = ExtResource("1_iwpo4")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=220183467]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+visible = false
 mesh = SubResource("CapsuleMesh_g4v7s")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=997496742]
@@ -23,14 +26,13 @@ shape = SubResource("CapsuleShape3D_iwpo4")
 script = ExtResource("3_vd578")
 target_object = NodePath("..")
 target_method_string = "set_direction"
+is_local = true
 metadata/_custom_type_script = "uid://t1u66x74hcm6"
 
 [node name="AxisInputComponent" type="Node3D" parent="AxisToVector3D" unique_id=1736105387 node_paths=PackedStringArray("target_object")]
 script = ExtResource("2_fb3t6")
 target_object = NodePath("..")
 target_method_string = "set_component_x"
-input_name_positive = "ui_right"
-input_name_negative = "ui_left"
 multiplier = 1.0
 metadata/_custom_type_script = "uid://y1ywe8tvdv0c"
 
@@ -42,3 +44,38 @@ input_name_positive = "ui_up"
 input_name_negative = "ui_down"
 multiplier = 1.0
 metadata/_custom_type_script = "uid://y1ywe8tvdv0c"
+
+[node name="RotationComponent" type="Node3D" parent="." unique_id=99695442 node_paths=PackedStringArray("target_object")]
+script = ExtResource("4_nl27k")
+target_object = NodePath("..")
+is_local = true
+single_axis = 1
+
+[node name="MouseMovementComponent3D" type="Node3D" parent="RotationComponent" unique_id=1694245289 node_paths=PackedStringArray("target_object")]
+script = ExtResource("4_c7tqt")
+target_object = NodePath("..")
+target_method_string = "modify_rotation_euler"
+sensitivity = 1.0
+target_axis = 1
+invert_x_axis = true
+metadata/_custom_type_script = "uid://r1wo016j1ww5"
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=673640683]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4955306, 0)
+
+[node name="RotationComponent2" type="Node3D" parent="Camera3D" unique_id=1048754700 node_paths=PackedStringArray("target_object")]
+script = ExtResource("4_nl27k")
+target_object = NodePath("..")
+is_local = true
+is_limited = true
+rotation_limit_upper = 45.0
+rotation_limit_lower = -45.0
+
+[node name="MouseMovementComponent3D" type="Node3D" parent="Camera3D/RotationComponent2" unique_id=915641600 node_paths=PackedStringArray("target_object")]
+script = ExtResource("4_c7tqt")
+target_object = NodePath("..")
+target_method_string = "modify_rotation_euler"
+sensitivity = 1.0
+swap_axis = true
+invert_x_axis = true
+metadata/_custom_type_script = "uid://r1wo016j1ww5"

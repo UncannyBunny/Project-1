@@ -36,9 +36,6 @@ shadow_enabled = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 movement_speed = 10.0
 
-[node name="Camera3D" type="Camera3D" parent="." unique_id=524520069]
-transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 4, 7)
-
 [node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=376527176]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=604168635]
