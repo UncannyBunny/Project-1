@@ -2,9 +2,11 @@
 
 [ext_resource type="Script" uid="uid://d1rflb5mclp0d" path="res://Scripts/character_controller.gd" id="1_iwpo4"]
 [ext_resource type="Script" uid="uid://y1ywe8tvdv0c" path="res://Components/axis_input_component.gd" id="2_fb3t6"]
+[ext_resource type="Script" uid="uid://byrgu6dthsnix" path="res://Components/single_input_component.gd" id="2_jvo56"]
 [ext_resource type="Script" uid="uid://t1u66x74hcm6" path="res://Components/axis_to_vector.gd" id="3_vd578"]
 [ext_resource type="Script" uid="uid://r1wo016j1ww5" path="res://Components/mouse_movement_component_3d.gd" id="4_c7tqt"]
 [ext_resource type="Script" uid="uid://ch2c44r2rtwru" path="res://Components/rotation_component.gd" id="4_nl27k"]
+[ext_resource type="Script" uid="uid://bihwcsxm5a2es" path="res://Components/camera_bobber_component.gd" id="6_obynr"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_g4v7s"]
 
@@ -21,6 +23,20 @@ mesh = SubResource("CapsuleMesh_g4v7s")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=997496742]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_iwpo4")
+
+[node name="SingleInputComponent" type="Node3D" parent="." unique_id=55471534 node_paths=PackedStringArray("target_object")]
+script = ExtResource("2_jvo56")
+target_object = NodePath("..")
+target_method_string = "set_jump"
+input_string = "ui_accept"
+metadata/_custom_type_script = "uid://byrgu6dthsnix"
+
+[node name="SingleInputComponent2" type="Node3D" parent="." unique_id=7176410 node_paths=PackedStringArray("target_object")]
+script = ExtResource("2_jvo56")
+target_object = NodePath("..")
+target_method_string = "set_running"
+input_string = "ui_focus_next"
+metadata/_custom_type_script = "uid://byrgu6dthsnix"
 
 [node name="AxisToVector3D" type="Node3D" parent="." unique_id=1012072495 node_paths=PackedStringArray("target_object")]
 script = ExtResource("3_vd578")
@@ -79,3 +95,13 @@ sensitivity = 1.0
 swap_axis = true
 invert_x_axis = true
 metadata/_custom_type_script = "uid://r1wo016j1ww5"
+
+[node name="CameraBobberComponent" type="Node3D" parent="Camera3D" unique_id=593818004 node_paths=PackedStringArray("camera_object", "player_object")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.4955306, 0)
+script = ExtResource("6_obynr")
+camera_object = NodePath("..")
+player_object = NodePath("../..")
+bob_speed = 0.25
+bob_height = 0.1
+bob_width = 0.05
+metadata/_custom_type_script = "uid://bihwcsxm5a2es"

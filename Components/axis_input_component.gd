@@ -26,7 +26,6 @@ func _process(delta: float) -> void:
 	# Avoid execution in editor environment.
 	if Engine.is_editor_hint():
 		return
-	# Process mouse 
 	if not target_method_callable.is_valid():
 		return
 	var raw_input: float
