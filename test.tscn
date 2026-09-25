@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bisuxvwdp0013"]
 
 [ext_resource type="PackedScene" uid="uid://dlygyllacfx4x" path="res://character_body_3d.tscn" id="1_37kl0"]
+[ext_resource type="Script" uid="uid://ba5yjgajhffab" path="res://Components/interaction_component.gd" id="2_8uh7m"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_37kl0"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -14,14 +15,22 @@ background_mode = 2
 sky = SubResource("Sky_8uh7m")
 glow_enabled = true
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_37kl0"]
-size = Vector3(100, 26.6875, 100)
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_57qmd"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vd578"]
 albedo_color = Color(0.57700837, 0.5770084, 0.57700837, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_g4v7s"]
 material = SubResource("StandardMaterial3D_vd578")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_g4v7s"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yf5fn"]
+albedo_color = Color(0.4351923, 0.43519226, 0.43519226, 1)
+metallic = 1.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_g4v7s"]
+material = SubResource("StandardMaterial3D_yf5fn")
 
 [node name="Test" type="Node3D" unique_id=1798671199]
 
@@ -42,9 +51,21 @@ weight = 0.1
 [node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=376527176]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=604168635]
-transform = Transform3D(23.813545, 0, 0, 0, 1, 0, 0, 0, 23.813545, 0, -13.34375, 0)
-shape = SubResource("BoxShape3D_37kl0")
+shape = SubResource("WorldBoundaryShape3D_57qmd")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D" unique_id=452215819]
 transform = Transform3D(23.813547, 0, 0, 0, 1, 0, 0, 0, 23.813547, 0, 0, 0)
 mesh = SubResource("PlaneMesh_g4v7s")
+
+[node name="StaticBody3D2" type="StaticBody3D" parent="." unique_id=431641763]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D2" unique_id=1381402729]
+shape = SubResource("BoxShape3D_g4v7s")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D2" unique_id=1932075164]
+mesh = SubResource("BoxMesh_g4v7s")
+
+[node name="InteractionComponent" type="Node3D" parent="StaticBody3D2" unique_id=1636293948]
+script = ExtResource("2_8uh7m")
+metadata/_custom_type_script = "uid://ba5yjgajhffab"

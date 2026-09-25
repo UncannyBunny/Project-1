@@ -1,4 +1,4 @@
-class_name CameraBobberComponent extends Node3D
+class_name CameraBobber extends Node3D
 
 @export var camera_object: Camera3D
 @export var player_object: CharacterController3D
