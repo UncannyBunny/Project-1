@@ -15,6 +15,10 @@ run/main_scene="uid://bisuxvwdp0013"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+TimeManager="*uid://dilmn3v3bexvm"
+
 [display]
 
 window/stretch/mode="canvas_items"

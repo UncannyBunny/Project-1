@@ -20,6 +20,9 @@ func _physics_process(delta: float) -> void:
 func set_direction(new_direction: Vector3) -> void:
 	_movement_direction = new_direction.normalized()
 
+func set_orientation(new_rotation: float) -> void:
+	rotation.y = new_rotation
+
 func set_jump() -> void:
 	if not is_on_floor():
 		return

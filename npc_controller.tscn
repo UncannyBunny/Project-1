@@ -1,0 +1,72 @@
+[gd_scene format=3 uid="uid://ctupd4j60qvup"]
+
+[ext_resource type="Script" uid="uid://d1rflb5mclp0d" path="res://Scripts/Controllers/character_controller.gd" id="1_n77kb"]
+[ext_resource type="Script" uid="uid://bob0cecyek087" path="res://Scripts/Components/pathfinding_component.gd" id="2_gil28"]
+[ext_resource type="Script" uid="uid://b8xe44ldak8mr" path="res://Scripts/Controllers/schedule_controller.gd" id="3_jc0uc"]
+[ext_resource type="Script" uid="uid://xc464bnxxm5m" path="res://Scripts/Components/rotate_with_movement_component.gd" id="4_jc0uc"]
+[ext_resource type="Script" uid="uid://cb1e4tnpnbd7a" path="res://Scripts/Controllers/chase_controller.gd" id="5_1yrgr"]
+[ext_resource type="Script" uid="uid://ba5yjgajhffab" path="res://Scripts/Components/interaction_component.gd" id="5_oudc5"]
+[ext_resource type="Script" uid="uid://bf2q30mbo85lr" path="res://Scripts/Controllers/dialogue_controller.gd" id="7_18g42"]
+[ext_resource type="Script" uid="uid://de6pqli7kcltq" path="res://Scripts/state_machine.gd" id="7_7562c"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g4v7s"]
+albedo_color = Color(1, 0.627451, 1, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_eu3p8"]
+material = SubResource("StandardMaterial3D_g4v7s")
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_gil28"]
+
+[node name="NPCController" type="CharacterBody3D" unique_id=2030344370]
+script = ExtResource("1_n77kb")
+metadata/_custom_type_script = "uid://d1rflb5mclp0d"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1785005663]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("CapsuleMesh_eu3p8")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1389348679]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_gil28")
+
+[node name="Pathfinding" type="Node3D" parent="." unique_id=540558769]
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="Pathfinding" unique_id=1650877709]
+
+[node name="PathfindingComponent" type="Node3D" parent="Pathfinding" unique_id=126924458 node_paths=PackedStringArray("target_object", "nav_agent")]
+script = ExtResource("2_gil28")
+target_object = NodePath("../..")
+target_method_string = "set_direction"
+nav_agent = NodePath("../NavigationAgent3D")
+metadata/_custom_type_script = "uid://bob0cecyek087"
+
+[node name="ScheduleController" type="Node3D" parent="Pathfinding" unique_id=871290188 node_paths=PackedStringArray("target_object")]
+script = ExtResource("3_jc0uc")
+target_object = NodePath("../PathfindingComponent")
+target_method_string = "set_target_position"
+metadata/_custom_type_script = "uid://b8xe44ldak8mr"
+
+[node name="RotateWithMovementComponent" type="Node3D" parent="Pathfinding" unique_id=1493960200 node_paths=PackedStringArray("target_object")]
+script = ExtResource("4_jc0uc")
+target_object = NodePath("../..")
+target_method_string = "set_orientation"
+rotation_speed = 5.0
+metadata/_custom_type_script = "uid://xc464bnxxm5m"
+
+[node name="ChaseController" type="Node3D" parent="Pathfinding" unique_id=1426431388]
+script = ExtResource("5_1yrgr")
+metadata/_custom_type_script = "uid://cb1e4tnpnbd7a"
+
+[node name="Behaviour" type="Node3D" parent="." unique_id=1905118480]
+
+[node name="StateMachine" type="Node3D" parent="Behaviour" unique_id=611879470]
+script = ExtResource("7_7562c")
+metadata/_custom_type_script = "uid://de6pqli7kcltq"
+
+[node name="DialogueController" type="Node3D" parent="Behaviour" unique_id=538114471]
+script = ExtResource("7_18g42")
+metadata/_custom_type_script = "uid://bf2q30mbo85lr"
+
+[node name="InteractionComponent" type="Node3D" parent="." unique_id=1599964748]
+script = ExtResource("5_oudc5")
+metadata/_custom_type_script = "uid://ba5yjgajhffab"

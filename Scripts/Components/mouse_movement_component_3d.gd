@@ -30,6 +30,13 @@ func _ready() -> void:
 	if target_object and not target_method_string.is_empty():
 		target_method_callable = Callable(target_object, target_method_string)
 
+func _process(delta: float) -> void:
+	if not Engine.is_editor_hint():
+		if get_tree().paused:
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		else:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
 func _unhandled_input(event: InputEvent) -> void:
 	# Avoid execution in editor environment.
 	if Engine.is_editor_hint():
@@ -37,12 +44,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	# Process mouse 
 	if not target_method_callable.is_valid():
 		return
-	if event is InputEventMouseMotion:
-		var raw_input: Vector2
+	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		var raw_input: Vector2 = event.relative * sensitivity
 		if swap_axis:
-			raw_input = Vector2(event.relative.y * sensitivity, event.relative.x * sensitivity)
-		else:
-			raw_input = Vector2(event.relative.x * sensitivity, event.relative.y * sensitivity)
+			raw_input = Vector2(raw_input.y, raw_input.x)
 		if invert_x_axis:
 			raw_input.x *= -1
 		if invert_y_axis:
