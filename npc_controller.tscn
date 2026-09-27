@@ -17,6 +17,10 @@ material = SubResource("StandardMaterial3D_g4v7s")
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_gil28"]
 
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_g4v7s"]
+radius = 0.6
+height = 2.2
+
 [node name="NPCController" type="CharacterBody3D" unique_id=2030344370]
 script = ExtResource("1_n77kb")
 metadata/_custom_type_script = "uid://d1rflb5mclp0d"
@@ -67,6 +71,10 @@ metadata/_custom_type_script = "uid://de6pqli7kcltq"
 script = ExtResource("7_18g42")
 metadata/_custom_type_script = "uid://bf2q30mbo85lr"
 
-[node name="InteractionComponent" type="Node3D" parent="." unique_id=1599964748]
+[node name="InteractionComponent" type="Area3D" parent="." unique_id=413553058]
 script = ExtResource("5_oudc5")
 metadata/_custom_type_script = "uid://ba5yjgajhffab"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionComponent" unique_id=1035732503]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_g4v7s")
