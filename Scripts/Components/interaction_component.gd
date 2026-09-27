@@ -1,5 +1,5 @@
 @tool
-class_name InteractionComponent extends Node3D
+class_name InteractionComponent extends Area3D
 
 ## Object to receive the input
 @export var target_object: Node3D:

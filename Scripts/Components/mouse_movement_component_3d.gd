@@ -31,7 +31,7 @@ func _ready() -> void:
 		target_method_callable = Callable(target_object, target_method_string)
 
 func _process(delta: float) -> void:
-	if not Engine.is_editor_hint():
+	if not Engine.is_editor_hint() and false:
 		if get_tree().paused:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		else:
