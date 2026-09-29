@@ -13,8 +13,6 @@ func trigger_interaction() -> void:
 	var result = space_state.intersect_ray(query)
 	if result:
 		var object: Node = result.collider
-		for child in object.get_children():
-			if child is not Node3D:
-					return
-			if child.has_method("trigger_interaction"):
-				child.trigger_interaction()
+		if object is InteractionComponent:
+			print("INTERACTED")
+			object.trigger_interaction()

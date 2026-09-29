@@ -1,3 +1,4 @@
+## Modifies the rotation of the target object.
 class_name RotationComponent extends Node3D
 
 ## Node to apply rotation changes

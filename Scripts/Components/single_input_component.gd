@@ -1,4 +1,5 @@
 @tool
+## Triggers the target method when an input event occurs.
 class_name SingleInputComponent extends Node3D
 
 ## Object to receive the input

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dm88gofyli3dp"]
+
+[ext_resource type="Script" uid="uid://cfocu4wdhbxt3" path="res://Scripts/Managers/key_manager.gd" id="1_dagux"]
+
+[node name="KeyManager" type="Node3D" unique_id=1619951266]
+script = ExtResource("1_dagux")

@@ -1,4 +1,5 @@
 @tool
+## Triggers the target callable continuously using a constant float as argument.
 class_name ConstantFloatComponent extends Node
 
 ## Object to receive the input

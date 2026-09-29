@@ -1,3 +1,4 @@
+## Modifies a target’s position.
 class_name PositionComponent extends Node3D
 
 ## Node to apply position changes

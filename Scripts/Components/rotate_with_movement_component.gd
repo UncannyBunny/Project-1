@@ -1,4 +1,5 @@
 @tool
+## Points the negative Z axis (Forward) direction of a CharacterBody3D torwards the direction of their velocity.
 class_name RotateWithMovementComponent extends Node3D
 
 ## Object to receive the input

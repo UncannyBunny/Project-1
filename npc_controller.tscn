@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://xc464bnxxm5m" path="res://Scripts/Components/rotate_with_movement_component.gd" id="4_jc0uc"]
 [ext_resource type="Script" uid="uid://cb1e4tnpnbd7a" path="res://Scripts/Controllers/chase_controller.gd" id="5_1yrgr"]
 [ext_resource type="Script" uid="uid://ba5yjgajhffab" path="res://Scripts/Components/interaction_component.gd" id="5_oudc5"]
-[ext_resource type="Script" uid="uid://bf2q30mbo85lr" path="res://Scripts/Controllers/dialogue_controller.gd" id="7_18g42"]
+[ext_resource type="Script" uid="uid://2pl1xrcafii3" path="res://Scripts/Components/readable_component.gd" id="7_18g42"]
 [ext_resource type="Script" uid="uid://de6pqli7kcltq" path="res://Scripts/state_machine.gd" id="7_7562c"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g4v7s"]
@@ -67,12 +67,14 @@ metadata/_custom_type_script = "uid://cb1e4tnpnbd7a"
 script = ExtResource("7_7562c")
 metadata/_custom_type_script = "uid://de6pqli7kcltq"
 
-[node name="DialogueController" type="Node3D" parent="Behaviour" unique_id=538114471]
+[node name="ReadableComponent" type="Node3D" parent="Behaviour" unique_id=2027071843]
 script = ExtResource("7_18g42")
-metadata/_custom_type_script = "uid://bf2q30mbo85lr"
+metadata/_custom_type_script = "uid://2pl1xrcafii3"
 
-[node name="InteractionComponent" type="Area3D" parent="." unique_id=413553058]
+[node name="InteractionComponent" type="Area3D" parent="." unique_id=413553058 node_paths=PackedStringArray("target_object")]
 script = ExtResource("5_oudc5")
+target_object = NodePath("../Behaviour/ReadableComponent")
+target_method_string = "trigger_interaction"
 metadata/_custom_type_script = "uid://ba5yjgajhffab"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionComponent" unique_id=1035732503]

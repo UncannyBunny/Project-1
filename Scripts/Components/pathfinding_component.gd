@@ -1,4 +1,5 @@
 @tool
+## Outputs a direction torwards a set point using godot’s pathfinding agents.
 class_name PathfindingComponent extends Node3D
 
 ## Object to receive the input

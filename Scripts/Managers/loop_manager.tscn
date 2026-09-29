@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://b5nvdnatf7xxu"]
+
+[ext_resource type="Script" uid="uid://c6tot81s1rmim" path="res://Scripts/Managers/loop_manager.gd" id="1_g8do4"]
+
+[node name="LoopManager" type="Node3D" unique_id=1914595885]
+script = ExtResource("1_g8do4")

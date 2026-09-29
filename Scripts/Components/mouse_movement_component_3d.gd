@@ -1,4 +1,5 @@
 @tool
+## Triggers the target callable with a projection of the mouse movement as an argument.
 class_name MouseMovementComponent3D extends Node3D
 
 ## Object to receive the input

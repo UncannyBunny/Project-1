@@ -1,4 +1,5 @@
 @tool
+## Triggers the target method with the value of an input axis as argument.
 class_name AxisInputComponent extends Node3D
 
 ## Object to receive the input

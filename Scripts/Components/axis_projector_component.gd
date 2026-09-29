@@ -1,4 +1,5 @@
 @tool
+## Triggers a target method with the projection of a float onto a vector axis.
 class_name AxisProjectorComponent extends Node3D
 
 ## Node to follow

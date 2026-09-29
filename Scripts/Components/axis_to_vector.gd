@@ -1,4 +1,5 @@
 @tool
+## Triggers the target method with the projection of a series of axis into a vector.
 class_name AxisToVector3D extends Node3D
 
 ## Object to receive the input

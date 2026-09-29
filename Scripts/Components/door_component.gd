@@ -1,5 +1,5 @@
-extends Node3D
-class_name DoorComponent
+## Controls a hinged door behaviour
+class_name DoorComponent extends Node3D
 
 @export var is_locked: bool = false
 @export var door_name: String = "Mysterious Door"

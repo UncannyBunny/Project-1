@@ -1,3 +1,4 @@
+## Stores and modifies an integer value
 class_name ScoreComponent extends Node
 
 ## Signal emitted when the score changes (useful for updating UI or triggering events)

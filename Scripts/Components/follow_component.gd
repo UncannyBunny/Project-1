@@ -1,4 +1,5 @@
 @tool
+## Triggers the target method with the distance vector from the target to the follow target as argument.
 class_name FollowComponent extends Node3D
 
 ## Node to follow

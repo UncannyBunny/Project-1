@@ -18,6 +18,8 @@ config/icon="res://icon.svg"
 [autoload]
 
 TimeManager="*uid://dilmn3v3bexvm"
+KeyManager="*uid://dm88gofyli3dp"
+LoopManager="*uid://b5nvdnatf7xxu"
 
 [display]
 
