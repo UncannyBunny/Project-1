@@ -5,6 +5,8 @@ var _keys_stored: Array[String]
 
 ## Returns true if the array of keys is active, false otherwise
 func search_keys(keys_searched: Array[String]) -> bool:
+	if keys_searched.is_empty():
+		return true
 	for key in keys_searched:
 		if not _keys_stored.has(key):
 			return false
@@ -21,3 +23,6 @@ func add_keys(keys_added: Array[String]) -> void:
 func remove_keys(keys_removed: Array[String]) -> void:
 	for key in keys_removed:
 		_keys_stored.erase(key)
+
+func remove_all_keys() -> void:
+	_keys_stored.clear()

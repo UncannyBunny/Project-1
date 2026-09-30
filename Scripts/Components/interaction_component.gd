@@ -20,10 +20,8 @@ func _ready() -> void:
 		target_method_callable = Callable(target_object, target_method_string)
 
 func trigger_interaction() -> void:
-	print("INTERACTED")
 	if not target_method_callable.is_valid():
 		return
-	print("CALLED INTERACTION")
 	target_method_callable.call()
 
 func _validate_property(property: Dictionary) -> void:

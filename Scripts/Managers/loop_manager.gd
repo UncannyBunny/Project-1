@@ -7,4 +7,5 @@ func get_loop_count() -> int:
 
 func trigger_loop_reset() -> void:
 	_loop_count += 1
-	get_tree().reload_current_scene()
+	KeyManager.remove_all_keys()
+	get_tree().call_deferred("reload_current_scene")

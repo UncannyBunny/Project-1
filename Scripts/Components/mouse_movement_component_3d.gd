@@ -31,14 +31,7 @@ func _ready() -> void:
 	if target_object and not target_method_string.is_empty():
 		target_method_callable = Callable(target_object, target_method_string)
 
-func _process(delta: float) -> void:
-	if not Engine.is_editor_hint() and false:
-		if get_tree().paused:
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		else:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	# Avoid execution in editor environment.
 	if Engine.is_editor_hint():
 		return

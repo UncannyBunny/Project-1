@@ -4,6 +4,13 @@ class_name DialogueUI extends Control
 @export var text_label: RichTextLabel
 @export var button_container: HBoxContainer
 @export var text_speed: float = 1
+@export var pause_on_text: bool = false
+
+func _process(delta: float) -> void:
+	if text_container.visible:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	else:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func display_dialogue(dialogue: ReadableEntry) -> void:
 	for child in button_container.get_children():
