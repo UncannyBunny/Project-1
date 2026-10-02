@@ -84,7 +84,7 @@ metadata/_custom_type_script = "uid://byrgu6dthsnix"
 script = ExtResource("2_jvo56")
 target_object = NodePath("../..")
 target_method_string = "set_running"
-input_string = "ui_focus_next"
+input_string = "move_sprint"
 metadata/_custom_type_script = "uid://byrgu6dthsnix"
 
 [node name="AxisToVector3D" type="Node3D" parent="Movement" unique_id=1012072495 node_paths=PackedStringArray("target_object")]
@@ -98,6 +98,8 @@ metadata/_custom_type_script = "uid://t1u66x74hcm6"
 script = ExtResource("2_fb3t6")
 target_object = NodePath("..")
 target_method_string = "set_component_x"
+input_name_positive = "move_left"
+input_name_negative = "move_right"
 multiplier = 1.0
 metadata/_custom_type_script = "uid://y1ywe8tvdv0c"
 
@@ -105,8 +107,8 @@ metadata/_custom_type_script = "uid://y1ywe8tvdv0c"
 script = ExtResource("2_fb3t6")
 target_object = NodePath("..")
 target_method_string = "set_component_z"
-input_name_positive = "ui_up"
-input_name_negative = "ui_down"
+input_name_positive = "move_forward"
+input_name_negative = "move_backward"
 multiplier = 1.0
 metadata/_custom_type_script = "uid://y1ywe8tvdv0c"
 
@@ -122,5 +124,5 @@ metadata/_custom_type_script = "uid://xjxpd3me43y0"
 script = ExtResource("2_jvo56")
 target_object = NodePath("..")
 target_method_string = "trigger_interaction"
-input_string = "ui_text_backspace"
+input_string = "interact"
 metadata/_custom_type_script = "uid://byrgu6dthsnix"

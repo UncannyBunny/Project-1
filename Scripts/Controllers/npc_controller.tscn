@@ -40,9 +40,17 @@ shape = SubResource("CapsuleShape3D_gil28")
 [node name="PathfindingComponent" type="Node3D" parent="Pathfinding" unique_id=126924458 node_paths=PackedStringArray("target_object", "nav_agent")]
 script = ExtResource("2_gil28")
 target_object = NodePath("../..")
-target_method_string = "set_direction"
+target_method_string = "set_movement"
 nav_agent = NodePath("../NavigationAgent3D")
 metadata/_custom_type_script = "uid://bob0cecyek087"
+
+[node name="ChaseController" type="Node3D" parent="Pathfinding" unique_id=1426431388 node_paths=PackedStringArray("target_object", "nav_agent")]
+process_mode = 4
+script = ExtResource("5_1yrgr")
+target_object = NodePath("../..")
+target_method_string = "set_movement"
+nav_agent = NodePath("../NavigationAgent3D")
+metadata/_custom_type_script = "uid://cb1e4tnpnbd7a"
 
 [node name="ScheduleController" type="Node3D" parent="Pathfinding" unique_id=871290188 node_paths=PackedStringArray("target_object")]
 script = ExtResource("3_jc0uc")
@@ -57,14 +65,14 @@ target_method_string = "set_orientation"
 rotation_speed = 5.0
 metadata/_custom_type_script = "uid://xc464bnxxm5m"
 
-[node name="ChaseController" type="Node3D" parent="Pathfinding" unique_id=1426431388]
-script = ExtResource("5_1yrgr")
-metadata/_custom_type_script = "uid://cb1e4tnpnbd7a"
-
 [node name="Behaviour" type="Node3D" parent="." unique_id=1905118480]
 
-[node name="StateMachine" type="Node3D" parent="Behaviour" unique_id=611879470]
+[node name="StateMachine" type="Node3D" parent="Behaviour" unique_id=611879470 node_paths=PackedStringArray("state_machine")]
 script = ExtResource("7_7562c")
+state_machine = {
+"aggresive": NodePath("../../Pathfinding/ChaseController"),
+"neutral": NodePath("../../Pathfinding/PathfindingComponent")
+}
 metadata/_custom_type_script = "uid://de6pqli7kcltq"
 
 [node name="ReadableComponent" type="Node3D" parent="Behaviour" unique_id=2027071843]

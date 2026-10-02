@@ -35,10 +35,12 @@ func _navigation() -> void:
 	var pos_current: Vector3 = target_object.global_position
 	var pos_next: Vector3 = nav_agent.get_next_path_position()
 	var direction: Vector3 = pos_current.direction_to(pos_next)
-	target_method_callable.call(direction)
+	target_method_callable.call(direction, false)
 
 func set_target_position(target_pos: Vector3) -> void:
-	if nav_agent:
+	if KeyManager.search_keys(["dialogue_open"]):
+		nav_agent.target_position = global_position
+	elif nav_agent:
 		nav_agent.target_position = target_pos
 
 func _validate_property(property: Dictionary) -> void:

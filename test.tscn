@@ -2,11 +2,14 @@
 
 [ext_resource type="PackedScene" uid="uid://dlygyllacfx4x" path="res://Scripts/Controllers/player_controller.tscn" id="1_37kl0"]
 [ext_resource type="Texture2D" uid="uid://ctedis6qabpfo" path="res://Assets/Textures/tile.jpg" id="2_8uh7m"]
+[ext_resource type="Script" uid="uid://2pl1xrcafii3" path="res://Scripts/Components/readable_component.gd" id="3_5tkv4"]
 [ext_resource type="PackedScene" uid="uid://ctupd4j60qvup" path="res://Scripts/Controllers/npc_controller.tscn" id="3_6uqi0"]
 [ext_resource type="Texture2D" uid="uid://d2cgn1puj7f5r" path="res://icon.svg" id="3_ykrsh"]
-[ext_resource type="Script" uid="uid://tcrug5x5hlpx" path="res://Scripts/Resources/schedule_entry.gd" id="4_ppyta"]
+[ext_resource type="Script" uid="uid://tcrug5x5hlpx" path="res://Scripts/Resources/schedule_entry.gd" id="4_00tp4"]
+[ext_resource type="Script" uid="uid://lsbultvx6w" path="res://Scripts/Components/area_trigger_component.gd" id="5_0m0f1"]
 [ext_resource type="Script" uid="uid://e5dqcesgwl0e" path="res://Scripts/Resources/readable_entry.gd" id="5_vbegm"]
 [ext_resource type="Script" uid="uid://bu4nmx7368xsj" path="res://Scripts/UI/dialogue_ui.gd" id="6_g14j6"]
+[ext_resource type="Script" uid="uid://bbw6x7xvlpo48" path="res://ui_controller.gd" id="6_xersf"]
 [ext_resource type="Script" uid="uid://bnokdyx5eqkgr" path="res://Scripts/UI/clock_ui.gd" id="8_ehkex"]
 [ext_resource type="Script" uid="uid://c0rgqrsfrtiuq" path="res://Scripts/UI/pause_ui.gd" id="9_xersf"]
 
@@ -23,45 +26,43 @@ glow_enabled = true
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g14j6"]
 albedo_texture = ExtResource("3_ykrsh")
 
-[sub_resource type="Resource" id="Resource_jc0uc"]
-script = ExtResource("4_ppyta")
-time = Vector2i(0, 15)
+[sub_resource type="Resource" id="Resource_xersf"]
+script = ExtResource("4_00tp4")
+time_start = Vector2i(8, 0)
+time_end = Vector2i(9, 0)
 position = Vector3(-5, 0, -5)
 metadata/_custom_type_script = "uid://tcrug5x5hlpx"
 
-[sub_resource type="Resource" id="Resource_oudc5"]
-script = ExtResource("4_ppyta")
-time = Vector2i(0, 30)
+[sub_resource type="Resource" id="Resource_5tkv4"]
+script = ExtResource("4_00tp4")
+time_start = Vector2i(9, 0)
+time_end = Vector2i(9, 30)
 position = Vector3(5, 0, -5)
 metadata/_custom_type_script = "uid://tcrug5x5hlpx"
 
-[sub_resource type="Resource" id="Resource_1yrgr"]
-script = ExtResource("4_ppyta")
-time = Vector2i(0, 45)
+[sub_resource type="Resource" id="Resource_0m0f1"]
+script = ExtResource("4_00tp4")
+time_start = Vector2i(10, 0)
+time_end = Vector2i(12, 30)
 position = Vector3(5, 0, 5)
 metadata/_custom_type_script = "uid://tcrug5x5hlpx"
 
-[sub_resource type="Resource" id="Resource_7562c"]
-script = ExtResource("4_ppyta")
-time = Vector2i(1, 0)
+[sub_resource type="Resource" id="Resource_uty7l"]
+script = ExtResource("4_00tp4")
+time_start = Vector2i(12, 30)
 position = Vector3(-5, 0, 5)
 metadata/_custom_type_script = "uid://tcrug5x5hlpx"
 
-[sub_resource type="Resource" id="Resource_00tp4"]
-script = ExtResource("5_vbegm")
-readable_text = "Oh my! Thanks!"
-keys_required = Array[String](["sandwich"])
-keys_taken = Array[String](["sandwich"])
-metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+[sub_resource type="Resource" id="Resource_45l4g"]
+script = ExtResource("4_00tp4")
+priority = 5
+keys_whitelist = Array[String](["sandwich"])
+metadata/_custom_type_script = "uid://tcrug5x5hlpx"
 
-[sub_resource type="Resource" id="Resource_xersf"]
+[sub_resource type="Resource" id="Resource_77dp3"]
 script = ExtResource("5_vbegm")
-readable_text = "Alright but just for a moment"
+readable_text = "Alright but just for a moment, I will wait for it in the center..."
 keys_unlocked = Array[String](["sandwich"])
-metadata/_custom_type_script = "uid://e5dqcesgwl0e"
-
-[sub_resource type="Resource" id="Resource_vbegm"]
-script = ExtResource("5_vbegm")
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
 [sub_resource type="Resource" id="Resource_ehkex"]
@@ -73,12 +74,53 @@ metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 script = ExtResource("5_vbegm")
 readable_text = "Hey, let me through, I am late."
 readable_chain = Dictionary[String, ExtResource("5_vbegm")]({
-"I have your sandwich here": SubResource("Resource_00tp4"),
-"Lend me your sandwich please": SubResource("Resource_xersf"),
-"Ok": SubResource("Resource_vbegm"),
+"Lend me your sandwich please": SubResource("Resource_77dp3"),
 "What?": SubResource("Resource_ehkex")
 })
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+
+[sub_resource type="Resource" id="Resource_a3se8"]
+script = ExtResource("5_vbegm")
+readable_text = "Finally! I was so hungry!"
+keys_required = Array[String](["sandwich"])
+keys_taken = Array[String](["sandwich"])
+metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+
+[sub_resource type="Resource" id="Resource_00tp4"]
+script = ExtResource("5_vbegm")
+priority = 5
+readable_text = "Man, I miss my sandwich"
+keys_required = Array[String](["sandwich"])
+readable_chain = Dictionary[String, ExtResource("5_vbegm")]({
+"Oh let me return it then": SubResource("Resource_a3se8")
+})
+metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+
+[sub_resource type="Resource" id="Resource_g4v7s"]
+script = ExtResource("5_vbegm")
+readable_text = "Hey! Get out of there, that is my sandwich missing spot!"
+keys_unlocked = Array[String](["sandwich_warning"])
+metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+
+[sub_resource type="Resource" id="Resource_b0q6j"]
+script = ExtResource("5_vbegm")
+priority = 1
+readable_text = "Im telling ya! you better beware and begone!"
+keys_required = Array[String](["sandwich_warning"])
+keys_unlocked = Array[String](["sandwich_threat"])
+metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+
+[sub_resource type="Resource" id="Resource_mhym6"]
+script = ExtResource("5_vbegm")
+priority = 2
+readable_text = "Oh you WILL be sorry!"
+keys_required = Array[String](["sandwich_threat"])
+keys_unlocked = Array[String](["aggresive"])
+keys_taken = Array[String](["neutral"])
+metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_g4v7s"]
+radius = 1.0
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_g4v7s"]
 vertices = PackedVector3Array(0, 0.5, 7, 0, 0.5, 6, -1, 0.5, 5.75, -7, 0.5, 7, -1, 0.5, -3.25, -7, 0.5, -7, -1, 0.5, 4.25, -0.75, 0.5, -7, 0, 0.5, 4, 0, 0.5, -3, 1, 0.5, 5.75, 7, 0.5, 7, 7, 0.5, -7, 1, 0.5, -3.25, 1, 0.5, 4.25, 0.75, 0.5, -7)
@@ -103,28 +145,56 @@ transform = Transform3D(1.0000001, 0, 0, 0, 1.192488e-08, 1.0000001, 0, -0.99999
 editor_only = true
 
 [node name="CharacterBody3D" parent="." unique_id=99017869 instance=ExtResource("1_37kl0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-speed_walking = 5.0
-speed_running = 10.0
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 3.0789185)
+speed_walking = 3.0
+speed_running = 8.0
 jump_force = 15.0
 weight = 0.1
 
 [node name="NPCController" parent="." unique_id=2030344370 instance=ExtResource("3_6uqi0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 5)
 speed_walking = 3.0
-speed_running = 10.0
+speed_running = 8.0
 
 [node name="MeshInstance3D" parent="NPCController" index="0" unique_id=1785005663]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 1, 0)
 material_override = SubResource("StandardMaterial3D_g14j6")
 
-[node name="ScheduleController" parent="NPCController/Pathfinding" parent_id_path=PackedInt32Array(2030344370, 540558769) index="2" unique_id=871290188]
-schedule = Array[ExtResource("4_ppyta")]([SubResource("Resource_jc0uc"), SubResource("Resource_oudc5"), SubResource("Resource_1yrgr"), SubResource("Resource_7562c")])
+[node name="ChaseController" parent="NPCController/Pathfinding" parent_id_path=PackedInt32Array(2030344370, 540558769) index="2" unique_id=1426431388 node_paths=PackedStringArray("chase_target")]
+chase_target = NodePath("../../../CharacterBody3D")
+
+[node name="ScheduleController" parent="NPCController/Pathfinding" parent_id_path=PackedInt32Array(2030344370, 540558769) index="3" unique_id=871290188]
+schedule_entries = Array[ExtResource("4_00tp4")]([SubResource("Resource_xersf"), SubResource("Resource_5tkv4"), SubResource("Resource_0m0f1"), SubResource("Resource_uty7l"), SubResource("Resource_45l4g")])
+
+[node name="StateMachine" parent="NPCController/Behaviour" parent_id_path=PackedInt32Array(2030344370, 1905118480) index="0" unique_id=611879470 node_paths=PackedStringArray("state_machine")]
+state_machine = {
+"aggresive": NodePath("../../Pathfinding/ChaseController"),
+"neutral": NodePath("../../Pathfinding/ScheduleController")
+}
 
 [node name="ReadableComponent" parent="NPCController/Behaviour" parent_id_path=PackedInt32Array(2030344370, 1905118480) index="1" unique_id=2027071843 node_paths=PackedStringArray("target_object")]
-target_object = NodePath("../../../DialogueUI")
+target_object = NodePath("../../../UserInterface/DialogueUI")
 target_method_string = "display_dialogue"
-entries = Array[ExtResource("5_vbegm")]([SubResource("Resource_vn1l7")])
+entries = Array[ExtResource("5_vbegm")]([SubResource("Resource_vn1l7"), SubResource("Resource_00tp4")])
+
+[node name="ReadableComponent" type="Node3D" parent="NPCController" unique_id=111834146 node_paths=PackedStringArray("target_object")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4888041, 0)
+script = ExtResource("3_5tkv4")
+target_object = NodePath("../../UserInterface/DialogueUI")
+target_method_string = "display_dialogue"
+entries = Array[ExtResource("5_vbegm")]([SubResource("Resource_g4v7s"), SubResource("Resource_b0q6j"), SubResource("Resource_mhym6")])
+metadata/_custom_type_script = "uid://2pl1xrcafii3"
+
+[node name="AreaTriggerComponent" type="Area3D" parent="NPCController/ReadableComponent" unique_id=1387030010 node_paths=PackedStringArray("target_object", "trigger_object")]
+top_level = true
+script = ExtResource("5_0m0f1")
+target_object = NodePath("..")
+target_method_string = "trigger_interaction"
+trigger_object = NodePath("../../../CharacterBody3D")
+metadata/_custom_type_script = "uid://lsbultvx6w"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NPCController/ReadableComponent/AreaTriggerComponent" unique_id=1630283329]
+shape = SubResource("SphereShape3D_g4v7s")
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=1817612550]
 navigation_mesh = SubResource("NavigationMesh_g4v7s")
@@ -147,84 +217,34 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -4)
 [node name="CSGCylinder3D4" type="CSGCylinder3D" parent="NavigationRegion3D/CSGBox3D" unique_id=758314319]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -6)
 
-[node name="DialogueUI" type="Control" parent="." unique_id=943454188 node_paths=PackedStringArray("text_container", "text_label", "button_container")]
+[node name="UserInterface" type="Control" parent="." unique_id=879285244 node_paths=PackedStringArray("menu_pause", "menu_clock", "menu_dialogue")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("6_g14j6")
-text_container = NodePath("VBoxContainer/MarginContainer")
-text_label = NodePath("VBoxContainer/MarginContainer/Panel/MarginContainer/RichTextLabel")
-button_container = NodePath("VBoxContainer/MarginContainer2/HBoxContainer")
-pause_on_text = true
+script = ExtResource("6_xersf")
+menu_pause = NodePath("PauseUI")
+menu_clock = NodePath("ClockUI")
+menu_dialogue = NodePath("DialogueUI")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="DialogueUI" unique_id=2125965246]
-custom_minimum_size = Vector2(0, 44.385)
+[node name="ClockUI" type="Control" parent="UserInterface" unique_id=565880342 node_paths=PackedStringArray("clock_display", "clock_text", "clock_input_display", "clock_input_display_text", "clock_input_hour", "clock_input_minute")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="Panel" type="Panel" parent="DialogueUI/VBoxContainer" unique_id=1399968862]
-layout_mode = 2
-size_flags_vertical = 3
-size_flags_stretch_ratio = 6.0
-theme_override_styles/panel = SubResource("StyleBoxEmpty_yf5fn")
-
-[node name="MarginContainer" type="MarginContainer" parent="DialogueUI/VBoxContainer" unique_id=1065917600]
-visible = false
-layout_mode = 2
-size_flags_vertical = 3
-size_flags_stretch_ratio = 3.0
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 5
-
-[node name="Panel" type="Panel" parent="DialogueUI/VBoxContainer/MarginContainer" unique_id=850699927]
-layout_mode = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="DialogueUI/VBoxContainer/MarginContainer/Panel" unique_id=153232163]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 5
-
-[node name="RichTextLabel" type="RichTextLabel" parent="DialogueUI/VBoxContainer/MarginContainer/Panel/MarginContainer" unique_id=988575106]
-layout_mode = 2
-text = "Dialogue"
-fit_content = true
-
-[node name="MarginContainer2" type="MarginContainer" parent="DialogueUI/VBoxContainer" unique_id=1442096007]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 5
-
-[node name="HBoxContainer" type="HBoxContainer" parent="DialogueUI/VBoxContainer/MarginContainer2" unique_id=1296322448]
-layout_mode = 2
-
-[node name="ClockUI" type="Control" parent="." unique_id=565880342 node_paths=PackedStringArray("clock_text")]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
 script = ExtResource("8_ehkex")
+clock_display = NodePath("MarginContainer")
 clock_text = NodePath("MarginContainer/Panel/RichTextLabel")
+clock_input_display = NodePath("VBoxContainer")
+clock_input_display_text = NodePath("VBoxContainer/Panel/RichTextLabel")
+clock_input_hour = NodePath("VBoxContainer/HBoxContainer/Button")
+clock_input_minute = NodePath("VBoxContainer/HBoxContainer/Button2")
 
-[node name="MarginContainer" type="MarginContainer" parent="ClockUI" unique_id=624376430]
+[node name="MarginContainer" type="MarginContainer" parent="UserInterface/ClockUI" unique_id=624376430]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
@@ -233,11 +253,11 @@ theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="Panel" type="Panel" parent="ClockUI/MarginContainer" unique_id=492208631]
+[node name="Panel" type="Panel" parent="UserInterface/ClockUI/MarginContainer" unique_id=492208631]
 custom_minimum_size = Vector2(100, 50)
 layout_mode = 2
 
-[node name="RichTextLabel" type="RichTextLabel" parent="ClockUI/MarginContainer/Panel" unique_id=973604912]
+[node name="RichTextLabel" type="RichTextLabel" parent="UserInterface/ClockUI/MarginContainer/Panel" unique_id=973604912]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -251,10 +271,126 @@ autowrap_mode = 0
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="PauseUI" type="Control" parent="." unique_id=1192189289]
+[node name="VBoxContainer" type="VBoxContainer" parent="UserInterface/ClockUI" unique_id=503373896]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="UserInterface/ClockUI/VBoxContainer" unique_id=1732635298]
+custom_minimum_size = Vector2(196, 72)
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="UserInterface/ClockUI/VBoxContainer/Panel" unique_id=1510381382]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/normal_font_size = 64
+text = "00:00"
+fit_content = true
+autowrap_mode = 0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UserInterface/ClockUI/VBoxContainer" unique_id=1398886702]
+layout_mode = 2
+
+[node name="Button" type="Button" parent="UserInterface/ClockUI/VBoxContainer/HBoxContainer" unique_id=67950218]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+H"
+
+[node name="Button2" type="Button" parent="UserInterface/ClockUI/VBoxContainer/HBoxContainer" unique_id=982774428]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+M"
+
+[node name="DialogueUI" type="Control" parent="UserInterface" unique_id=943454188 node_paths=PackedStringArray("text_container", "text_label", "button_container")]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("6_g14j6")
+text_container = NodePath("VBoxContainer/MarginContainer")
+text_label = NodePath("VBoxContainer/MarginContainer/Panel/MarginContainer/RichTextLabel")
+button_container = NodePath("VBoxContainer/MarginContainer2/HBoxContainer")
+pause_on_text = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UserInterface/DialogueUI" unique_id=2125965246]
+custom_minimum_size = Vector2(0, 44.385)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="UserInterface/DialogueUI/VBoxContainer" unique_id=1399968862]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 6.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_yf5fn")
+
+[node name="MarginContainer" type="MarginContainer" parent="UserInterface/DialogueUI/VBoxContainer" unique_id=1065917600]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 3.0
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="Panel" type="Panel" parent="UserInterface/DialogueUI/VBoxContainer/MarginContainer" unique_id=850699927]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="UserInterface/DialogueUI/VBoxContainer/MarginContainer/Panel" unique_id=153232163]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="RichTextLabel" type="RichTextLabel" parent="UserInterface/DialogueUI/VBoxContainer/MarginContainer/Panel/MarginContainer" unique_id=988575106]
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 24
+text = "Dialogue"
+fit_content = true
+
+[node name="MarginContainer2" type="MarginContainer" parent="UserInterface/DialogueUI/VBoxContainer" unique_id=1442096007]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UserInterface/DialogueUI/VBoxContainer/MarginContainer2" unique_id=1296322448]
+layout_mode = 2
+
+[node name="PauseUI" type="Control" parent="UserInterface" unique_id=1192189289]
 process_mode = 3
 visible = false
-layout_mode = 3
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -262,7 +398,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("9_xersf")
 
-[node name="MarginContainer" type="MarginContainer" parent="PauseUI" unique_id=1972971079]
+[node name="MarginContainer" type="MarginContainer" parent="UserInterface/PauseUI" unique_id=1972971079]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -280,11 +416,11 @@ theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="Panel" type="Panel" parent="PauseUI/MarginContainer" unique_id=487559233]
+[node name="Panel" type="Panel" parent="UserInterface/PauseUI/MarginContainer" unique_id=487559233]
 custom_minimum_size = Vector2(300, 100)
 layout_mode = 2
 
-[node name="RichTextLabel" type="RichTextLabel" parent="PauseUI/MarginContainer/Panel" unique_id=1474187393]
+[node name="RichTextLabel" type="RichTextLabel" parent="UserInterface/PauseUI/MarginContainer/Panel" unique_id=1474187393]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

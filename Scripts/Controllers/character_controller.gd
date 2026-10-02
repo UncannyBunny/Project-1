@@ -20,6 +20,10 @@ func _physics_process(delta: float) -> void:
 func set_direction(new_direction: Vector3) -> void:
 	_movement_direction = new_direction.normalized()
 
+func set_movement(new_direction: Vector3, is_running: bool = false) -> void:
+	_movement_direction = new_direction.normalized()
+	movement_speed = speed_running if is_running else speed_walking
+
 func set_orientation(new_rotation: float) -> void:
 	rotation.y = new_rotation
 
