@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://b0fay6x68biy2"]
+
+[ext_resource type="PackedScene" uid="uid://dn5s1wnm6bslg" path="res://addons/psx_mall_kit/models/register_model.glb" id="1"]
+
+[sub_resource type="BoxShape3D" id="box1"]
+size = Vector3(0.38, 0.084, 0.38)
+
+[sub_resource type="BoxShape3D" id="box0"]
+size = Vector3(0.42, 0.5, 0.42)
+
+[node name="register" unique_id=1356996391 instance=ExtResource("1")]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0)
+
+[node name="Collision" type="StaticBody3D" parent="register/register_drawer" parent_id_path=PackedInt32Array(678320827) index="0" unique_id=1833465393]
+
+[node name="Box" type="CollisionShape3D" parent="register/register_drawer/Collision" index="0" unique_id=1216860173]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.052, 0)
+shape = SubResource("box1")
+
+[node name="Collision" type="StaticBody3D" parent="register" parent_id_path=PackedInt32Array(580337330) index="1" unique_id=148611933]
+
+[node name="Box" type="CollisionShape3D" parent="register/Collision" index="0" unique_id=1111152037]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+shape = SubResource("box0")

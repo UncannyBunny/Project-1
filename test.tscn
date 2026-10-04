@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://bisuxvwdp0013"]
 
 [ext_resource type="PackedScene" uid="uid://dlygyllacfx4x" path="res://Scripts/Controllers/player_controller.tscn" id="1_37kl0"]
-[ext_resource type="Texture2D" uid="uid://ctedis6qabpfo" path="res://Assets/Textures/tile.jpg" id="2_8uh7m"]
 [ext_resource type="Script" uid="uid://2pl1xrcafii3" path="res://Scripts/Components/readable_component.gd" id="3_5tkv4"]
 [ext_resource type="PackedScene" uid="uid://ctupd4j60qvup" path="res://Scripts/Controllers/npc_controller.tscn" id="3_6uqi0"]
 [ext_resource type="Texture2D" uid="uid://d2cgn1puj7f5r" path="res://icon.svg" id="3_ykrsh"]
@@ -11,8 +10,18 @@
 [ext_resource type="Script" uid="uid://bu4nmx7368xsj" path="res://Scripts/UI/dialogue_ui.gd" id="6_g14j6"]
 [ext_resource type="Script" uid="uid://bbw6x7xvlpo48" path="res://ui_controller.gd" id="6_xersf"]
 [ext_resource type="Script" uid="uid://bnokdyx5eqkgr" path="res://Scripts/UI/clock_ui.gd" id="8_ehkex"]
+[ext_resource type="Texture2D" uid="uid://bwqo2vqi2dpfi" path="res://Assets/GasStation/textures/market_tile_dirty.png" id="8_vxl6d"]
 [ext_resource type="PackedScene" uid="uid://2kuglcl05m3q" path="res://Assets/Shelves/shelves_pack.glb" id="9_0m0f1"]
+[ext_resource type="Texture2D" uid="uid://q3sr3c1dxo4n" path="res://Assets/GasStation/textures/market_paint.png" id="9_pdf00"]
 [ext_resource type="Script" uid="uid://c0rgqrsfrtiuq" path="res://Scripts/UI/pause_ui.gd" id="9_xersf"]
+[ext_resource type="Texture2D" uid="uid://3epk3j68niub" path="res://Assets/GasStation/textures/market_base.png" id="10_a6gra"]
+[ext_resource type="Texture2D" uid="uid://bjprfyks1bslo" path="res://Assets/GasStation/textures/mall_paint.png" id="11_dwqlq"]
+[ext_resource type="PackedScene" uid="uid://cfet3tbnu14bd" path="res://Assets/GasStation/furniture/mesa.tscn" id="13_uty7l"]
+[ext_resource type="PackedScene" uid="uid://dnoljo0c0wqtx" path="res://Assets/GasStation/furniture/bathroom_stalls.tscn" id="14_4uo0j"]
+[ext_resource type="PackedScene" uid="uid://v8te7pc7mgn7" path="res://addons/psx_mall_kit/props/gondola_market.tscn" id="14_b0q6j"]
+[ext_resource type="PackedScene" uid="uid://dlb8ouwtcoscb" path="res://addons/psx_mall_kit/props/checkout.tscn" id="15_a3se8"]
+[ext_resource type="PackedScene" uid="uid://n6flld33p81l" path="res://Assets/GasStation/furniture/lavamanos.tscn" id="15_vxl6d"]
+[ext_resource type="PackedScene" uid="uid://b0fay6x68biy2" path="res://addons/psx_mall_kit/props/register.tscn" id="16_uty7l"]
 
 [sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_xersf"]
 
@@ -124,12 +133,39 @@ metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 radius = 1.0
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_g4v7s"]
-vertices = PackedVector3Array(0, 0.5, 7, 0, 0.5, 6, -1, 0.5, 5.75, -7, 0.5, 7, -1, 0.5, -3.25, -7, 0.5, -7, -1, 0.5, 4.25, -0.75, 0.5, -7, 0, 0.5, 4, 0, 0.5, -3, 1, 0.5, 5.75, 7, 0.5, 7, 7, 0.5, -7, 1, 0.5, -3.25, 1, 0.5, 4.25, 0.75, 0.5, -7)
-polygons = [PackedInt32Array(1, 0, 2), PackedInt32Array(2, 0, 3), PackedInt32Array(6, 3, 4), PackedInt32Array(4, 3, 5), PackedInt32Array(6, 2, 3), PackedInt32Array(5, 7, 4), PackedInt32Array(8, 6, 9), PackedInt32Array(9, 6, 4), PackedInt32Array(1, 10, 0), PackedInt32Array(0, 10, 11), PackedInt32Array(14, 13, 11), PackedInt32Array(11, 13, 12), PackedInt32Array(11, 10, 14), PackedInt32Array(13, 15, 12), PackedInt32Array(9, 13, 8), PackedInt32Array(8, 13, 14)]
+vertices = PackedVector3Array(3.999998, 0.5, -5.000003, 3.999998, 0.5, -6.000003, 3.749998, 0.5, -6.500003, -2.250002, 0.5, -1.5000029, -2.000002, 0.5, -2.861023e-06, -1.7500019, 0.5, -2.861023e-06, -1.5000019, 0.5, -1.5000029, -6.500002, 0.5, -6.000003, -6.500002, 0.5, -1.5000029, -5.000002, 0.5, -1.5000029, -2.500002, 0.5, -3.0000029, -2.750002, 0.5, -5.000003, -4.250002, 0.5, -5.750003, -1.9073486e-06, 0.5, -1.5000029, 0.2499981, 0.5, -2.861023e-06, 0.4999981, 0.5, -2.861023e-06, 0.4999981, 0.5, -3.0000029, 1.7499981, 0.5, -5.500003, 1.9999981, 0.5, -3.5000029, 3.999998, 0.5, -3.5000029, -4.750002, 0.5, -2.861023e-06, -4.000002, 0.5, -2.861023e-06, -3.750002, 0.5, -1.5000029, -3.750002, 0.5, -6.500003, 2.249998, 0.5, 0.24999714, 2.749998, 0.5, 0.24999714, 2.999998, 0.5, -0.50000286, 5.499998, 0.5, -4.750003, 6.499998, 0.5, -6.500003, 3.749998, 0.5, -0.50000286, 3.999998, 0.5, 0.24999714, 6.499998, 0.5, 0.24999714, 5.249998, 0.5, -3.5000029, 2.499998, 0.5, 3.4999971, 1.9999981, 0.5, 2.2499971, 1.9999981, 0.5, 3.4999971, -1.9073486e-06, 0.5, 1.4999971, 0.7499981, 0.5, 3.7499971, -1.5000019, 0.5, 1.4999971, -2.250002, 0.5, 1.4999971, 0.4999981, 0.5, 6.499997, 0.7499981, 0.5, 4.499997, 4.249998, 0.5, 3.2499971, 4.249998, 0.5, 1.7499971, 3.749998, 0.5, 1.7499971, 3.499998, 0.5, 3.4999971, -3.750002, 0.5, 1.4999971, -5.000002, 0.5, 1.4999971, -4.000002, 0.5, 6.499997, -3.750002, 0.5, 6.999997, 6.249998, 0.5, 1.7499971, 5.749998, 0.5, 1.7499971, 5.499998, 0.5, 3.4999971, 6.499998, 0.5, 6.499997, 1.9999981, 0.5, 4.749997, 1.9999981, 0.5, 6.499997, -6.500002, 0.5, 1.4999971, -6.500002, 0.5, 6.499997)
+polygons = [PackedInt32Array(2, 1, 0), PackedInt32Array(4, 3, 5), PackedInt32Array(5, 3, 6), PackedInt32Array(11, 10, 12), PackedInt32Array(12, 10, 9), PackedInt32Array(12, 9, 8), PackedInt32Array(12, 8, 7), PackedInt32Array(14, 13, 15), PackedInt32Array(15, 13, 16), PackedInt32Array(19, 18, 0), PackedInt32Array(0, 18, 17), PackedInt32Array(0, 17, 2), PackedInt32Array(20, 9, 21), PackedInt32Array(21, 9, 22), PackedInt32Array(10, 22, 9), PackedInt32Array(13, 6, 16), PackedInt32Array(16, 6, 10), PackedInt32Array(12, 23, 11), PackedInt32Array(11, 23, 17), PackedInt32Array(17, 23, 2), PackedInt32Array(10, 6, 3), PackedInt32Array(10, 3, 22), PackedInt32Array(26, 25, 24), PackedInt32Array(0, 1, 27), PackedInt32Array(27, 1, 28), PackedInt32Array(29, 26, 19), PackedInt32Array(30, 29, 31), PackedInt32Array(31, 29, 32), PackedInt32Array(32, 29, 19), PackedInt32Array(24, 18, 26), PackedInt32Array(26, 18, 19), PackedInt32Array(27, 28, 32), PackedInt32Array(32, 28, 31), PackedInt32Array(35, 34, 33), PackedInt32Array(14, 15, 36), PackedInt32Array(36, 15, 37), PackedInt32Array(5, 38, 4), PackedInt32Array(4, 38, 39), PackedInt32Array(37, 41, 40), PackedInt32Array(43, 42, 44), PackedInt32Array(44, 42, 45), PackedInt32Array(39, 38, 37), PackedInt32Array(37, 35, 33), PackedInt32Array(21, 46, 20), PackedInt32Array(20, 46, 47), PackedInt32Array(47, 46, 48), PackedInt32Array(49, 48, 40), PackedInt32Array(40, 48, 37), PackedInt32Array(37, 48, 39), PackedInt32Array(39, 48, 46), PackedInt32Array(51, 50, 52), PackedInt32Array(52, 50, 53), PackedInt32Array(42, 52, 45), PackedInt32Array(45, 52, 54), PackedInt32Array(54, 52, 55), PackedInt32Array(55, 52, 53), PackedInt32Array(56, 47, 57), PackedInt32Array(57, 47, 48), PackedInt32Array(41, 37, 54), PackedInt32Array(54, 37, 33), PackedInt32Array(54, 33, 45), PackedInt32Array(38, 36, 37)]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6uqi0"]
-albedo_texture = ExtResource("2_8uh7m")
+albedo_texture = ExtResource("8_vxl6d")
 uv1_scale = Vector3(15, 15, 15)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4uo0j"]
+albedo_texture = ExtResource("9_pdf00")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pdf00"]
+albedo_texture = ExtResource("9_pdf00")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a6gra"]
+albedo_texture = ExtResource("9_pdf00")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j75vh"]
+albedo_texture = ExtResource("10_a6gra")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dwqlq"]
+albedo_texture = ExtResource("11_dwqlq")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_15c7i"]
+albedo_texture = ExtResource("9_pdf00")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xpeyw"]
+albedo_texture = ExtResource("9_pdf00")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dpmuy"]
+albedo_texture = ExtResource("9_pdf00")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yww54"]
+albedo_texture = ExtResource("9_pdf00")
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yf5fn"]
 
@@ -167,17 +203,23 @@ chase_target = NodePath("../../../CharacterBody3D")
 [node name="ScheduleController" parent="NPCController/Pathfinding" parent_id_path=PackedInt32Array(2030344370, 540558769) index="3" unique_id=871290188]
 schedule_entries = Array[ExtResource("4_00tp4")]([SubResource("Resource_xersf"), SubResource("Resource_5tkv4"), SubResource("Resource_0m0f1"), SubResource("Resource_uty7l"), SubResource("Resource_45l4g")])
 
+[node name="StateMachine" parent="NPCController/Behaviour" parent_id_path=PackedInt32Array(2030344370, 1905118480) index="0" unique_id=611879470 node_paths=PackedStringArray("state_machine")]
+state_machine = {
+"aggresive": NodePath("../../Pathfinding/ChaseController"),
+"neutral": NodePath("../../Pathfinding/PathfindingComponent")
+}
+
 [node name="ReadableComponent" parent="NPCController/Behaviour" parent_id_path=PackedInt32Array(2030344370, 1905118480) index="1" unique_id=2027071843 node_paths=PackedStringArray("target_object")]
+target_object = NodePath("../../../UserInterface/DialogueUI")
 target_method_string = "display_dialogue"
 entries = Array[ExtResource("5_vbegm")]([SubResource("Resource_vn1l7"), SubResource("Resource_00tp4")])
-target_object = NodePath("../../../UserInterface/DialogueUI")
 
 [node name="ReadableComponent" type="Node3D" parent="NPCController" unique_id=111834146 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4888041, 0)
 script = ExtResource("3_5tkv4")
+target_object = NodePath("../../UserInterface/DialogueUI")
 target_method_string = "display_dialogue"
 entries = Array[ExtResource("5_vbegm")]([SubResource("Resource_g4v7s"), SubResource("Resource_b0q6j"), SubResource("Resource_mhym6")])
-target_object = NodePath("../../UserInterface/DialogueUI")
 metadata/_custom_type_script = "uid://2pl1xrcafii3"
 
 [node name="AreaTriggerComponent" type="Area3D" parent="NPCController/ReadableComponent" unique_id=1387030010 node_paths=PackedStringArray("target_object", "trigger_object")]
@@ -204,44 +246,83 @@ material = SubResource("StandardMaterial3D_6uqi0")
 [node name="WallV1" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=886266826]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1.0000002, -7.335, 4, 0)
 size = Vector3(0.33, 7, 15)
+material = SubResource("StandardMaterial3D_4uo0j")
 
 [node name="WallV2" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=1035559049]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1.0000002, 7.335, 4, 0)
 size = Vector3(0.33, 7, 15)
+material = SubResource("StandardMaterial3D_pdf00")
 
 [node name="WallH1" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=737451733]
 transform = Transform3D(-4.371139e-08, 0, -1.0000002, 0, 1, 0, 1.0000002, 0, -4.371141e-08, 0, 4, -7.335)
 size = Vector3(0.33, 7, 15)
+material = SubResource("StandardMaterial3D_a6gra")
 
 [node name="WallH2" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=2121271311]
 transform = Transform3D(-4.371139e-08, 0, -1.0000002, 0, 1, 0, 1.0000002, 0, -4.371141e-08, 0, 4, 7.335)
+material_override = SubResource("StandardMaterial3D_j75vh")
 size = Vector3(0.33, 7, 15)
+material = SubResource("StandardMaterial3D_dwqlq")
 
 [node name="Wall1-2" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=527755514]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1.0000002, 1.3316664, 4, 0)
 size = Vector3(0.33, 7, 15)
+material = SubResource("StandardMaterial3D_15c7i")
 
 [node name="Entrance Door" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=2039736935]
 transform = Transform3D(-4.371139e-08, 0, -1.0000002, 0, 1, 0, 1.0000002, 0, -4.3712532e-08, -3.0000007, 3, 7.335003)
 operation = 2
 size = Vector3(0.5, 5, 3)
+material = SubResource("StandardMaterial3D_xpeyw")
 
 [node name="Bathroom Door" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=1002691142]
 transform = Transform3D(1.0000002, 0, -1.1368684e-12, 0, 1, 0, -8.526513e-15, 0, 1.0000002, 1.3333328, 3, 4.135005)
 operation = 2
 size = Vector3(0.5, 5, 2)
+material = SubResource("StandardMaterial3D_dpmuy")
 
 [node name="Bath-Staff Wall" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=1113577180]
 transform = Transform3D(-4.371139e-08, 0, -1.0000002, 0, 1, 0, 1.0000002, 0, -4.3712e-08, 4.342042, 4, 1.0650008)
 size = Vector3(0.33, 7, 6.315918)
+material = SubResource("StandardMaterial3D_yww54")
 
 [node name="Bathroom Door2" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=1769342520]
-transform = Transform3D(1.0000002, 0, -1.1368684e-12, 0, 1, 0, -8.526513e-15, 0, 1.0000002, 1.3333328, 3, -5.8649955)
+transform = Transform3D(1.0000002, 0, -1.1368684e-12, 0, 1, 0, -8.526513e-15, 0, 1.0000002, 1.3333328, 3, -5.864996)
 operation = 2
 size = Vector3(0.5, 5, 2)
 
 [node name="Sketchfab_Scene" parent="NavigationRegion3D/CSGBox3D" unique_id=374121990 instance=ExtResource("9_0m0f1")]
 transform = Transform3D(0.03, 0, 0, 0, 0.09, 0, 0, 0, 0.03600001, -5.666667, 0.5, -6.800003)
+
+[node name="GasStationProps" type="Node3D" parent="NavigationRegion3D" unique_id=1173244549]
+transform = Transform3D(0.33333334, 0, 0, 0, 1, 0, 0, 0, 0.40000013, 0, 0, 0)
+
+[node name="gondola_market2" parent="NavigationRegion3D/GasStationProps" unique_id=387584238 instance=ExtResource("14_b0q6j")]
+transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2, 0, -8.742278e-08, -2.1486044, 0, -0.11080146)
+
+[node name="gondola_market" parent="NavigationRegion3D/GasStationProps" unique_id=2033227566 instance=ExtResource("14_b0q6j")]
+transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2.0000002, 0, -8.742278e-08, -9.11392, 0, -0.110801466)
+
+[node name="gondola_market3" parent="NavigationRegion3D/GasStationProps" unique_id=942637635 instance=ExtResource("14_b0q6j")]
+transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2, 0, -8.742278e-08, -17.178917, 0, -0.11080146)
+
+[node name="checkout" parent="NavigationRegion3D/GasStationProps" unique_id=89497345 instance=ExtResource("15_a3se8")]
+transform = Transform3D(-8.742278e-08, 0, -4, 0, 2, 0, 1.9999993, 0, -1.748455e-07, -1.4444342, 0, -10.484556)
+
+[node name="register" parent="NavigationRegion3D/GasStationProps" unique_id=2111887827 instance=ExtResource("16_uty7l")]
+transform = Transform3D(-2, 0, -3.019916e-07, 0, 2, 0, 3.019915e-07, 0, -1.9999993, 2.216206, 1.8028529, -10.6942835)
+
+[node name="mesa" parent="NavigationRegion3D/GasStationProps" unique_id=1951481096 instance=ExtResource("13_uty7l")]
+transform = Transform3D(-2.1855695e-07, 0, 2.5, 0, 2.5, 0, -5, 0, -1.09278474e-07, 13.731504, 0, -13.832173)
+
+[node name="mesa2" parent="NavigationRegion3D/GasStationProps" unique_id=481411154 instance=ExtResource("13_uty7l")]
+transform = Transform3D(4, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 7.5154037, 0, 0.9850546)
+
+[node name="BathroomStalls" parent="NavigationRegion3D/GasStationProps" unique_id=730228733 instance=ExtResource("14_4uo0j")]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 2.999999, 9.008286, 0, 4.8418636)
+
+[node name="Lavamanos" parent="NavigationRegion3D/GasStationProps" unique_id=12356510 instance=ExtResource("15_vxl6d")]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 2.999999, 7.109, 0, 3.9449985)
 
 [node name="UserInterface" type="Control" parent="." unique_id=879285244 node_paths=PackedStringArray("menu_pause", "menu_clock", "menu_dialogue")]
 layout_mode = 3
@@ -352,10 +433,10 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("6_g14j6")
-pause_on_text = true
 text_container = NodePath("VBoxContainer/MarginContainer")
 text_label = NodePath("VBoxContainer/MarginContainer/Panel/MarginContainer/RichTextLabel")
 button_container = NodePath("VBoxContainer/MarginContainer2/HBoxContainer")
+pause_on_text = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UserInterface/DialogueUI" unique_id=2125965246]
 custom_minimum_size = Vector2(0, 44.385)

@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://addons/psx_mall_kit/models/freezer_doors_model.glb" id="1"]
+[ext_resource type="Script" path="res://addons/psx_mall_kit/machine.gd" id="2"]
+
+[sub_resource type="BoxShape3D" id="box0"]
+size = Vector3(2.0100, 2.3000, 0.9450)
+
+[sub_resource type="BoxShape3D" id="box1"]
+size = Vector3(1.9800, 2.1800, 0.0950)
+
+[node name="freezer_doors" instance=ExtResource("1")]
+script = ExtResource("2")
+kind = "powered"
+on = true
+lit = PackedStringArray("freezer_doors_lamp")
+
+[node name="Collision" type="StaticBody3D" parent="freezer_doors"]
+
+[node name="Box" type="CollisionShape3D" parent="freezer_doors/Collision"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0000, 1.1500, 0.4725)
+shape = SubResource("box0")
+
+[node name="Collision" type="StaticBody3D" parent="freezer_doors/freezer_doors_lamp"]
+
+[node name="Box" type="CollisionShape3D" parent="freezer_doors/freezer_doors_lamp/Collision"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0000, 1.2100, 0.8495)
+shape = SubResource("box1")

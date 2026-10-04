@@ -1,0 +1,961 @@
+{
+ "atlas": 1024,
+ "atlas_used": 224,
+ "fps": 30,
+ "props": [
+  {
+   "name": "floor_market",
+   "title": "Supermarket Floor",
+   "group": "floors",
+   "place": "floor",
+   "note": "2 x 2 m of white vinyl tiles, some green",
+   "tris": 8,
+   "size": [
+    2.0,
+    2.0,
+    0.0
+   ],
+   "min": [
+    -1.0,
+    -1.0,
+    0.0
+   ],
+   "max": [
+    1.0,
+    1.0,
+    0.0
+   ],
+   "parts": [
+    {
+     "name": "floor_market",
+     "parent": null,
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 8,
+     "min": [
+      -1.0,
+      -1.0,
+      0.0
+     ],
+     "max": [
+      1.0,
+      1.0,
+      0.0
+     ]
+    }
+   ],
+   "anims": []
+  },
+  {
+   "name": "floor_market_dirty",
+   "title": "Dirty Supermarket Floor",
+   "group": "floors",
+   "place": "floor",
+   "note": "trolley tracks, a spill mopped round",
+   "tris": 8,
+   "size": [
+    2.0,
+    2.0,
+    0.0
+   ],
+   "min": [
+    -1.0,
+    -1.0,
+    0.0
+   ],
+   "max": [
+    1.0,
+    1.0,
+    0.0
+   ],
+   "parts": [
+    {
+     "name": "floor_market_dirty",
+     "parent": null,
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 8,
+     "min": [
+      -1.0,
+      -1.0,
+      0.0
+     ],
+     "max": [
+      1.0,
+      1.0,
+      0.0
+     ]
+    }
+   ],
+   "anims": []
+  },
+  {
+   "name": "ceiling_mall",
+   "title": "Mall Ceiling",
+   "group": "ceilings",
+   "place": "floor",
+   "note": "white plaster at 3 m, two downlights; set a storey up over the atrium",
+   "tris": 68,
+   "size": [
+    2.0,
+    2.0,
+    0.021
+   ],
+   "min": [
+    -1.0,
+    -1.0,
+    2.979
+   ],
+   "max": [
+    1.0,
+    1.0,
+    3.0
+   ],
+   "parts": [
+    {
+     "name": "ceiling_mall",
+     "parent": null,
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 68,
+     "min": [
+      -1.0,
+      -1.0,
+      2.979
+     ],
+     "max": [
+      1.0,
+      1.0,
+      3.0
+     ]
+    }
+   ],
+   "anims": []
+  },
+  {
+   "name": "wall_market",
+   "title": "Supermarket Wall",
+   "group": "walls",
+   "place": "floor",
+   "note": "pale green over SAVE-RITE's stripes",
+   "tris": 28,
+   "size": [
+    2.0,
+    0.2,
+    3.0
+   ],
+   "min": [
+    -1.0,
+    -0.1,
+    0.0
+   ],
+   "max": [
+    1.0,
+    0.1,
+    3.0
+   ],
+   "parts": [
+    {
+     "name": "wall_market",
+     "parent": null,
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 28,
+     "min": [
+      -1.0,
+      -0.1,
+      0.0
+     ],
+     "max": [
+      1.0,
+      0.1,
+      3.0
+     ]
+    }
+   ],
+   "anims": []
+  },
+  {
+   "name": "wall_opening_market",
+   "title": "Supermarket Opening Wall",
+   "group": "walls",
+   "place": "floor",
+   "note": "the opening wall, the supermarket behind",
+   "tris": 72,
+   "size": [
+    4.0,
+    0.2,
+    3.0
+   ],
+   "min": [
+    -2.0,
+    -0.1,
+    0.0
+   ],
+   "max": [
+    2.0,
+    0.1,
+    3.0
+   ],
+   "parts": [
+    {
+     "name": "wall_opening_market",
+     "parent": null,
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 20,
+     "min": [
+      -2.0,
+      -0.1,
+      0.0
+     ],
+     "max": [
+      -1.8,
+      0.1,
+      3.0
+     ]
+    },
+    {
+     "name": "wall_opening_market_1",
+     "parent": "wall_opening_market",
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 32,
+     "min": [
+      -1.8,
+      -0.1,
+      2.5
+     ],
+     "max": [
+      1.8,
+      0.1,
+      3.0
+     ]
+    },
+    {
+     "name": "wall_opening_market_2",
+     "parent": "wall_opening_market",
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 20,
+     "min": [
+      1.8,
+      -0.1,
+      0.0
+     ],
+     "max": [
+      2.0,
+      0.1,
+      3.0
+     ]
+    }
+   ],
+   "anims": []
+  },
+  {
+   "name": "wall_post_market",
+   "title": "Supermarket Post",
+   "group": "walls",
+   "place": "floor",
+   "note": "fills the corner where walls meet",
+   "tris": 26,
+   "size": [
+    0.2,
+    0.2,
+    3.0
+   ],
+   "min": [
+    -0.1,
+    -0.1,
+    0.0
+   ],
+   "max": [
+    0.1,
+    0.1,
+    3.0
+   ],
+   "parts": [
+    {
+     "name": "wall_post_market",
+     "parent": null,
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 26,
+     "min": [
+      -0.1,
+      -0.1,
+      0.0
+     ],
+     "max": [
+      0.1,
+      0.1,
+      3.0
+     ]
+    }
+   ],
+   "anims": []
+  },
+  {
+   "name": "storefront_entrance",
+   "title": "Storefront Entrance",
+   "group": "storefronts",
+   "place": "floor",
+   "note": "sidelights round a 1.6 m doorway; fits the shop doors or the sliding doors",
+   "tris": 116,
+   "size": [
+    3.6,
+    0.1,
+    2.5
+   ],
+   "min": [
+    -1.8,
+    -0.05,
+    0.0
+   ],
+   "max": [
+    1.8,
+    0.05,
+    2.5
+   ],
+   "parts": [
+    {
+     "name": "storefront_entrance",
+     "parent": null,
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 52,
+     "min": [
+      -1.8,
+      -0.05,
+      0.0
+     ],
+     "max": [
+      -0.87,
+      0.05,
+      2.5
+     ]
+    },
+    {
+     "name": "storefront_entrance_r",
+     "parent": "storefront_entrance",
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 52,
+     "min": [
+      0.87,
+      -0.05,
+      0.0
+     ],
+     "max": [
+      1.8,
+      0.05,
+      2.5
+     ]
+    },
+    {
+     "name": "storefront_entrance_head",
+     "parent": "storefront_entrance",
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 12,
+     "min": [
+      -0.87,
+      -0.04,
+      2.4
+     ],
+     "max": [
+      0.87,
+      0.04,
+      2.5
+     ]
+    }
+   ],
+   "anims": []
+  },
+  {
+   "name": "door_auto",
+   "title": "Sliding Doors",
+   "group": "storefronts",
+   "place": "floor",
+   "note": "in the storefront entrance; a use parts them, or the power when they need it",
+   "tris": 136,
+   "size": [
+    3.6,
+    0.16,
+    2.6
+   ],
+   "min": [
+    -1.8,
+    -0.205,
+    0.01
+   ],
+   "max": [
+    1.8,
+    -0.045,
+    2.61
+   ],
+   "parts": [
+    {
+     "name": "door_auto",
+     "parent": null,
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 24,
+     "min": [
+      -1.8,
+      -0.205,
+      2.39
+     ],
+     "max": [
+      1.8,
+      -0.045,
+      2.61
+     ]
+    },
+    {
+     "name": "door_auto_l",
+     "parent": "door_auto",
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 56,
+     "min": [
+      -0.82,
+      -0.0995,
+      0.01
+     ],
+     "max": [
+      0.0,
+      -0.0525,
+      2.39
+     ]
+    },
+    {
+     "name": "door_auto_r",
+     "parent": "door_auto",
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 56,
+     "min": [
+      0.0,
+      -0.0995,
+      0.01
+     ],
+     "max": [
+      0.82,
+      -0.0525,
+      2.39
+     ]
+    }
+   ],
+   "anims": [
+    {
+     "name": "open",
+     "seconds": 1.6,
+     "loop": false
+    }
+   ],
+   "use": {
+    "kind": "powered",
+    "clip": "open"
+   }
+  },
+  {
+   "name": "gondola_market",
+   "title": "Supermarket Gondola",
+   "group": "aisles",
+   "place": "floor",
+   "note": "2 m, five shelves a side, stocked",
+   "tris": 708,
+   "size": [
+    2.03,
+    0.97,
+    1.89
+   ],
+   "min": [
+    -1.015,
+    -0.485,
+    0.0
+   ],
+   "max": [
+    1.015,
+    0.485,
+    1.89
+   ],
+   "parts": [
+    {
+     "name": "gondola_market",
+     "parent": null,
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 708,
+     "min": [
+      -1.015,
+      -0.485,
+      0.0
+     ],
+     "max": [
+      1.015,
+      0.485,
+      1.89
+     ]
+    }
+   ],
+   "anims": []
+  },
+  {
+   "name": "freezer_doors",
+   "title": "Freezer Doors",
+   "group": "cold",
+   "place": "wall",
+   "note": "2 m, two glass doors; lit, its shelves glow",
+   "tris": 104,
+   "size": [
+    2.01,
+    0.945,
+    2.3
+   ],
+   "min": [
+    -1.005,
+    -0.945,
+    0.0
+   ],
+   "max": [
+    1.005,
+    0.0,
+    2.3
+   ],
+   "parts": [
+    {
+     "name": "freezer_doors",
+     "parent": null,
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 98,
+     "min": [
+      -1.005,
+      -0.945,
+      0.0
+     ],
+     "max": [
+      1.005,
+      0.0,
+      2.3
+     ]
+    },
+    {
+     "name": "freezer_doors_lamp",
+     "parent": "freezer_doors",
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 6,
+     "min": [
+      -0.99,
+      -0.897,
+      0.12
+     ],
+     "max": [
+      0.99,
+      -0.802,
+      2.3
+     ]
+    }
+   ],
+   "anims": [],
+   "use": {
+    "kind": "powered",
+    "on": true,
+    "lit": [
+     "freezer_doors_lamp"
+    ]
+   }
+  },
+  {
+   "name": "checkout",
+   "title": "Checkout",
+   "group": "checkouts",
+   "place": "floor",
+   "note": "a lane 2.4 m along Y; its belt runs while it's live",
+   "tris": 242,
+   "size": [
+    1.1,
+    2.44,
+    2.4
+   ],
+   "min": [
+    -0.45,
+    -1.22,
+    0.0
+   ],
+   "max": [
+    0.65,
+    1.22,
+    2.4
+   ],
+   "parts": [
+    {
+     "name": "checkout",
+     "parent": null,
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 128,
+     "min": [
+      -0.45,
+      -1.22,
+      0.0
+     ],
+     "max": [
+      0.65,
+      1.22,
+      2.4
+     ]
+    },
+    {
+     "name": "checkout_belt",
+     "parent": "checkout",
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 100,
+     "min": [
+      -0.24,
+      -1.1275,
+      0.93
+     ],
+     "max": [
+      0.24,
+      0.0575,
+      0.936
+     ]
+    },
+    {
+     "name": "checkout_lamp",
+     "parent": "checkout",
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 14,
+     "min": [
+      -0.44,
+      -1.161,
+      0.94
+     ],
+     "max": [
+      0.1,
+      0.51,
+      2.39
+     ]
+    }
+   ],
+   "anims": [
+    {
+     "name": "run",
+     "seconds": 1.0,
+     "loop": true
+    }
+   ],
+   "use": {
+    "kind": "powered",
+    "on": true,
+    "run": "run",
+    "lit": [
+     "checkout_lamp"
+    ]
+   }
+  },
+  {
+   "name": "shopping_cart",
+   "title": "Shopping Cart",
+   "group": "carts",
+   "place": "floor",
+   "note": "the handle to +Y",
+   "tris": 260,
+   "size": [
+    0.56,
+    0.892,
+    1.01
+   ],
+   "min": [
+    -0.28,
+    -0.455,
+    0.01
+   ],
+   "max": [
+    0.28,
+    0.437,
+    1.02
+   ],
+   "parts": [
+    {
+     "name": "shopping_cart",
+     "parent": null,
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 260,
+     "min": [
+      -0.28,
+      -0.4546,
+      0.01
+     ],
+     "max": [
+      0.28,
+      0.4373,
+      1.02
+     ]
+    }
+   ],
+   "anims": []
+  },
+  {
+   "name": "sign_saverite",
+   "title": "Save-Rite Sign",
+   "group": "signs",
+   "place": "floor",
+   "note": "the supermarket's, green and yellow; on the opening wall's bulkhead, lit",
+   "tris": 14,
+   "size": [
+    3.4,
+    0.101,
+    0.4
+   ],
+   "min": [
+    -1.7,
+    -0.201,
+    2.55
+   ],
+   "max": [
+    1.7,
+    -0.1,
+    2.95
+   ],
+   "parts": [
+    {
+     "name": "sign_saverite",
+     "parent": null,
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 12,
+     "min": [
+      -1.7,
+      -0.2,
+      2.55
+     ],
+     "max": [
+      1.7,
+      -0.1,
+      2.95
+     ]
+    },
+    {
+     "name": "sign_saverite_lamp",
+     "parent": "sign_saverite",
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 2,
+     "min": [
+      -1.69,
+      -0.201,
+      2.56
+     ],
+     "max": [
+      1.69,
+      -0.201,
+      2.94
+     ]
+    }
+   ],
+   "anims": [],
+   "use": {
+    "kind": "powered",
+    "on": true,
+    "lit": [
+     "sign_saverite_lamp"
+    ]
+   }
+  },
+  {
+   "name": "wet_floor_sign",
+   "title": "Wet Floor Sign",
+   "group": "concourse",
+   "place": "floor",
+   "note": "a yellow A-frame",
+   "tris": 24,
+   "size": [
+    0.3,
+    0.424,
+    0.613
+   ],
+   "min": [
+    -0.15,
+    -0.212,
+    0.026
+   ],
+   "max": [
+    0.15,
+    0.212,
+    0.638
+   ],
+   "parts": [
+    {
+     "name": "wet_floor_sign",
+     "parent": null,
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 24,
+     "min": [
+      -0.15,
+      -0.2121,
+      0.0257
+     ],
+     "max": [
+      0.15,
+      0.2121,
+      0.6384
+     ]
+    }
+   ],
+   "anims": []
+  },
+  {
+   "name": "register",
+   "title": "Cash Register",
+   "group": "checkouts",
+   "place": "item",
+   "note": "its drawer springs out",
+   "tris": 116,
+   "size": [
+    0.42,
+    0.42,
+    0.5
+   ],
+   "min": [
+    -0.21,
+    -0.21,
+    0.0
+   ],
+   "max": [
+    0.21,
+    0.21,
+    0.5
+   ],
+   "parts": [
+    {
+     "name": "register",
+     "parent": null,
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 56,
+     "min": [
+      -0.21,
+      -0.21,
+      0.0
+     ],
+     "max": [
+      0.21,
+      0.21,
+      0.5
+     ]
+    },
+    {
+     "name": "register_drawer",
+     "parent": "register",
+     "pivot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tris": 60,
+     "min": [
+      -0.19,
+      -0.19,
+      0.01
+     ],
+     "max": [
+      0.19,
+      0.19,
+      0.094
+     ]
+    }
+   ],
+   "anims": [
+    {
+     "name": "open",
+     "seconds": 1.0,
+     "loop": false
+    }
+   ]
+  }
+ ]
+}

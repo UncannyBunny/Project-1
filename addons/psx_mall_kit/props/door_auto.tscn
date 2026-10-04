@@ -1,0 +1,36 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="PackedScene" path="res://addons/psx_mall_kit/models/door_auto_model.glb" id="1"]
+[ext_resource type="Script" path="res://addons/psx_mall_kit/machine.gd" id="2"]
+
+[sub_resource type="BoxShape3D" id="box0"]
+size = Vector3(3.6000, 0.2200, 0.1600)
+
+[sub_resource type="BoxShape3D" id="box1"]
+size = Vector3(0.8200, 2.3800, 0.0470)
+
+[sub_resource type="BoxShape3D" id="box2"]
+size = Vector3(0.8200, 2.3800, 0.0470)
+
+[node name="door_auto" instance=ExtResource("1")]
+script = ExtResource("2")
+kind = "powered"
+clip = "open"
+
+[node name="Collision" type="StaticBody3D" parent="door_auto"]
+
+[node name="Box" type="CollisionShape3D" parent="door_auto/Collision"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0000, 2.5000, 0.1250)
+shape = SubResource("box0")
+
+[node name="Collision" type="StaticBody3D" parent="door_auto/door_auto_l"]
+
+[node name="Box" type="CollisionShape3D" parent="door_auto/door_auto_l/Collision"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4100, 1.2000, 0.0760)
+shape = SubResource("box1")
+
+[node name="Collision" type="StaticBody3D" parent="door_auto/door_auto_r"]
+
+[node name="Box" type="CollisionShape3D" parent="door_auto/door_auto_r/Collision"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4100, 1.2000, 0.0760)
+shape = SubResource("box2")
