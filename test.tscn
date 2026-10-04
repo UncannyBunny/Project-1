@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://bu4nmx7368xsj" path="res://Scripts/UI/dialogue_ui.gd" id="6_g14j6"]
 [ext_resource type="Script" uid="uid://bbw6x7xvlpo48" path="res://ui_controller.gd" id="6_xersf"]
 [ext_resource type="Script" uid="uid://bnokdyx5eqkgr" path="res://Scripts/UI/clock_ui.gd" id="8_ehkex"]
+[ext_resource type="PackedScene" uid="uid://2kuglcl05m3q" path="res://Assets/Shelves/shelves_pack.glb" id="9_0m0f1"]
 [ext_resource type="Script" uid="uid://c0rgqrsfrtiuq" path="res://Scripts/UI/pause_ui.gd" id="9_xersf"]
 
 [sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_xersf"]
@@ -141,7 +142,7 @@ environment = SubResource("Environment_6uqi0")
 shadow_enabled = true
 
 [node name="DirectionalLight3D2" type="DirectionalLight3D" parent="." unique_id=279883360]
-transform = Transform3D(1.0000001, 0, 0, 0, 1.192488e-08, 1.0000001, 0, -0.99999994, 1.1924882e-08, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1.1924881e-08, 1, 0, -1, 1.1924881e-08, 0, 0, 0)
 editor_only = true
 
 [node name="CharacterBody3D" parent="." unique_id=99017869 instance=ExtResource("1_37kl0")]
@@ -166,23 +167,17 @@ chase_target = NodePath("../../../CharacterBody3D")
 [node name="ScheduleController" parent="NPCController/Pathfinding" parent_id_path=PackedInt32Array(2030344370, 540558769) index="3" unique_id=871290188]
 schedule_entries = Array[ExtResource("4_00tp4")]([SubResource("Resource_xersf"), SubResource("Resource_5tkv4"), SubResource("Resource_0m0f1"), SubResource("Resource_uty7l"), SubResource("Resource_45l4g")])
 
-[node name="StateMachine" parent="NPCController/Behaviour" parent_id_path=PackedInt32Array(2030344370, 1905118480) index="0" unique_id=611879470 node_paths=PackedStringArray("state_machine")]
-state_machine = {
-"aggresive": NodePath("../../Pathfinding/ChaseController"),
-"neutral": NodePath("../../Pathfinding/ScheduleController")
-}
-
 [node name="ReadableComponent" parent="NPCController/Behaviour" parent_id_path=PackedInt32Array(2030344370, 1905118480) index="1" unique_id=2027071843 node_paths=PackedStringArray("target_object")]
-target_object = NodePath("../../../UserInterface/DialogueUI")
 target_method_string = "display_dialogue"
 entries = Array[ExtResource("5_vbegm")]([SubResource("Resource_vn1l7"), SubResource("Resource_00tp4")])
+target_object = NodePath("../../../UserInterface/DialogueUI")
 
 [node name="ReadableComponent" type="Node3D" parent="NPCController" unique_id=111834146 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4888041, 0)
 script = ExtResource("3_5tkv4")
-target_object = NodePath("../../UserInterface/DialogueUI")
 target_method_string = "display_dialogue"
 entries = Array[ExtResource("5_vbegm")]([SubResource("Resource_g4v7s"), SubResource("Resource_b0q6j"), SubResource("Resource_mhym6")])
+target_object = NodePath("../../UserInterface/DialogueUI")
 metadata/_custom_type_script = "uid://2pl1xrcafii3"
 
 [node name="AreaTriggerComponent" type="Area3D" parent="NPCController/ReadableComponent" unique_id=1387030010 node_paths=PackedStringArray("target_object", "trigger_object")]
@@ -197,6 +192,7 @@ metadata/_custom_type_script = "uid://lsbultvx6w"
 shape = SubResource("SphereShape3D_g4v7s")
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=1817612550]
+transform = Transform3D(3, 0, 0, 0, 1, 0, 0, 0, 2.5, 0, 0, 0)
 navigation_mesh = SubResource("NavigationMesh_g4v7s")
 
 [node name="CSGBox3D" type="CSGBox3D" parent="NavigationRegion3D" unique_id=1772996889]
@@ -205,17 +201,47 @@ use_collision = true
 size = Vector3(15, 1, 15)
 material = SubResource("StandardMaterial3D_6uqi0")
 
-[node name="CSGCylinder3D" type="CSGCylinder3D" parent="NavigationRegion3D/CSGBox3D" unique_id=1485678962]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 5)
+[node name="WallV1" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=886266826]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1.0000002, -7.335, 4, 0)
+size = Vector3(0.33, 7, 15)
 
-[node name="CSGCylinder3D2" type="CSGCylinder3D" parent="NavigationRegion3D/CSGBox3D" unique_id=1935230084]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -5)
+[node name="WallV2" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=1035559049]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1.0000002, 7.335, 4, 0)
+size = Vector3(0.33, 7, 15)
 
-[node name="CSGCylinder3D3" type="CSGCylinder3D" parent="NavigationRegion3D/CSGBox3D" unique_id=2085355292]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -4)
+[node name="WallH1" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=737451733]
+transform = Transform3D(-4.371139e-08, 0, -1.0000002, 0, 1, 0, 1.0000002, 0, -4.371141e-08, 0, 4, -7.335)
+size = Vector3(0.33, 7, 15)
 
-[node name="CSGCylinder3D4" type="CSGCylinder3D" parent="NavigationRegion3D/CSGBox3D" unique_id=758314319]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -6)
+[node name="WallH2" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=2121271311]
+transform = Transform3D(-4.371139e-08, 0, -1.0000002, 0, 1, 0, 1.0000002, 0, -4.371141e-08, 0, 4, 7.335)
+size = Vector3(0.33, 7, 15)
+
+[node name="Wall1-2" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=527755514]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1.0000002, 1.3316664, 4, 0)
+size = Vector3(0.33, 7, 15)
+
+[node name="Entrance Door" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=2039736935]
+transform = Transform3D(-4.371139e-08, 0, -1.0000002, 0, 1, 0, 1.0000002, 0, -4.3712532e-08, -3.0000007, 3, 7.335003)
+operation = 2
+size = Vector3(0.5, 5, 3)
+
+[node name="Bathroom Door" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=1002691142]
+transform = Transform3D(1.0000002, 0, -1.1368684e-12, 0, 1, 0, -8.526513e-15, 0, 1.0000002, 1.3333328, 3, 4.135005)
+operation = 2
+size = Vector3(0.5, 5, 2)
+
+[node name="Bath-Staff Wall" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=1113577180]
+transform = Transform3D(-4.371139e-08, 0, -1.0000002, 0, 1, 0, 1.0000002, 0, -4.3712e-08, 4.342042, 4, 1.0650008)
+size = Vector3(0.33, 7, 6.315918)
+
+[node name="Bathroom Door2" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=1769342520]
+transform = Transform3D(1.0000002, 0, -1.1368684e-12, 0, 1, 0, -8.526513e-15, 0, 1.0000002, 1.3333328, 3, -5.8649955)
+operation = 2
+size = Vector3(0.5, 5, 2)
+
+[node name="Sketchfab_Scene" parent="NavigationRegion3D/CSGBox3D" unique_id=374121990 instance=ExtResource("9_0m0f1")]
+transform = Transform3D(0.03, 0, 0, 0, 0.09, 0, 0, 0, 0.03600001, -5.666667, 0.5, -6.800003)
 
 [node name="UserInterface" type="Control" parent="." unique_id=879285244 node_paths=PackedStringArray("menu_pause", "menu_clock", "menu_dialogue")]
 layout_mode = 3
@@ -326,10 +352,10 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("6_g14j6")
+pause_on_text = true
 text_container = NodePath("VBoxContainer/MarginContainer")
 text_label = NodePath("VBoxContainer/MarginContainer/Panel/MarginContainer/RichTextLabel")
 button_container = NodePath("VBoxContainer/MarginContainer2/HBoxContainer")
-pause_on_text = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UserInterface/DialogueUI" unique_id=2125965246]
 custom_minimum_size = Vector2(0, 44.385)
