@@ -18,3 +18,7 @@ var time_end_minutes: int = 0
 @export var position: Vector3 = Vector3.ZERO
 @export var keys_whitelist: Array[String]
 @export var keys_blacklist: Array[String]
+## The keys unlocked by triggering the entry
+@export var keys_unlocked: Array[String]
+## The keys lost by triggering the entry
+@export var keys_taken: Array[String]

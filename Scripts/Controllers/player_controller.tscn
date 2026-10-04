@@ -10,31 +10,36 @@
 [ext_resource type="Script" uid="uid://xjxpd3me43y0" path="res://Scripts/Controllers/interaction_controller.gd" id="8_1igb4"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_g4v7s"]
+radius = 0.3
+height = 1.8
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_iwpo4"]
+radius = 0.3
+height = 1.8
 
 [node name="PlayerController" type="CharacterBody3D" unique_id=99017869]
+collision_layer = 3
+collision_mask = 3
 script = ExtResource("1_iwpo4")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=220183467]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 mesh = SubResource("CapsuleMesh_g4v7s")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=997496742]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("CapsuleShape3D_iwpo4")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=673640683]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4955306, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4955306, -0.2)
 
 [node name="RotationComponent2" type="Node3D" parent="Camera3D" unique_id=1048754700 node_paths=PackedStringArray("target_object")]
 script = ExtResource("4_nl27k")
 target_object = NodePath("..")
 is_local = true
 is_limited = true
-rotation_limit_upper = 45.0
-rotation_limit_lower = -45.0
+rotation_limit_upper = 80.0
+rotation_limit_lower = -80.0
 
 [node name="MouseMovementComponent3D" type="Node3D" parent="Camera3D/RotationComponent2" unique_id=915641600 node_paths=PackedStringArray("target_object")]
 script = ExtResource("4_c7tqt")

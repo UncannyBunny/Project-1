@@ -26,6 +26,8 @@ func _process(delta: float) -> void:
 	var schedule_current: ScheduleEntry = schedule_selection()
 	if schedule_current:
 		target_method_callable.call(schedule_current.position)
+		KeyManager.add_keys(schedule_current.keys_unlocked)
+		KeyManager.remove_keys(schedule_current.keys_taken)
 
 func schedule_selection() -> ScheduleEntry:
 	if not schedule_entries or not target_object or schedule_entries.is_empty():

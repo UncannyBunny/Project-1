@@ -1,7 +1,7 @@
 extends Node
 
 var _time_current: int = 0
-var _time_scale: float = 600
+var _time_scale: float = 60
 var _time_passed: float = 0
 
 var _day_start: int = 360
@@ -26,7 +26,7 @@ func _time_pass(delta: float) -> void:
 	if get_tree().current_scene:
 		var sun: DirectionalLight3D = get_tree().current_scene.find_children("*", "DirectionalLight3D")[0]
 		if sun:
-			sun.rotation.x = deg_to_rad((float(_time_current) * 0.25) + 90)
+			sun.rotation.x = deg_to_rad((float(_time_passed * _time_scale) * 0.25) + 90)
 
 func force_time(time: int) -> void:
 	if _day_start <= time and time <= _day_end:

@@ -2,6 +2,8 @@
 ## Controls an object behaviour when interacted.
 class_name AreaTriggerComponent extends Area3D
 
+@export var trigger_on_enter: bool = true
+@export var trigger_on_exit: bool = false
 ## Object to receive the input
 @export var target_object: Node3D:
 	set(value):
@@ -19,7 +21,10 @@ func _ready() -> void:
 	# Bind target callable for 
 	if target_object and not target_method_string.is_empty():
 		target_method_callable = Callable(target_object, target_method_string)
-	body_entered.connect(trigger_interaction)
+	if trigger_on_enter:
+		body_entered.connect(trigger_interaction)
+	if trigger_on_exit:
+		body_exited.connect(trigger_interaction)
 
 func trigger_interaction(body) -> void:
 	if not body == trigger_object:
