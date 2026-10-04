@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://dlb8ouwtcoscb"]
+
+[ext_resource type="PackedScene" uid="uid://n5tpygv5rcj6" path="res://addons/psx_mall_kit/models/checkout_model.glb" id="1"]
+[ext_resource type="Script" uid="uid://b4fjgdnds3oil" path="res://addons/psx_mall_kit/machine.gd" id="2"]
+
+[sub_resource type="BoxShape3D" id="box1"]
+size = Vector3(0.48, 0.006, 1.185)
+
+[sub_resource type="BoxShape3D" id="box2"]
+size = Vector3(0.54, 1.45, 1.671)
+
+[sub_resource type="BoxShape3D" id="box0"]
+size = Vector3(1.1, 2.4, 2.44)
+
+[node name="checkout" unique_id=89497345 instance=ExtResource("1")]
+transform = Transform3D(-8.742278e-08, 0, -4, 0, 2, 0, 2, 0, -1.7484555e-07, 0, 0, 0)
+script = ExtResource("2")
+kind = "powered"
+on = true
+run = "run"
+lit = PackedStringArray("checkout_lamp")
+
+[node name="Collision" type="StaticBody3D" parent="checkout/checkout_belt" parent_id_path=PackedInt32Array(1454888019) index="0" unique_id=351605612]
+
+[node name="Box" type="CollisionShape3D" parent="checkout/checkout_belt/Collision" index="0" unique_id=1391653442]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.933, 0.535)
+shape = SubResource("box1")
+
+[node name="Collision" type="StaticBody3D" parent="checkout/checkout_lamp" parent_id_path=PackedInt32Array(1898598235) index="0" unique_id=864148544]
+
+[node name="Box" type="CollisionShape3D" parent="checkout/checkout_lamp/Collision" index="0" unique_id=796533996]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.17, 1.665, 0.3255)
+shape = SubResource("box2")
+
+[node name="Collision" type="StaticBody3D" parent="checkout" parent_id_path=PackedInt32Array(2073737810) index="2" unique_id=1779650280]
+
+[node name="Box" type="CollisionShape3D" parent="checkout/Collision" index="0" unique_id=2017434972]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 1.2, 0)
+shape = SubResource("box0")

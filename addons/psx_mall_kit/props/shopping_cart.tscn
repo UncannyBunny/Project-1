@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://addons/psx_mall_kit/models/shopping_cart_model.glb" id="1"]
+
+[sub_resource type="BoxShape3D" id="box0"]
+size = Vector3(0.5600, 1.0100, 0.8919)
+
+[node name="shopping_cart" instance=ExtResource("1")]
+
+[node name="Collision" type="StaticBody3D" parent="shopping_cart"]
+
+[node name="Box" type="CollisionShape3D" parent="shopping_cart/Collision"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0000, 0.5150, 0.0086)
+shape = SubResource("box0")
