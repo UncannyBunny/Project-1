@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://v8te7pc7mgn7"]
+
+[ext_resource type="PackedScene" uid="uid://d24x42ptpe14r" path="res://addons/psx_mall_kit/models/gondola_market_model.glb" id="1"]
+
+[sub_resource type="BoxShape3D" id="box0"]
+size = Vector3(2.03, 1.89, 0.97)
+
+[node name="gondola_market" unique_id=2033227566 instance=ExtResource("1")]
+transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2, 0, -8.742278e-08, 0, 0, 0)
+
+[node name="Collision" type="StaticBody3D" parent="gondola_market" parent_id_path=PackedInt32Array(493777342) index="0" unique_id=1952033329]
+
+[node name="Box" type="CollisionShape3D" parent="gondola_market/Collision" index="0" unique_id=1132205302]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.945, 0)
+shape = SubResource("box0")
