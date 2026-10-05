@@ -4,12 +4,21 @@ class_name DialogueUI extends Control
 @export var text_label: RichTextLabel
 @export var button_container: HBoxContainer
 @export var text_speed: float = 1
-@export var pause_on_text: bool = false
+@export var input_field: LineEdit
+@export var pause_on_dialogue: bool = true
+var entry: ReadableEntry
+
+func _ready() -> void:
+	input_field.text_submitted.connect(_on_response_entered)
 
 func display_dialogue(dialogue: ReadableEntry) -> void:
 	KeyManager.add_keys(["dialogue_open"])
+	if pause_on_dialogue:
+		process_mode = Node.PROCESS_MODE_ALWAYS
+		get_tree().paused = true
 	for child in button_container.get_children():
-		child.queue_free()
+		if child is Button:
+			child.queue_free()
 	KeyManager.add_keys(dialogue.keys_unlocked)
 	KeyManager.remove_keys(dialogue.keys_taken)
 	visible = true
@@ -17,7 +26,12 @@ func display_dialogue(dialogue: ReadableEntry) -> void:
 	text_label.text = dialogue.readable_text
 	var text_tween: Tween = create_tween()
 	text_tween.tween_property(text_label, "visible_ratio", 1, 1)
-	if not dialogue.readable_chain.is_empty():
+	if dialogue.has_input:
+		entry = dialogue
+		input_field.visible = true
+	else:
+		input_field.visible = false
+	if not dialogue.readable_chain.is_empty() and not dialogue.has_input:
 		for response in dialogue.readable_chain:
 			var response_button: Button = Button.new()
 			response_button.text = response
@@ -34,6 +48,12 @@ func display_dialogue(dialogue: ReadableEntry) -> void:
 	response_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	response_button.pressed.connect(_close_ui)
 	button_container.add_child(response_button)
+
+func _on_response_entered(value: String) -> void:
+	if entry.readable_chain.has(value):
+		display_dialogue(entry.readable_chain[value])
+	else:
+		display_dialogue(entry)
 
 ## Triggered when a dialogue choice with a chained entry is selected
 func _on_response_pressed(next_entry: ReadableEntry) -> void:
@@ -53,4 +73,8 @@ func _close_ui() -> void:
 	visible = false
 	text_label.text = ""
 	for child in button_container.get_children():
-		child.queue_free()
+		if child is Button:
+			child.queue_free()
+	if pause_on_dialogue:
+		get_tree().paused = false
+		process_mode = Node.PROCESS_MODE_INHERIT

@@ -22,8 +22,10 @@ func _ready() -> void:
 		target_method_callable = Callable(target_object, target_method_string)
 
 func _process(delta: float) -> void:
+	# If method invalid, return
 	if not target_method_callable.is_valid():
 		return
+	# Method trigger
 	target_method_callable.call(follow_target_object.global_position - target_object.global_position)
 
 func _validate_property(property: Dictionary) -> void:

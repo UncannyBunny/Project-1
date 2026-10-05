@@ -1,7 +1,9 @@
 @tool
-## Outputs a direction torwards a set point using godot’s pathfinding agents.
+## Outputs a direction torwards a received point using godot’s pathfinding.
 class_name PathfindingComponent extends Node3D
 
+## Agent used to calculate the pathfinding
+@export var nav_agent: NavigationAgent3D
 ## Object to receive the input
 @export var target_object: Node3D:
 	set(value):
@@ -10,7 +12,6 @@ class_name PathfindingComponent extends Node3D
 ## Method that will be called with the input
 @export var target_method_string: String = ""
 var target_method_callable: Callable
-@export var nav_agent: NavigationAgent3D
 
 func _ready() -> void:
 	# Avoid execution in editor environment.
@@ -28,6 +29,7 @@ func _physics_process(delta: float) -> void:
 		return
 	_navigation()
 
+## Function used to calculate pathfinding
 func _navigation() -> void:
 	if nav_agent.is_navigation_finished():
 		target_method_callable.call(Vector3.ZERO)
@@ -37,6 +39,7 @@ func _navigation() -> void:
 	var direction: Vector3 = pos_current.direction_to(pos_next)
 	target_method_callable.call(direction, false)
 
+## Function called to set the target position
 func set_target_position(target_pos: Vector3) -> void:
 	if KeyManager.search_keys(["dialogue_open"]):
 		nav_agent.target_position = global_position

@@ -11,9 +11,12 @@ class_name AxisInputComponent extends Node3D
 @export var target_method_string: String = ""
 var target_method_callable: Callable
 @export_group("Properties")
+## Positive value input
 @export var input_name_positive: String = "ui_left"
+## Negative value inpt
 @export var input_name_negative: String = "ui_right"
-@export var multiplier: float = 0.0
+## Multiplier for the input
+@export var multiplier: float = 1.0
 
 func _ready() -> void:
 	# Avoid execution in editor environment.
@@ -27,10 +30,13 @@ func _process(delta: float) -> void:
 	# Avoid execution in editor environment.
 	if Engine.is_editor_hint():
 		return
+	# If method invalid, return
 	if not target_method_callable.is_valid():
 		return
+	# Calculate input
 	var raw_input: float
 	raw_input = Input.get_axis(input_name_positive, input_name_negative)
+	# Method trigger
 	target_method_callable.call(raw_input)
 
 func _validate_property(property: Dictionary) -> void:

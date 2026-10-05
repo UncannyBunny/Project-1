@@ -7,8 +7,8 @@ signal score_changed(new_score: int)
 ## The current score or value stored
 @export var current_score: int = 0
 
-## Increments the score by the given amount
-func increment(amount: int = 1) -> void:
+## Increases the score by the given amount
+func increase(amount: int = 1) -> void:
 	current_score += amount
 	score_changed.emit(current_score)
 	# print("Score incremented to: ", current_score) # Uncomment for debugging

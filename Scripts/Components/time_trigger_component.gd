@@ -1,11 +1,17 @@
 @tool
+## Triggers a method if the current time is inside the target window.
 class_name TimeTriggerComponent extends Node3D
 
-@export var target_time: Vector2i = Vector2i.ZERO:
+@export var time_start: Vector2i = Vector2i.ZERO:
 	set(value):
-		target_time = value
-		target_time_minutes = TimeManager.time_from_vector(target_time)
-var target_time_minutes: int
+		time_start = value
+		time_start_minutes = time_start.x * 60 + time_start.y
+var time_start_minutes: int
+@export var time_end: Vector2i = Vector2i.ZERO:
+	set(value):
+		time_end = value
+		time_end_minutes = time_end.x * 60 + time_end.y
+var time_end_minutes: int
 
 ## Object to receive the input
 @export var target_object: Node3D:
@@ -28,10 +34,13 @@ func _process(delta: float) -> void:
 	# Avoid execution in editor environment.
 	if Engine.is_editor_hint():
 		return
-	if TimeManager.get_current_time() >= target_time_minutes:
-		if not target_method_callable.is_valid():
-			return
-		target_method_callable.call()
+	if time_start_minutes > TimeManager.get_current_time():
+		return
+	if TimeManager.get_current_time() > time_end_minutes and not time_end_minutes == 0:
+		return
+	if not target_method_callable.is_valid():
+		return
+	target_method_callable.call()
 
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "target_method_string":

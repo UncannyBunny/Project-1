@@ -17,21 +17,26 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_move_character()
 
+## Sets the movement direction
 func set_direction(new_direction: Vector3) -> void:
 	_movement_direction = new_direction.normalized()
 
+## Sets the movement direction and toggles running
 func set_movement(new_direction: Vector3, is_running: bool = false) -> void:
-	_movement_direction = new_direction.normalized()
+	set_direction(new_direction)
 	movement_speed = speed_running if is_running else speed_walking
 
+## Sets the rotation
 func set_orientation(new_rotation: float) -> void:
 	rotation.y = new_rotation
 
+## Triggers jump
 func set_jump() -> void:
 	if not is_on_floor():
 		return
 	_movement_jump = true
 
+## Toggles running
 func set_running() -> void:
 	_movement_run = not _movement_run
 	if _movement_run:
@@ -39,6 +44,7 @@ func set_running() -> void:
 	else:
 		movement_speed = speed_walking
 
+## Moves the character
 func _move_character() -> void:
 	if not is_on_floor():
 		velocity.y -= _gravity * weight
@@ -54,6 +60,3 @@ func _move_character() -> void:
 		_movement_jump = false
 	
 	move_and_slide()
-
-func remove_character() -> void:
-	self.queue_free()

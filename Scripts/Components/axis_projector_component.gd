@@ -27,16 +27,20 @@ func _ready() -> void:
 	if target_object and not target_method_string.is_empty():
 		target_method_callable = Callable(target_object, target_method_string)
 
+## Projected axis calculation
 func project_axis(input: float) -> void:
+	# If method invalid, return
 	if not target_method_callable.is_valid():
 		return
 	var raw_input: Vector2
+	# Process input swap
 	if swap_axis:
 		raw_input = Vector2(0, input)
 	else:
 		raw_input = Vector2(input, 0)
 	var projected_vector: Vector3
 	var projected_basis: Vector3
+	# Input projection
 	match target_axis:
 		TargetAxis.X_Y:
 			projected_vector = Vector3(raw_input.x, raw_input.y, 0)

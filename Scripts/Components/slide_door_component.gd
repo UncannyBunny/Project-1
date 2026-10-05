@@ -5,7 +5,9 @@ class_name SlideDoorComponent extends Node3D
 @export var door_slide: Vector3
 ## Time it takes for the door to open
 @export var door_time: float
+# Keys that the door require
 @export var key_whitelist: Array[String]
+# Keys that the door rejects
 @export var key_blacklist: Array[String]
 var is_open: bool = false
 var is_locked: bool = false
@@ -15,20 +17,15 @@ var initial_position: Vector3
 func _ready() -> void:
 	initial_position = global_position
 
-func trigger_interaction() -> void:
-	is_locked = not check_keys()
+## Function to trigger on interaction
+func trigger() -> void:
+	is_locked = not KeyManager.check_keys(key_whitelist, key_blacklist)
 	if is_locked and not is_open:
 		pass
 	elif not (door_tween and door_tween.is_valid()):
 		door_toggle()
 
-func check_keys() -> bool:
-	if not KeyManager.search_keys(key_whitelist):
-		return false
-	if KeyManager.search_keys(key_blacklist) and not key_blacklist.is_empty():
-		return false
-	return true
-
+## Function that toggles the door state
 func door_toggle() -> void:
 	is_open = not is_open
 	var slide_target: Vector3 = initial_position + door_slide if is_open else initial_position

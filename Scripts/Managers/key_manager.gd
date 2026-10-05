@@ -37,3 +37,11 @@ func remove_keys(keys_removed: Array[String], aggresive: bool = false) -> void:
 
 func remove_all_keys() -> void:
 	_keys_stored = _keys_default + _keys_persistent
+
+## Function that checks key values agains a white/black list
+func check_keys(key_whitelist: Array[String], key_blacklist: Array[String]) -> bool:
+	if not KeyManager.search_keys(key_whitelist):
+		return false
+	if KeyManager.search_keys(key_blacklist) and not key_blacklist.is_empty():
+		return false
+	return true

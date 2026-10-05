@@ -1,5 +1,5 @@
 @tool
-## Controls an object behaviour when interacted.
+## Triggers a method when interaction is called.
 class_name InteractionComponent extends Area3D
 
 ## Object to receive the input
@@ -19,9 +19,12 @@ func _ready() -> void:
 	if target_object and not target_method_string.is_empty():
 		target_method_callable = Callable(target_object, target_method_string)
 
+## Function triggered on interaction
 func trigger_interaction() -> void:
+	# If method invalid, return
 	if not target_method_callable.is_valid():
 		return
+	# Trigger method
 	target_method_callable.call()
 
 func _validate_property(property: Dictionary) -> void:

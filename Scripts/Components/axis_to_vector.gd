@@ -9,6 +9,7 @@ class_name AxisToVector3D extends Node3D
 		notify_property_list_changed()
 ## Method that will be called with the input
 @export var target_method_string: String = ""
+## If true, the calculations will be done in the local space
 @export var is_local: bool = false
 var target_method_callable: Callable
 var component_x: float
@@ -31,11 +32,15 @@ func set_component_z(value: float) -> void:
 	component_z = value
 
 func _process(delta: float) -> void:
+	# If method invalid, return
 	if not target_method_callable.is_valid():
 		return
+	# Calculate output vector
 	var output_vector: Vector3 = Vector3(component_x, component_y, component_z)
+	# Calculate local vector, if it applies
 	if is_local:
 		output_vector = target_object.global_basis * output_vector
+	# Method trigger
 	target_method_callable.call(output_vector)
 
 func _validate_property(property: Dictionary) -> void:

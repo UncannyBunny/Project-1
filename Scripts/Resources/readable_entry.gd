@@ -4,6 +4,8 @@ class_name ReadableEntry extends Resource
 @export var priority: int
 ## The text content of the entry
 @export_multiline var readable_text: String
+## If true, a response box will be used
+@export var has_input: bool = false
 ## The keys required to be able to trigger the entry
 @export var key_whitelist: Array[String]
 @export var key_blacklist: Array[String]

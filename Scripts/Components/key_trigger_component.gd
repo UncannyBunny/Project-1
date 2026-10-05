@@ -1,6 +1,11 @@
 @tool
+## Triggers a method depending on existing keys
 class_name KeyTriggerComponent extends Node3D
 
+# Keys that the door requires
+@export var key_whitelist: Array[String]
+# Keys that the door rejects
+@export var key_blacklist: Array[String]
 ## Object to receive the input
 @export var target_object: Node3D:
 	set(value):
@@ -9,8 +14,6 @@ class_name KeyTriggerComponent extends Node3D
 ## Method that will be called with the input
 @export var target_method_string: String = ""
 var target_method_callable: Callable
-@export var key_whitelist: Array[String]
-@export var key_blacklist: Array[String]
 
 func _ready() -> void:
 	# Avoid execution in editor environment.

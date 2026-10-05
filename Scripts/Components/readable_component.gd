@@ -10,6 +10,7 @@ class_name ReadableComponent extends Node3D
 ## Method that will be called with the input
 @export var target_method_string: String = ""
 var target_method_callable: Callable
+## ReadableEntry array used by the component
 @export var entries: Array[ReadableEntry]
 
 func _ready() -> void:
@@ -21,29 +22,24 @@ func _ready() -> void:
 		target_method_callable = Callable(target_object, target_method_string)
 
 ## Method that will be called when interacting
-func trigger_interaction() -> void:
+func trigger() -> void:
 	var readable_current: ReadableEntry = filter_entries()
+	# Checks if a readable is available
 	if readable_current == null:
 		return
+	# Triggers method
 	target_method_callable.call(readable_current)
 
 ## Filters entries by unlocked keys and priority
 func filter_entries() -> ReadableEntry:
 	var valid_entries: Array[ReadableEntry]
 	for readable in entries:
-		if check_keys(readable):
+		if KeyManager.check_keys(readable.key_whitelist, readable.key_blacklist):
 			valid_entries.append(readable)
 	if valid_entries.is_empty():
 		return null
 	valid_entries.sort_custom(func(a, b): return a.priority > b.priority)
 	return valid_entries[0]
-
-func check_keys(readable: ReadableEntry) -> bool:
-	if not KeyManager.search_keys(readable.key_whitelist):
-		return false
-	if KeyManager.search_keys(readable.key_blacklist) and not readable.key_blacklist.is_empty():
-		return false
-	return true
 
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "target_method_string":
