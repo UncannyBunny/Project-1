@@ -25,7 +25,7 @@ func clock_update() -> void:
 
 func hour_changed() -> void:
 	var time: Vector2i = TimeManager.time_as_vector(target_time)
-	if time.x + 1 <= TimeManager.time_as_vector(TimeManager._day_end).x:
+	if time.x + 1 <= TimeManager.time_as_vector(TimeManager._day_end).x - 1:
 		time.x += 1
 	else:
 		time.x = TimeManager.time_as_vector(TimeManager._day_start).x

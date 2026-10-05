@@ -75,6 +75,9 @@ func check_keys(readable: ReadableEntry) -> bool:
 
 ## Triggered when the interaction has no chained entries
 func _close_ui() -> void:
+	if text_tween.is_running():
+		text_tween.custom_step(100.0)
+		return
 	KeyManager.remove_keys(["dialogue_open"])
 	visible = false
 	text_label.text = ""
