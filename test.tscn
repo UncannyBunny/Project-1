@@ -25,12 +25,12 @@
 
 [sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_xersf"]
 
-[sub_resource type="Sky" id="Sky_5tkv4"]
+[sub_resource type="Sky" id="Sky_8uh7m"]
 sky_material = SubResource("PhysicalSkyMaterial_xersf")
 
 [sub_resource type="Environment" id="Environment_6uqi0"]
 background_mode = 2
-sky = SubResource("Sky_5tkv4")
+sky = SubResource("Sky_8uh7m")
 glow_enabled = true
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g14j6"]
@@ -181,8 +181,8 @@ shadow_enabled = true
 transform = Transform3D(1, 0, 0, 0, 1.1924881e-08, 1, 0, -1, 1.1924881e-08, 0, 0, 0)
 editor_only = true
 
-[node name="PlayerController" parent="." unique_id=99017869 instance=ExtResource("1_37kl0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 3.0789185)
+[node name="CharacterBody3D" parent="." unique_id=99017869 instance=ExtResource("1_37kl0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.030819, 1, 10.57262)
 speed_walking = 3.0
 speed_running = 8.0
 jump_force = 15.0
@@ -198,7 +198,7 @@ transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 1
 material_override = SubResource("StandardMaterial3D_g14j6")
 
 [node name="ChaseController" parent="NPCController/Pathfinding" parent_id_path=PackedInt32Array(2030344370, 540558769) index="2" unique_id=1426431388 node_paths=PackedStringArray("chase_target")]
-chase_target = NodePath("../../../PlayerController")
+chase_target = NodePath("../../../CharacterBody3D")
 
 [node name="ScheduleController" parent="NPCController/Pathfinding" parent_id_path=PackedInt32Array(2030344370, 540558769) index="3" unique_id=871290188]
 schedule_entries = Array[ExtResource("4_00tp4")]([SubResource("Resource_xersf"), SubResource("Resource_5tkv4"), SubResource("Resource_0m0f1"), SubResource("Resource_uty7l"), SubResource("Resource_45l4g")])
@@ -227,14 +227,14 @@ top_level = true
 script = ExtResource("5_0m0f1")
 target_object = NodePath("..")
 target_method_string = "trigger_interaction"
-trigger_object = NodePath("../../../PlayerController")
+trigger_object = NodePath("../../../CharacterBody3D")
 metadata/_custom_type_script = "uid://lsbultvx6w"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="NPCController/ReadableComponent/AreaTriggerComponent" unique_id=1630283329]
 shape = SubResource("SphereShape3D_g4v7s")
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=1817612550]
-transform = Transform3D(3, 0, 0, 0, 1, 0, 0, 0, 2.5, 0, 0, 0)
+transform = Transform3D(1.8, 0, 0, 0, 0.601, 0, 0, 0, 1.501, 0, 0, 0)
 navigation_mesh = SubResource("NavigationMesh_g4v7s")
 
 [node name="CSGBox3D" type="CSGBox3D" parent="NavigationRegion3D" unique_id=1772996889]
@@ -294,6 +294,12 @@ size = Vector3(0.5, 5, 2)
 [node name="Sketchfab_Scene" parent="NavigationRegion3D/CSGBox3D" unique_id=374121990 instance=ExtResource("9_0m0f1")]
 transform = Transform3D(0.03, 0, 0, 0, 0.09, 0, 0, 0, 0.03600001, -5.666667, 0.5, -6.800003)
 
+[node name="WallH3" type="CSGBox3D" parent="NavigationRegion3D/CSGBox3D" unique_id=919429270]
+transform = Transform3D(-4.3711392e-08, 0, -1.0000002, 1.0000002, -4.3711395e-08, -4.3711413e-08, -4.37114e-08, -1.0000002, -2.0367742e-15, 0, 7.3462625, -0.008551252)
+material_override = SubResource("StandardMaterial3D_j75vh")
+size = Vector3(0.33, 14.96405, 15)
+material = SubResource("StandardMaterial3D_dwqlq")
+
 [node name="GasStationProps" type="Node3D" parent="NavigationRegion3D" unique_id=1173244549]
 transform = Transform3D(0.33333334, 0, 0, 0, 1, 0, 0, 0, 0.40000013, 0, 0, 0)
 
@@ -313,16 +319,187 @@ transform = Transform3D(-8.742278e-08, 0, -4, 0, 2, 0, 1.9999993, 0, -1.748455e-
 transform = Transform3D(-2, 0, -3.019916e-07, 0, 2, 0, 3.019915e-07, 0, -1.9999993, 2.216206, 1.8028529, -10.6942835)
 
 [node name="mesa" parent="NavigationRegion3D/GasStationProps" unique_id=1951481096 instance=ExtResource("13_uty7l")]
-transform = Transform3D(-2.1855695e-07, 0, 2.5, 0, 2.5, 0, -5, 0, -1.09278474e-07, 13.731504, 0, -13.832173)
+transform = Transform3D(-2.1855695e-07, 0, 2.5, 0, 2.5, 0, -5.0000005, 0, -1.0927848e-07, 13.731504, -0.45958433, -13.832175)
 
 [node name="mesa2" parent="NavigationRegion3D/GasStationProps" unique_id=481411154 instance=ExtResource("13_uty7l")]
-transform = Transform3D(4, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 7.5154037, 0, 0.9850546)
+transform = Transform3D(4, 0, 0, 0, 2.5, 0, 0, 0, 2.5000002, 7.515404, -0.26434174, 0.9850546)
 
 [node name="BathroomStalls" parent="NavigationRegion3D/GasStationProps" unique_id=730228733 instance=ExtResource("14_4uo0j")]
 transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 2.999999, 9.008286, 0, 4.8418636)
 
 [node name="Lavamanos" parent="NavigationRegion3D/GasStationProps" unique_id=12356510 instance=ExtResource("15_vxl6d")]
-transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 2.999999, 7.109, 0, 3.9449985)
+transform = Transform3D(3, 0, 0, 0, 2.9999998, 0, 0, 0, 2.9999993, 7.1090007, -0.6776918, 3.9449987)
+
+[node name="OmniLight3D" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=1314461413]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, -17.05354, 6.278831, -0.13168235)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D2" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=350921674]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, -9.368149, 6.278831, -0.13168237)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D3" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=1059205780]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, -1.7034904, 6.278831, -0.13168238)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D4" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=930966463]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, 8.221711, 6.278831, 7.9403334)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D5" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=672935768]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, 13.654394, 6.278831, 7.940334)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D6" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=833754590]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, 18.369688, 6.278831, 7.9403358)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D7" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=587053858]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, 8.221711, 6.278831, 15.459423)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D8" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=918250161]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, 13.658495, 6.278831, 14.726573)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D9" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=1099164896]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, 18.364305, 6.278831, 14.724938)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D10" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=1441081941]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, -17.05354, 6.278831, -12.241928)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D11" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=2102833994]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, -9.406704, 6.278831, -12.241929)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D12" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=107877436]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, -2.2981193, 6.278831, -12.24193)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D13" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=983353532]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, -17.05354, 6.278831, 11.432254)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D14" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=206342091]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, -9.235477, 6.278831, 11.432254)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D15" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=1051435757]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, -2.248106, 6.278831, 11.432254)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D16" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=1701035165]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, 7.4353623, 6.278831, -12.241932)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D17" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=1146150079]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, 17.560019, 6.278831, -12.215261)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D18" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=1052246752]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, 17.326626, 6.278831, -4.9182763)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
+
+[node name="OmniLight3D19" type="OmniLight3D" parent="NavigationRegion3D/GasStationProps" unique_id=708820989]
+transform = Transform3D(1.6666666, 0, 0, 0, 1.6638935, 0, 0, 0, 1.6655558, 7.523794, 6.278831, -4.6938705)
+light_color = Color(0.8537851, 0.9999998, 0.9698486, 1)
+light_energy = 1.079
+light_indirect_energy = 1.396
+light_volumetric_fog_energy = 1.396
+light_size = 0.139
+light_specular = 0.0
 
 [node name="UserInterface" type="Control" parent="." unique_id=879285244 node_paths=PackedStringArray("menu_pause", "menu_clock", "menu_dialogue")]
 layout_mode = 3
