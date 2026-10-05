@@ -8,7 +8,7 @@ func trigger_interaction() -> void:
 	var start_pos = camera_object.global_position
 	var end_pos = camera_object.global_position - camera_object.global_transform.basis.z * reach
 	var query = PhysicsRayQueryParameters3D.create(start_pos, end_pos)
-	query.collision_mask = 4
+	query.collision_mask = 5
 	query.collide_with_areas = true
 	query.collide_with_bodies = false
 	var result = space_state.intersect_ray(query)

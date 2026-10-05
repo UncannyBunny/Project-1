@@ -6,12 +6,6 @@ class_name TimeTriggerComponent extends Node3D
 		target_time = value
 		target_time_minutes = TimeManager.time_from_vector(target_time)
 var target_time_minutes: int
-@export var key_whitelist: Array[String]
-@export var key_blacklist: Array[String]
-## The keys unlocked by triggering the entry
-@export var keys_unlocked: Array[String]
-## The keys lost by triggering the entry
-@export var keys_taken: Array[String]
 
 ## Object to receive the input
 @export var target_object: Node3D:
@@ -34,21 +28,10 @@ func _process(delta: float) -> void:
 	# Avoid execution in editor environment.
 	if Engine.is_editor_hint():
 		return
-	if TimeManager.get_current_time() >= target_time_minutes and check_keys():
-		KeyManager.add_keys(keys_unlocked)
-		KeyManager.remove_keys(keys_taken)
-
-func check_keys() -> bool:
-	if not KeyManager.search_keys(key_whitelist):
-		return false
-	if KeyManager.search_keys(key_blacklist) and not key_blacklist.is_empty():
-		return false
-	return true
-
-func trigger() -> void:
-	if not target_method_callable.is_valid():
-		return
-	target_method_callable.call()
+	if TimeManager.get_current_time() >= target_time_minutes:
+		if not target_method_callable.is_valid():
+			return
+		target_method_callable.call()
 
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "target_method_string":

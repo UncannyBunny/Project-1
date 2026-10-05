@@ -92,7 +92,6 @@ metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 [sub_resource type="Resource" id="Resource_a3se8"]
 script = ExtResource("5_vbegm")
 readable_text = "Finally! I was so hungry!"
-keys_required = Array[String](["sandwich"])
 keys_taken = Array[String](["sandwich"])
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
@@ -100,7 +99,6 @@ metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 script = ExtResource("5_vbegm")
 priority = 5
 readable_text = "Man, I miss my sandwich"
-keys_required = Array[String](["sandwich"])
 readable_chain = Dictionary[String, ExtResource("5_vbegm")]({
 "Oh let me return it then": SubResource("Resource_a3se8")
 })
@@ -116,7 +114,6 @@ metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 script = ExtResource("5_vbegm")
 priority = 1
 readable_text = "Im telling ya! you better beware and begone!"
-keys_required = Array[String](["sandwich_warning"])
 keys_unlocked = Array[String](["sandwich_threat"])
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
@@ -124,7 +121,6 @@ metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 script = ExtResource("5_vbegm")
 priority = 2
 readable_text = "Oh you WILL be sorry!"
-keys_required = Array[String](["sandwich_threat"])
 keys_unlocked = Array[String](["aggresive"])
 keys_taken = Array[String](["neutral"])
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"

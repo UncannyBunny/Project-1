@@ -5,7 +5,8 @@ class_name ReadableEntry extends Resource
 ## The text content of the entry
 @export_multiline var readable_text: String
 ## The keys required to be able to trigger the entry
-@export var keys_required: Array[String]
+@export var key_whitelist: Array[String]
+@export var key_blacklist: Array[String]
 ## The keys unlocked by triggering the entry
 @export var keys_unlocked: Array[String]
 ## The keys lost by triggering the entry

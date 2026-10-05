@@ -23,7 +23,7 @@ func display_dialogue(dialogue: ReadableEntry) -> void:
 			response_button.text = response
 			response_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			var next_entry: ReadableEntry = dialogue.readable_chain[response]
-			if not KeyManager.search_keys(next_entry.keys_required):
+			if not check_keys(next_entry):
 				response_button.disabled = true
 			if next_entry.readable_text.is_empty():
 				continue
@@ -39,6 +39,13 @@ func display_dialogue(dialogue: ReadableEntry) -> void:
 func _on_response_pressed(next_entry: ReadableEntry) -> void:
 	# Pass the chained entry back into the display function
 	display_dialogue(next_entry)
+
+func check_keys(readable: ReadableEntry) -> bool:
+	if not KeyManager.search_keys(readable.key_whitelist):
+		return false
+	if KeyManager.search_keys(readable.key_blacklist) and not readable.key_blacklist.is_empty():
+		return false
+	return true
 
 ## Triggered when the interaction has no chained entries
 func _close_ui() -> void:

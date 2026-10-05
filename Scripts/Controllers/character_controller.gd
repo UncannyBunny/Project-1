@@ -54,3 +54,6 @@ func _move_character() -> void:
 		_movement_jump = false
 	
 	move_and_slide()
+
+func remove_character() -> void:
+	self.queue_free()

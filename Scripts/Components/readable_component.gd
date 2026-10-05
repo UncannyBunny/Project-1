@@ -31,12 +31,19 @@ func trigger_interaction() -> void:
 func filter_entries() -> ReadableEntry:
 	var valid_entries: Array[ReadableEntry]
 	for readable in entries:
-		if KeyManager.search_keys(readable.keys_required):
+		if check_keys(readable):
 			valid_entries.append(readable)
 	if valid_entries.is_empty():
 		return null
 	valid_entries.sort_custom(func(a, b): return a.priority > b.priority)
 	return valid_entries[0]
+
+func check_keys(readable: ReadableEntry) -> bool:
+	if not KeyManager.search_keys(readable.key_whitelist):
+		return false
+	if KeyManager.search_keys(readable.key_blacklist) and not readable.key_blacklist.is_empty():
+		return false
+	return true
 
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "target_method_string":
