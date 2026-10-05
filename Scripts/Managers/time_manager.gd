@@ -1,5 +1,7 @@
 extends Node
 
+@export var loading_screen: Control
+
 var _time_current: int = 0
 var _time_scale: float = 60
 var _time_passed: float = 0
@@ -50,3 +52,17 @@ func time_as_vector(time: int) -> Vector2i:
 
 func time_from_vector(time: Vector2i) -> int:
 	return time.x * 60 + time.y
+
+func warp_time_until(time: int) -> void:
+	loading_screen.visible = true
+	KeyManager.add_keys(["time_warp"] as Array[String])
+	var time_scale = Engine.time_scale
+	var physics_ticks = Engine.physics_ticks_per_second
+	Engine.time_scale *= 32
+	Engine.physics_ticks_per_second *= 8
+	while get_current_time() < time:
+		await get_tree().physics_frame
+	Engine.time_scale = time_scale
+	Engine.physics_ticks_per_second = physics_ticks
+	KeyManager.remove_keys(["time_warp"] as Array[String])
+	loading_screen.visible = false

@@ -7,6 +7,7 @@ var movement_speed: float = 0
 var _movement_run: bool = false
 @export var jump_force: float = 0
 @export var weight: float = 1
+@export var freeze_while_warping: bool = false
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _movement_direction: Vector3 = Vector3.ZERO
 var _movement_jump: bool = false
@@ -15,6 +16,8 @@ func _ready() -> void:
 	movement_speed = speed_walking
 
 func _physics_process(delta: float) -> void:
+	if freeze_while_warping and KeyManager.search_keys(["time_warp"]):
+		return
 	_move_character()
 
 ## Sets the movement direction

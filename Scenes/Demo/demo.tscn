@@ -1611,7 +1611,6 @@ metadata/_custom_type_script = "uid://b1f77w6o3usir"
 
 [node name="TimeTriggerComponent" type="Node3D" parent="Terrain/NavigationRegion3D/Car/ObjectKiller" unique_id=1787754826 node_paths=PackedStringArray("target_object")]
 script = ExtResource("13_dph0q")
-one_shot = null
 time_start = Vector2i(9, 50)
 target_object = NodePath("..")
 target_method_string = "trigger_kill"
@@ -1761,7 +1760,6 @@ metadata/_custom_type_script = "uid://b1f77w6o3usir"
 
 [node name="TimeTriggerComponent" type="Node3D" parent="StoreClerk1/ObjectKiller" unique_id=1372501802 node_paths=PackedStringArray("target_object")]
 script = ExtResource("13_dph0q")
-one_shot = null
 time_start = Vector2i(9, 45)
 target_object = NodePath("..")
 target_method_string = "trigger_kill"
@@ -1795,7 +1793,6 @@ metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
 
 [node name="TimeTriggerComponent" type="Node3D" parent="Items/phone/KeyComponent" unique_id=1629389848 node_paths=PackedStringArray("target_object")]
 script = ExtResource("13_dph0q")
-one_shot = null
 time_start = Vector2i(8, 9)
 time_end = Vector2i(8, 9)
 target_object = NodePath("..")
@@ -1970,8 +1967,8 @@ metadata/_custom_type_script = "uid://b1f77w6o3usir"
 [node name="TimeTriggerComponent" type="Node3D" parent="Spawners/Client1Spawner/ObjectKiller" unique_id=33819215 node_paths=PackedStringArray("target_object")]
 script = ExtResource("13_dph0q")
 time_start = Vector2i(7, 40)
-target_object = NodePath("../..")
-target_method_string = "spawn_object"
+target_object = NodePath("..")
+target_method_string = "trigger_kill"
 metadata/_custom_type_script = "uid://bhxrj8d406tli"
 
 [editable path="StoreClerk1"]
