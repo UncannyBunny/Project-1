@@ -3,10 +3,10 @@ class_name DialogueUI extends Control
 @export var text_container: Control
 @export var text_label: RichTextLabel
 @export var button_container: HBoxContainer
-@export var text_speed: float = 1
 @export var input_field: LineEdit
 @export var pause_on_dialogue: bool = true
 var entry: ReadableEntry
+var text_tween: Tween
 
 func _ready() -> void:
 	input_field.text_submitted.connect(_on_response_entered)
@@ -24,16 +24,18 @@ func display_dialogue(dialogue: ReadableEntry) -> void:
 	visible = true
 	text_label.visible_ratio = 0
 	text_label.text = dialogue.readable_text
-	var text_tween: Tween = create_tween()
-	text_tween.tween_property(text_label, "visible_ratio", 1, 1)
+	var reading_speed: float =  dialogue.readable_text.length() / dialogue.text_speed
+	text_tween = create_tween()
+	text_tween.tween_property(text_label, "visible_ratio", 1, reading_speed)
 	if dialogue.has_input:
 		entry = dialogue
 		input_field.visible = true
 	else:
 		input_field.visible = false
+	var response_button: Button
 	if not dialogue.readable_chain.is_empty() and not dialogue.has_input:
 		for response in dialogue.readable_chain:
-			var response_button: Button = Button.new()
+			response_button = Button.new()
 			response_button.text = response
 			response_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			var next_entry: ReadableEntry = dialogue.readable_chain[response]
@@ -43,13 +45,15 @@ func display_dialogue(dialogue: ReadableEntry) -> void:
 				continue
 			response_button.pressed.connect(_on_response_pressed.bind(next_entry))
 			button_container.add_child(response_button)
-	var response_button: Button = Button.new()
+	response_button = Button.new()
 	response_button.text = "..."
 	response_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	response_button.pressed.connect(_close_ui)
 	button_container.add_child(response_button)
 
 func _on_response_entered(value: String) -> void:
+	if text_tween.is_running():
+		return
 	if entry.readable_chain.has(value):
 		display_dialogue(entry.readable_chain[value])
 	else:
@@ -57,6 +61,8 @@ func _on_response_entered(value: String) -> void:
 
 ## Triggered when a dialogue choice with a chained entry is selected
 func _on_response_pressed(next_entry: ReadableEntry) -> void:
+	if text_tween.is_running():
+		return
 	# Pass the chained entry back into the display function
 	display_dialogue(next_entry)
 
@@ -72,6 +78,7 @@ func _close_ui() -> void:
 	KeyManager.remove_keys(["dialogue_open"])
 	visible = false
 	text_label.text = ""
+	input_field.clear()
 	for child in button_container.get_children():
 		if child is Button:
 			child.queue_free()
