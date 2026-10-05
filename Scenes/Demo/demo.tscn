@@ -1,29 +1,31 @@
 [gd_scene format=3 uid="uid://b1pocavll3x5j"]
 
-[ext_resource type="Script" uid="uid://bbw6x7xvlpo48" path="res://ui_controller.gd" id="1_6bw2v"]
-[ext_resource type="Script" uid="uid://bnokdyx5eqkgr" path="res://Scripts/UI/clock_ui.gd" id="2_kem5a"]
-[ext_resource type="Script" uid="uid://bu4nmx7368xsj" path="res://Scripts/UI/dialogue_ui.gd" id="3_gxmxl"]
-[ext_resource type="Script" uid="uid://c0rgqrsfrtiuq" path="res://Scripts/UI/pause_ui.gd" id="4_n4w22"]
-[ext_resource type="PackedScene" uid="uid://dlygyllacfx4x" path="res://Scripts/Controllers/player_controller.tscn" id="5_884kg"]
-[ext_resource type="Script" uid="uid://denxx0ogrm4ee" path="res://Scripts/Components/hinge_door_component.gd" id="5_kem5a"]
-[ext_resource type="Script" uid="uid://ba5yjgajhffab" path="res://Scripts/Components/interaction_component.gd" id="6_gxmxl"]
-[ext_resource type="Script" uid="uid://cq1ccdlvjcx2o" path="res://Scripts/Components/slide_door_component.gd" id="7_n4w22"]
-[ext_resource type="Script" uid="uid://lsbultvx6w" path="res://Scripts/Components/area_trigger_component.gd" id="8_884kg"]
-[ext_resource type="Script" uid="uid://dfd5vok7q0jsh" path="res://Scripts/Components/key_component.gd" id="10_gdsc3"]
-[ext_resource type="Texture2D" uid="uid://c0bjctah4hy6f" path="res://Assets/GasStation/textures/mall_plaster.png" id="10_hu8bq"]
-[ext_resource type="Texture2D" uid="uid://bwqo2vqi2dpfi" path="res://Assets/GasStation/textures/market_tile_dirty.png" id="11_l07pr"]
-[ext_resource type="Script" uid="uid://bhxrj8d406tli" path="res://Scripts/Components/time_trigger_component.gd" id="11_svejp"]
-[ext_resource type="PackedScene" uid="uid://d24x42ptpe14r" path="res://addons/psx_mall_kit/models/gondola_market_model.glb" id="12_vtas4"]
-[ext_resource type="PackedScene" uid="uid://d0my0njkw40iw" path="res://addons/psx_mall_kit/models/freezer_doors_model.glb" id="13_bej8n"]
-[ext_resource type="Script" uid="uid://e5dqcesgwl0e" path="res://Scripts/Resources/readable_entry.gd" id="13_jbdfk"]
-[ext_resource type="PackedScene" uid="uid://ctupd4j60qvup" path="res://Scripts/Controllers/npc_controller.tscn" id="13_tql22"]
-[ext_resource type="Script" uid="uid://2pl1xrcafii3" path="res://Scripts/Components/readable_component.gd" id="14_4gl14"]
-[ext_resource type="Script" uid="uid://tcrug5x5hlpx" path="res://Scripts/Resources/schedule_entry.gd" id="14_jbdfk"]
-[ext_resource type="Script" uid="uid://cxwrs46gnfksn" path="res://station_lights.gd" id="15_hu8bq"]
-[ext_resource type="PackedScene" uid="uid://cfet3tbnu14bd" path="res://Assets/GasStation/furniture/mesa.tscn" id="16_l07pr"]
-[ext_resource type="PackedScene" uid="uid://dn5s1wnm6bslg" path="res://addons/psx_mall_kit/models/register_model.glb" id="20_npcgs"]
-[ext_resource type="Script" uid="uid://b1f77w6o3usir" path="res://Scripts/MiscScripts/object_killer.gd" id="23_bej8n"]
-[ext_resource type="Script" uid="uid://di1ppwrw34hur" path="res://Scripts/Components/key_trigger_component.gd" id="24_npcgs"]
+[ext_resource type="Script" uid="uid://bbw6x7xvlpo48" path="res://Scripts/UI/ui_controller.gd" id="1_b5yyr"]
+[ext_resource type="Script" uid="uid://bnokdyx5eqkgr" path="res://Scripts/UI/clock_ui.gd" id="2_ehx30"]
+[ext_resource type="Script" uid="uid://bu4nmx7368xsj" path="res://Scripts/UI/dialogue_ui.gd" id="3_p11k4"]
+[ext_resource type="Script" uid="uid://c0rgqrsfrtiuq" path="res://Scripts/UI/pause_ui.gd" id="4_3r3ly"]
+[ext_resource type="Texture2D" uid="uid://c0bjctah4hy6f" path="res://Assets/GasStation/textures/mall_plaster.png" id="5_7nsjt"]
+[ext_resource type="PackedScene" uid="uid://dn5s1wnm6bslg" path="res://addons/psx_mall_kit/models/register_model.glb" id="6_sbtyc"]
+[ext_resource type="Texture2D" uid="uid://bwqo2vqi2dpfi" path="res://Assets/GasStation/textures/market_tile_dirty.png" id="7_nqt4i"]
+[ext_resource type="PackedScene" uid="uid://d24x42ptpe14r" path="res://addons/psx_mall_kit/models/gondola_market_model.glb" id="8_22uo2"]
+[ext_resource type="PackedScene" uid="uid://d0my0njkw40iw" path="res://addons/psx_mall_kit/models/freezer_doors_model.glb" id="9_q4uam"]
+[ext_resource type="Script" uid="uid://cxwrs46gnfksn" path="res://Scenes/Demo/station_lights.gd" id="10_b5yyr"]
+[ext_resource type="PackedScene" uid="uid://cfet3tbnu14bd" path="res://Assets/GasStation/furniture/mesa.tscn" id="11_uo14w"]
+[ext_resource type="Script" uid="uid://b1f77w6o3usir" path="res://Scripts/MiscScripts/object_killer.gd" id="12_6n7fr"]
+[ext_resource type="Script" uid="uid://bhxrj8d406tli" path="res://Scripts/Components/time_trigger_component.gd" id="13_dph0q"]
+[ext_resource type="Script" uid="uid://denxx0ogrm4ee" path="res://Scripts/Components/hinge_door_component.gd" id="14_8wyni"]
+[ext_resource type="Script" uid="uid://ba5yjgajhffab" path="res://Scripts/Components/interaction_component.gd" id="15_nrglc"]
+[ext_resource type="Script" uid="uid://cq1ccdlvjcx2o" path="res://Scripts/Components/slide_door_component.gd" id="16_t8ag4"]
+[ext_resource type="Script" uid="uid://lsbultvx6w" path="res://Scripts/Components/area_trigger_component.gd" id="17_21dn7"]
+[ext_resource type="PackedScene" uid="uid://dlygyllacfx4x" path="res://Scripts/Controllers/player_controller.tscn" id="18_crjoo"]
+[ext_resource type="PackedScene" uid="uid://ctupd4j60qvup" path="res://Scripts/Controllers/npc_controller.tscn" id="19_apelc"]
+[ext_resource type="Script" uid="uid://tcrug5x5hlpx" path="res://Scripts/Resources/schedule_entry.gd" id="20_bs73m"]
+[ext_resource type="Script" uid="uid://e5dqcesgwl0e" path="res://Scripts/Resources/readable_entry.gd" id="21_0yl2m"]
+[ext_resource type="Script" uid="uid://2pl1xrcafii3" path="res://Scripts/Components/readable_component.gd" id="22_dssw4"]
+[ext_resource type="Script" uid="uid://dfd5vok7q0jsh" path="res://Scripts/Components/key_component.gd" id="23_jj3bm"]
+[ext_resource type="Script" uid="uid://di1ppwrw34hur" path="res://Scripts/Components/key_trigger_component.gd" id="24_kffkx"]
+[ext_resource type="Script" uid="uid://dugv8721fwbhv" path="res://Scripts/MiscScripts/object_spawner.gd" id="25_oneeo"]
+[ext_resource type="PackedScene" uid="uid://cq1ddvvm3aidv" path="res://Scenes/Demo/client_1.tscn" id="26_dfdl1"]
 
 [sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_d4o4o"]
 
@@ -60,11 +62,11 @@ albedo_color = Color(0.6789437, 0.6789437, 0.6789437, 1)
 metallic = 1.0
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wavrw"]
-albedo_texture = ExtResource("10_hu8bq")
+albedo_texture = ExtResource("5_7nsjt")
 uv1_scale = Vector3(2.35, 2.35, 2.35)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hhe36"]
-albedo_texture = ExtResource("11_l07pr")
+albedo_texture = ExtResource("7_nqt4i")
 uv1_scale = Vector3(4.9, 4.9, 4.9)
 uv1_offset = Vector3(0.135, -0.055, 0)
 
@@ -79,14 +81,14 @@ size = Vector3(0.92871094, 1.8439941, 0.41992188)
 size = Vector3(2.5996094, 1.9663696, 1.8095703)
 
 [sub_resource type="Resource" id="Resource_36gju"]
-script = ExtResource("14_jbdfk")
+script = ExtResource("20_bs73m")
 time_start = Vector2i(6, 15)
 position = Vector3(9.472994, 0.10000038, -9.127531)
 keys_blacklist = Array[String](["store_open"])
 metadata/_custom_type_script = "uid://tcrug5x5hlpx"
 
 [sub_resource type="Resource" id="Resource_i1g04"]
-script = ExtResource("14_jbdfk")
+script = ExtResource("20_bs73m")
 time_start = Vector2i(6, 15)
 time_end = Vector2i(8, 45)
 position = Vector3(14.782409, 0.10000038, -6.737757)
@@ -94,7 +96,7 @@ keys_whitelist = Array[String](["store_open"])
 metadata/_custom_type_script = "uid://tcrug5x5hlpx"
 
 [sub_resource type="Resource" id="Resource_y4qkf"]
-script = ExtResource("14_jbdfk")
+script = ExtResource("20_bs73m")
 priority = 1
 time_start = Vector2i(6, 37)
 time_end = Vector2i(6, 57)
@@ -103,7 +105,7 @@ keys_unlocked = Array[String](["bathroom_break"])
 metadata/_custom_type_script = "uid://tcrug5x5hlpx"
 
 [sub_resource type="Resource" id="Resource_oncxo"]
-script = ExtResource("14_jbdfk")
+script = ExtResource("20_bs73m")
 priority = 1
 time_start = Vector2i(6, 57)
 time_end = Vector2i(8, 48)
@@ -112,7 +114,7 @@ keys_taken = Array[String](["bathroom_break"])
 metadata/_custom_type_script = "uid://tcrug5x5hlpx"
 
 [sub_resource type="Resource" id="Resource_5g7v7"]
-script = ExtResource("14_jbdfk")
+script = ExtResource("20_bs73m")
 priority = 2
 time_start = Vector2i(8, 9)
 time_end = Vector2i(8, 30)
@@ -121,7 +123,7 @@ keys_whitelist = Array[String](["phone_ringing"])
 metadata/_custom_type_script = "uid://tcrug5x5hlpx"
 
 [sub_resource type="Resource" id="Resource_hu8bq"]
-script = ExtResource("14_jbdfk")
+script = ExtResource("20_bs73m")
 time_start = Vector2i(8, 45)
 time_end = Vector2i(9, 0)
 position = Vector3(13.945253, 0.10000038, -4.628764)
@@ -129,7 +131,7 @@ keys_unlocked = Array[String](["second_turn"])
 metadata/_custom_type_script = "uid://tcrug5x5hlpx"
 
 [sub_resource type="Resource" id="Resource_l07pr"]
-script = ExtResource("14_jbdfk")
+script = ExtResource("20_bs73m")
 time_start = Vector2i(9, 0)
 time_end = Vector2i(9, 31)
 position = Vector3(16.715868, 0.10000038, -12.547983)
@@ -137,39 +139,39 @@ keys_unlocked = Array[String](["cigarette_break"])
 metadata/_custom_type_script = "uid://tcrug5x5hlpx"
 
 [sub_resource type="Resource" id="Resource_vtas4"]
-script = ExtResource("14_jbdfk")
+script = ExtResource("20_bs73m")
 time_start = Vector2i(9, 31)
 time_end = Vector2i(9, 52)
 position = Vector3(-0.02070564, 0.10000038, -10.932439)
 metadata/_custom_type_script = "uid://tcrug5x5hlpx"
 
 [sub_resource type="Resource" id="Resource_bej8n"]
-script = ExtResource("13_jbdfk")
+script = ExtResource("21_0yl2m")
 priority = 1
 readable_text = "What do you want? Store is not open yet."
 key_blacklist = Array[String](["store_open"])
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
 [sub_resource type="Resource" id="Resource_hhe36"]
-script = ExtResource("13_jbdfk")
+script = ExtResource("21_0yl2m")
 readable_text = "Not for sale, they are mine."
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
 [sub_resource type="Resource" id="Resource_ob8ie"]
-script = ExtResource("13_jbdfk")
+script = ExtResource("21_0yl2m")
 readable_text = "Sure, what do I care? One person at a time."
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
 [sub_resource type="Resource" id="Resource_npcgs"]
-script = ExtResource("13_jbdfk")
+script = ExtResource("21_0yl2m")
 readable_text = "The fuck? Working here? Why the fuck would you ask that?"
 keys_unlocked = Array[String](["irritated"])
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
 [sub_resource type="Resource" id="Resource_wavrw"]
-script = ExtResource("13_jbdfk")
+script = ExtResource("21_0yl2m")
 readable_text = "What? Buy something or go away, I am working."
-readable_chain = Dictionary[String, ExtResource("13_jbdfk")]({
+readable_chain = Dictionary[String, ExtResource("21_0yl2m")]({
 "Can I buy some cigarettes?": SubResource("Resource_hhe36"),
 "Can I use the bathroom?": SubResource("Resource_ob8ie"),
 "How do I get into the staff room?": SubResource("Resource_npcgs")
@@ -177,57 +179,57 @@ readable_chain = Dictionary[String, ExtResource("13_jbdfk")]({
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
 [sub_resource type="Resource" id="Resource_0gupw"]
-script = ExtResource("13_jbdfk")
+script = ExtResource("21_0yl2m")
 readable_text = "Thanks."
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
 [sub_resource type="Resource" id="Resource_pryqw"]
-script = ExtResource("13_jbdfk")
+script = ExtResource("21_0yl2m")
 readable_text = "Tomorrow, actually, February 29th, four years since my last birthday."
 keys_unlocked = Array[String](["birthday"])
-readable_chain = Dictionary[String, ExtResource("13_jbdfk")]({
+readable_chain = Dictionary[String, ExtResource("21_0yl2m")]({
 "Well, happy birthday.": SubResource("Resource_0gupw")
 })
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
 [sub_resource type="Resource" id="Resource_18kiu"]
-script = ExtResource("13_jbdfk")
+script = ExtResource("21_0yl2m")
 readable_text = "Oh man, thanks, early birthday gift I guess."
 key_whitelist = Array[String](["cigarettes"])
-readable_chain = Dictionary[String, ExtResource("13_jbdfk")]({
+readable_chain = Dictionary[String, ExtResource("21_0yl2m")]({
 "Oh? Is it your birthday soon? When?": SubResource("Resource_pryqw")
 })
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
 [sub_resource type="Resource" id="Resource_dci70"]
-script = ExtResource("13_jbdfk")
+script = ExtResource("21_0yl2m")
 priority = 5
 readable_text = "Its my cigarette break, what do you want?"
 key_whitelist = Array[String](["cigarette_break"])
-readable_chain = Dictionary[String, ExtResource("13_jbdfk")]({
+readable_chain = Dictionary[String, ExtResource("21_0yl2m")]({
 "Break with no smokes? Do you want one of mine?": SubResource("Resource_18kiu")
 })
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
 [sub_resource type="Resource" id="Resource_jbdfk"]
-script = ExtResource("13_jbdfk")
+script = ExtResource("21_0yl2m")
 text_speed = 5.0
 readable_text = "Doctor? How is it? Will he ever wake up?... Was it those damn cigarettes?..."
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
 [sub_resource type="Resource" id="Resource_tql22"]
-script = ExtResource("13_jbdfk")
+script = ExtResource("21_0yl2m")
 priority = 5
 readable_text = "*Phone ringing*"
 key_whitelist = Array[String](["phone_ringing"])
 keys_taken = Array[String](["phone_ringing"])
-readable_chain = Dictionary[String, ExtResource("13_jbdfk")]({
+readable_chain = Dictionary[String, ExtResource("21_0yl2m")]({
 "Answer": SubResource("Resource_jbdfk")
 })
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
 [sub_resource type="Resource" id="Resource_4gl14"]
-script = ExtResource("13_jbdfk")
+script = ExtResource("21_0yl2m")
 readable_text = "*Line is disconnected*"
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
@@ -244,17 +246,17 @@ emission = Color(0.40968668, 0.61915296, 0.40284264, 1)
 emission_energy_multiplier = 0.2
 
 [sub_resource type="Resource" id="Resource_cul78"]
-script = ExtResource("13_jbdfk")
+script = ExtResource("21_0yl2m")
 readable_text = "The lock opens."
 keys_unlocked = Array[String](["staff_code"])
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
 [sub_resource type="Resource" id="Resource_kf85k"]
-script = ExtResource("13_jbdfk")
+script = ExtResource("21_0yl2m")
 readable_text = "It is a keypad, 4 digits."
 has_input = true
 key_whitelist = Array[String](["bathroom_break"])
-readable_chain = Dictionary[String, ExtResource("13_jbdfk")]({
+readable_chain = Dictionary[String, ExtResource("21_0yl2m")]({
 "0229": SubResource("Resource_cul78")
 })
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
@@ -266,7 +268,7 @@ size = Vector3(0.2, 0.11123047, 0.23818359)
 albedo_color = Color(1, 0.60784316, 0.30588236, 1)
 
 [sub_resource type="Resource" id="Resource_g4v7s"]
-script = ExtResource("13_jbdfk")
+script = ExtResource("21_0yl2m")
 readable_text = "This area is for staff only..."
 key_blacklist = Array[String](["bathroom_break"])
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
@@ -294,7 +296,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_6bw2v")
+script = ExtResource("1_b5yyr")
 menu_items = [NodePath("ClockUI/VBoxContainer"), NodePath("DialogueUI"), NodePath("PauseUI")]
 
 [node name="ClockUI" type="Control" parent="UserInterface" unique_id=469016623 node_paths=PackedStringArray("clock_display", "clock_text", "clock_input_display", "clock_input_display_text", "clock_input_hour", "clock_input_minute")]
@@ -304,7 +306,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("2_kem5a")
+script = ExtResource("2_ehx30")
 clock_display = NodePath("MarginContainer")
 clock_text = NodePath("MarginContainer/Panel/RichTextLabel")
 clock_input_display = NodePath("VBoxContainer")
@@ -393,7 +395,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("3_gxmxl")
+script = ExtResource("3_p11k4")
 text_container = NodePath("VBoxContainer/MarginContainer")
 text_label = NodePath("VBoxContainer/MarginContainer/Panel/MarginContainer/RichTextLabel")
 button_container = NodePath("VBoxContainer/MarginContainer2/HBoxContainer")
@@ -469,7 +471,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("4_n4w22")
+script = ExtResource("4_3r3ly")
 
 [node name="MarginContainer" type="MarginContainer" parent="UserInterface/PauseUI" unique_id=846421734]
 layout_mode = 1
@@ -1166,20 +1168,20 @@ material = SubResource("StandardMaterial3D_884kg")
 [node name="Furniture" type="Node3D" parent="Terrain/NavigationRegion3D" unique_id=711418725]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.200001, 1.8000001, -6.8)
 
-[node name="register_model" parent="Terrain/NavigationRegion3D/Furniture" unique_id=383028256 instance=ExtResource("20_npcgs")]
+[node name="register_model" parent="Terrain/NavigationRegion3D/Furniture" unique_id=383028256 instance=ExtResource("6_sbtyc")]
 transform = Transform3D(0.23025408, 0, 0.61319494, 0, 0.655, 0, -0.61319494, 0, 0.23025408, 0.7105484, -0.7929088, -0.5470252)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Terrain/NavigationRegion3D/Furniture" unique_id=1856713063]
 transform = Transform3D(-1, 0, -5.9748196e-08, 0, 1, 0, 8.742278e-08, 0, -0.68343973, 0.057541847, -1.6918414, -1.8934469)
 mesh = SubResource("PlaneMesh_g4v7s")
 
-[node name="gondola_market_model" parent="Terrain/NavigationRegion3D/Furniture" unique_id=17668298 instance=ExtResource("12_vtas4")]
+[node name="gondola_market_model" parent="Terrain/NavigationRegion3D/Furniture" unique_id=17668298 instance=ExtResource("8_22uo2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.68343973, -0.59484196, -2.3464382, -3.3081093)
 
-[node name="gondola_market_model2" parent="Terrain/NavigationRegion3D/Furniture" unique_id=1218812576 instance=ExtResource("12_vtas4")]
+[node name="gondola_market_model2" parent="Terrain/NavigationRegion3D/Furniture" unique_id=1218812576 instance=ExtResource("8_22uo2")]
 transform = Transform3D(-1, 0, -5.9748196e-08, 0, 1, 0, 8.742278e-08, 0, -0.68343973, -0.59484196, -2.3464382, -1.7330751)
 
-[node name="freezer_doors_model" parent="Terrain/NavigationRegion3D/Furniture" unique_id=1871966665 instance=ExtResource("13_bej8n")]
+[node name="freezer_doors_model" parent="Terrain/NavigationRegion3D/Furniture" unique_id=1871966665 instance=ExtResource("9_q4uam")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 2.773756, -1.7000004, -3.8982859)
 
 [node name="CSGBox3D14" type="CSGBox3D" parent="Terrain/NavigationRegion3D/Furniture" unique_id=301687943]
@@ -1253,7 +1255,7 @@ use_collision = true
 size = Vector3(0.2, 0.90000004, 2.2734375)
 
 [node name="Lights" type="Node3D" parent="Terrain/NavigationRegion3D/Furniture" unique_id=1286917867 node_paths=PackedStringArray("lights")]
-script = ExtResource("15_hu8bq")
+script = ExtResource("10_b5yyr")
 lights = [NodePath("Light/SpotLight3D"), NodePath("Light2/SpotLight3D"), NodePath("Light3/SpotLight3D"), NodePath("Light4/SpotLight3D"), NodePath("Light5/SpotLight3D"), NodePath("Light6/SpotLight3D"), NodePath("Light7/SpotLight3D"), NodePath("Light8/SpotLight3D")]
 
 [node name="Light" type="CSGCylinder3D" parent="Terrain/NavigationRegion3D/Furniture/Lights" unique_id=1819230632]
@@ -1401,7 +1403,7 @@ transform = Transform3D(0.9999726, 0, 0, 0, 0.9999726, 0, 0, 0, 0.9999999, 0.122
 radius = 0.24023438
 height = 1.0078125
 
-[node name="mesa" parent="Terrain/NavigationRegion3D/Furniture" unique_id=1951481096 instance=ExtResource("16_l07pr")]
+[node name="mesa" parent="Terrain/NavigationRegion3D/Furniture" unique_id=1951481096 instance=ExtResource("11_uo14w")]
 transform = Transform3D(0.875, 0, 0, 0, 0.875, 0, 0, 0, 0.875, 1.4904957, -1.6999999, 3.5137954)
 
 [node name="Canopy" type="CSGBox3D" parent="Terrain/NavigationRegion3D" unique_id=6770813]
@@ -1602,9 +1604,22 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.16618776, 2.6621914)
 operation = 2
 size = Vector3(1.4863281, 1.039978, 1.917244)
 
+[node name="ObjectKiller" type="Node3D" parent="Terrain/NavigationRegion3D/Car" unique_id=1071235309 node_paths=PackedStringArray("target_object")]
+script = ExtResource("12_6n7fr")
+target_object = NodePath("..")
+metadata/_custom_type_script = "uid://b1f77w6o3usir"
+
+[node name="TimeTriggerComponent" type="Node3D" parent="Terrain/NavigationRegion3D/Car/ObjectKiller" unique_id=1787754826 node_paths=PackedStringArray("target_object")]
+script = ExtResource("13_dph0q")
+one_shot = null
+time_start = Vector2i(9, 50)
+target_object = NodePath("..")
+target_method_string = "trigger_kill"
+metadata/_custom_type_script = "uid://bhxrj8d406tli"
+
 [node name="DoorStaff" type="Node3D" parent="Terrain" unique_id=1652549085]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.2, 1, -5.65)
-script = ExtResource("5_kem5a")
+script = ExtResource("14_8wyni")
 door_angle = -120.0
 door_time = 2.0
 key_whitelist = Array[String](["staff_code", "store_open"])
@@ -1621,7 +1636,7 @@ size = Vector3(1.19, 1.98, 0.08)
 [node name="InteractionComponent" type="Area3D" parent="Terrain/DoorStaff" unique_id=622397633 node_paths=PackedStringArray("target_object")]
 collision_layer = 4
 collision_mask = 0
-script = ExtResource("6_gxmxl")
+script = ExtResource("15_nrglc")
 target_object = NodePath("..")
 target_method_string = "trigger"
 metadata/_custom_type_script = "uid://ba5yjgajhffab"
@@ -1632,7 +1647,7 @@ shape = SubResource("BoxShape3D_g4v7s")
 
 [node name="DoorEntrance" type="Node3D" parent="Terrain" unique_id=256127206]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 10.3, 1, -10.16154)
-script = ExtResource("7_n4w22")
+script = ExtResource("16_t8ag4")
 door_slide = Vector3(0, 0, -0.8)
 door_time = 0.5
 key_whitelist = Array[String](["store_open"])
@@ -1648,7 +1663,7 @@ size = Vector3(1, 1.98, 0.08)
 [node name="AreaTriggerComponent" type="Area3D" parent="Terrain/DoorEntrance" unique_id=1891277437 node_paths=PackedStringArray("trigger_object", "target_object")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 10.3, 1, -8.115099)
 top_level = true
-script = ExtResource("8_884kg")
+script = ExtResource("17_21dn7")
 trigger_on_exit = true
 trigger_object = NodePath("../../../PlayerController")
 target_object = NodePath("..")
@@ -1661,7 +1676,7 @@ shape = SubResource("BoxShape3D_yf5fn")
 
 [node name="DoorEntrance2" type="Node3D" parent="Terrain" unique_id=1313141683]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 10.3, 1, -8.115099)
-script = ExtResource("7_n4w22")
+script = ExtResource("16_t8ag4")
 door_slide = Vector3(0, 0, 0.8)
 door_time = 0.5
 key_whitelist = Array[String](["store_open"])
@@ -1677,7 +1692,7 @@ size = Vector3(1, 1.98, 0.08)
 [node name="AreaTriggerComponent" type="Area3D" parent="Terrain/DoorEntrance2" unique_id=628100440 node_paths=PackedStringArray("trigger_object", "target_object")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 10.3, 1, -8.115099)
 top_level = true
-script = ExtResource("8_884kg")
+script = ExtResource("17_21dn7")
 trigger_on_exit = true
 trigger_object = NodePath("../../../PlayerController")
 target_object = NodePath("..")
@@ -1690,7 +1705,7 @@ shape = SubResource("BoxShape3D_yf5fn")
 
 [node name="DoorBathroom" type="Node3D" parent="Terrain" unique_id=96991795]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.342919, 1, -5.65)
-script = ExtResource("5_kem5a")
+script = ExtResource("14_8wyni")
 door_angle = -120.0
 door_time = 1.0
 key_whitelist = Array[String](["store_open"])
@@ -1708,7 +1723,7 @@ size = Vector3(1.19, 1.98, 0.08)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1789131, 0, 0)
 collision_layer = 4
 collision_mask = 0
-script = ExtResource("6_gxmxl")
+script = ExtResource("15_nrglc")
 target_object = NodePath("..")
 target_method_string = "trigger"
 metadata/_custom_type_script = "uid://ba5yjgajhffab"
@@ -1717,28 +1732,40 @@ metadata/_custom_type_script = "uid://ba5yjgajhffab"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55898476, 0.10974121, 0)
 shape = SubResource("BoxShape3D_g4v7s")
 
-[node name="PlayerController" parent="." unique_id=99017869 instance=ExtResource("5_884kg")]
+[node name="PlayerController" parent="." unique_id=99017869 instance=ExtResource("18_crjoo")]
 transform = Transform3D(0.57357633, 0, -0.8191521, 0, 1, 0, 0.8191521, 0, 0.57357633, -8.569749, 0.2473144, 8.967804)
 
-[node name="NPCController" parent="." unique_id=2030344370 instance=ExtResource("13_tql22")]
+[node name="StoreClerk1" parent="." unique_id=2030344370 instance=ExtResource("19_apelc")]
 transform = Transform3D(0.99993163, -0.009150944, -0.0072811022, 0.009140386, 0.99995714, -0.0014816792, 0.0072943512, 0.0014150151, 0.9999724, -0.02070564, 0.10000038, -10.932439)
 
-[node name="ChaseController" parent="NPCController/Pathfinding" parent_id_path=PackedInt32Array(2030344370, 540558769) index="2" unique_id=1426431388 node_paths=PackedStringArray("chase_target")]
+[node name="ChaseController" parent="StoreClerk1/Pathfinding" parent_id_path=PackedInt32Array(2030344370, 540558769) index="2" unique_id=1426431388 node_paths=PackedStringArray("chase_target")]
 chase_target = NodePath("../../../PlayerController")
 
-[node name="ScheduleController" parent="NPCController/Pathfinding" parent_id_path=PackedInt32Array(2030344370, 540558769) index="3" unique_id=871290188]
-schedule_entries = Array[ExtResource("14_jbdfk")]([SubResource("Resource_36gju"), SubResource("Resource_i1g04"), SubResource("Resource_y4qkf"), SubResource("Resource_oncxo"), SubResource("Resource_5g7v7"), SubResource("Resource_hu8bq"), SubResource("Resource_l07pr"), SubResource("Resource_vtas4")])
+[node name="ScheduleController" parent="StoreClerk1/Pathfinding" parent_id_path=PackedInt32Array(2030344370, 540558769) index="3" unique_id=871290188]
+schedule_entries = Array[ExtResource("20_bs73m")]([SubResource("Resource_36gju"), SubResource("Resource_i1g04"), SubResource("Resource_y4qkf"), SubResource("Resource_oncxo"), SubResource("Resource_5g7v7"), SubResource("Resource_hu8bq"), SubResource("Resource_l07pr"), SubResource("Resource_vtas4")])
 
-[node name="StateMachine" parent="NPCController/Behaviour" parent_id_path=PackedInt32Array(2030344370, 1905118480) index="0" unique_id=611879470 node_paths=PackedStringArray("state_machine")]
+[node name="StateMachine" parent="StoreClerk1/Behaviour" parent_id_path=PackedInt32Array(2030344370, 1905118480) index="0" unique_id=611879470 node_paths=PackedStringArray("state_machine")]
 state_machine = {
 "aggresive": NodePath("../../Pathfinding/ChaseController"),
 "neutral": NodePath("../../Pathfinding/PathfindingComponent")
 }
 
-[node name="ReadableComponent" parent="NPCController/Behaviour" parent_id_path=PackedInt32Array(2030344370, 1905118480) index="1" unique_id=2027071843 node_paths=PackedStringArray("target_object")]
-target_object = NodePath("../../../UserInterface/DialogueUI")
-target_method_string = "display_dialogue"
-entries = Array[ExtResource("13_jbdfk")]([SubResource("Resource_bej8n"), SubResource("Resource_wavrw"), SubResource("Resource_dci70")])
+[node name="ReadableComponent" parent="StoreClerk1/Behaviour" parent_id_path=PackedInt32Array(2030344370, 1905118480) index="1" unique_id=2027071843]
+entries = Array[ExtResource("21_0yl2m")]([SubResource("Resource_bej8n"), SubResource("Resource_wavrw"), SubResource("Resource_dci70")])
+
+[node name="ObjectKiller" type="Node3D" parent="StoreClerk1" unique_id=1792754839 node_paths=PackedStringArray("target_object")]
+transform = Transform3D(1, -2.3464963e-10, 0, -1.5279511e-10, 1, 0, 0, 0, 1, 0, 0, 0)
+script = ExtResource("12_6n7fr")
+target_object = NodePath("..")
+metadata/_custom_type_script = "uid://b1f77w6o3usir"
+
+[node name="TimeTriggerComponent" type="Node3D" parent="StoreClerk1/ObjectKiller" unique_id=1372501802 node_paths=PackedStringArray("target_object")]
+script = ExtResource("13_dph0q")
+one_shot = null
+time_start = Vector2i(9, 45)
+target_object = NodePath("..")
+target_method_string = "trigger_kill"
+metadata/_custom_type_script = "uid://bhxrj8d406tli"
 
 [node name="Items" type="Node3D" parent="." unique_id=632294285]
 
@@ -1746,17 +1773,15 @@ entries = Array[ExtResource("13_jbdfk")]([SubResource("Resource_bej8n"), SubReso
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.535479, 1.5982914, -4.227086)
 collision_layer = 4
 collision_mask = 0
-script = ExtResource("6_gxmxl")
+script = ExtResource("15_nrglc")
 target_object = NodePath("ReadableComponent")
 target_method_string = "trigger"
 metadata/_custom_type_script = "uid://ba5yjgajhffab"
 
-[node name="ReadableComponent" type="Node3D" parent="Items/phone" unique_id=973827278 node_paths=PackedStringArray("target_object")]
+[node name="ReadableComponent" type="Node3D" parent="Items/phone" unique_id=973827278]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.18078613, 0.04144287, 0)
-script = ExtResource("14_4gl14")
-target_object = NodePath("../../../UserInterface/DialogueUI")
-target_method_string = "display_dialogue"
-entries = Array[ExtResource("13_jbdfk")]([SubResource("Resource_tql22"), SubResource("Resource_4gl14")])
+script = ExtResource("22_dssw4")
+entries = Array[ExtResource("21_0yl2m")]([SubResource("Resource_tql22"), SubResource("Resource_4gl14")])
 metadata/_custom_type_script = "uid://2pl1xrcafii3"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Items/phone" unique_id=1428374096]
@@ -1764,12 +1789,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.18078613, 0.04144287, 0)
 shape = SubResource("BoxShape3D_57qmd")
 
 [node name="KeyComponent" type="Node3D" parent="Items/phone" unique_id=185663030]
-script = ExtResource("10_gdsc3")
+script = ExtResource("23_jj3bm")
 keys_unlocked = Array[String](["phone_ringing"])
 metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
 
 [node name="TimeTriggerComponent" type="Node3D" parent="Items/phone/KeyComponent" unique_id=1629389848 node_paths=PackedStringArray("target_object")]
-script = ExtResource("11_svejp")
+script = ExtResource("13_dph0q")
+one_shot = null
 time_start = Vector2i(8, 9)
 time_end = Vector2i(8, 9)
 target_object = NodePath("..")
@@ -1777,12 +1803,12 @@ target_method_string = "trigger"
 metadata/_custom_type_script = "uid://bhxrj8d406tli"
 
 [node name="KeyComponent2" type="Node3D" parent="Items/phone" unique_id=785541310]
-script = ExtResource("10_gdsc3")
+script = ExtResource("23_jj3bm")
 keys_taken = Array[String](["phone_ringing"])
 metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
 
 [node name="AreaTriggerComponent" type="Area3D" parent="Items/phone/KeyComponent2" unique_id=1353612155 node_paths=PackedStringArray("trigger_object", "target_object")]
-script = ExtResource("8_884kg")
+script = ExtResource("17_21dn7")
 trigger_object = NodePath("../../../../PlayerController")
 target_object = NodePath("..")
 target_method_string = "trigger"
@@ -1800,18 +1826,16 @@ transform = Transform3D(0.9999999, 0, 0, 0, 0.9999999, 0, 0, 0, 0.9999999, 0, 0,
 size = Vector3(0.1, 0.2, 0.01)
 material = SubResource("StandardMaterial3D_3gngh")
 
-[node name="ReadableComponent" type="Node3D" parent="Items/Keypad" unique_id=806976070 node_paths=PackedStringArray("target_object")]
-script = ExtResource("14_4gl14")
-target_object = NodePath("../../../UserInterface/DialogueUI")
-target_method_string = "display_dialogue"
-entries = Array[ExtResource("13_jbdfk")]([SubResource("Resource_kf85k")])
+[node name="ReadableComponent" type="Node3D" parent="Items/Keypad" unique_id=806976070]
+script = ExtResource("22_dssw4")
+entries = Array[ExtResource("21_0yl2m")]([SubResource("Resource_kf85k")])
 metadata/_custom_type_script = "uid://2pl1xrcafii3"
 
 [node name="InteractionComponent" type="Area3D" parent="Items/Keypad/ReadableComponent" unique_id=1861689896 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(0.9999999, 0, 0, 0, 0.9999999, 0, 0, 0, 0.9999999, 0, 0, 0)
 collision_layer = 4
 collision_mask = 0
-script = ExtResource("6_gxmxl")
+script = ExtResource("15_nrglc")
 target_object = NodePath("..")
 target_method_string = "trigger"
 metadata/_custom_type_script = "uid://ba5yjgajhffab"
@@ -1829,13 +1853,13 @@ size = Vector3(0.1, 0.05, 0.13544922)
 material = SubResource("StandardMaterial3D_d0u6y")
 
 [node name="ObjectKiller" type="Node3D" parent="Items/Cigarettes" unique_id=2030401113 node_paths=PackedStringArray("target_object")]
-script = ExtResource("23_bej8n")
+script = ExtResource("12_6n7fr")
 target_object = NodePath("..")
 metadata/_custom_type_script = "uid://b1f77w6o3usir"
 
 [node name="KeyTriggerComponent" type="Node3D" parent="Items/Cigarettes/ObjectKiller" unique_id=1984324169 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(1, 0, 2.9802322e-08, 0, 0.99999994, 0, -2.9802322e-08, 0, 1, 0, 0, 0)
-script = ExtResource("24_npcgs")
+script = ExtResource("24_kffkx")
 key_whitelist = Array[String](["cigarettes"])
 target_object = NodePath("..")
 target_method_string = "trigger_kill"
@@ -1843,14 +1867,14 @@ metadata/_custom_type_script = "uid://di1ppwrw34hur"
 
 [node name="KeyTriggerComponent2" type="Node3D" parent="Items/Cigarettes/ObjectKiller" unique_id=639189919 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(1, 0, 2.9802322e-08, 0, 0.99999994, 0, -2.9802322e-08, 0, 1, 0, 0, 0)
-script = ExtResource("24_npcgs")
+script = ExtResource("24_kffkx")
 key_whitelist = Array[String](["cigarette_break"])
 target_object = NodePath("..")
 target_method_string = "trigger_kill"
 metadata/_custom_type_script = "uid://di1ppwrw34hur"
 
 [node name="KeyComponent" type="Node3D" parent="Items/Cigarettes" unique_id=2101444512]
-script = ExtResource("10_gdsc3")
+script = ExtResource("23_jj3bm")
 key_whitelist = Array[String](["bathroom_break"])
 keys_unlocked = Array[String](["cigarettes"])
 metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
@@ -1858,7 +1882,7 @@ metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
 [node name="InteractionComponent" type="Area3D" parent="Items/Cigarettes/KeyComponent" unique_id=1655168796 node_paths=PackedStringArray("target_object")]
 collision_layer = 4
 collision_mask = 0
-script = ExtResource("6_gxmxl")
+script = ExtResource("15_nrglc")
 target_object = NodePath("..")
 target_method_string = "trigger"
 metadata/_custom_type_script = "uid://ba5yjgajhffab"
@@ -1868,7 +1892,7 @@ transform = Transform3D(1, 0, 3.5762787e-07, 0, 0.99999976, 0, -3.5762787e-07, 0
 shape = SubResource("BoxShape3D_d0u6y")
 
 [node name="TrespassArea" type="Node3D" parent="Items" unique_id=1261257453]
-script = ExtResource("10_gdsc3")
+script = ExtResource("23_jj3bm")
 key_blacklist = Array[String](["bathroom_break"])
 keys_unlocked = Array[String](["aggresive"])
 keys_taken = Array[String](["neutral"])
@@ -1876,7 +1900,7 @@ metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
 
 [node name="AreaTriggerComponent" type="Area3D" parent="Items/TrespassArea" unique_id=1194836908 node_paths=PackedStringArray("trigger_object", "target_object")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.206532, 0, -6.548625)
-script = ExtResource("8_884kg")
+script = ExtResource("17_21dn7")
 trigger_object = NodePath("../../../PlayerController")
 target_object = NodePath("..")
 target_method_string = "trigger"
@@ -1886,16 +1910,14 @@ metadata/_custom_type_script = "uid://lsbultvx6w"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.10801697, 1.2802734, 1.8982677)
 shape = SubResource("BoxShape3D_npcgs")
 
-[node name="WarningArea" type="Node3D" parent="Items" unique_id=1795404037 node_paths=PackedStringArray("target_object")]
-script = ExtResource("14_4gl14")
-target_object = NodePath("../../UserInterface/DialogueUI")
-target_method_string = "display_dialogue"
-entries = Array[ExtResource("13_jbdfk")]([SubResource("Resource_g4v7s")])
+[node name="WarningArea" type="Node3D" parent="Items" unique_id=1795404037]
+script = ExtResource("22_dssw4")
+entries = Array[ExtResource("21_0yl2m")]([SubResource("Resource_g4v7s")])
 metadata/_custom_type_script = "uid://2pl1xrcafii3"
 
 [node name="AreaTriggerComponent" type="Area3D" parent="Items/WarningArea" unique_id=512380136 node_paths=PackedStringArray("trigger_object", "target_object")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.206532, 0, -6.548625)
-script = ExtResource("8_884kg")
+script = ExtResource("17_21dn7")
 trigger_object = NodePath("../../../PlayerController")
 target_object = NodePath("..")
 target_method_string = "trigger"
@@ -1906,16 +1928,16 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.10801697, 1.3589478, -1.23
 shape = SubResource("BoxShape3D_3gngh")
 
 [node name="KeyComponent" type="Node3D" parent="Items" unique_id=550277288]
-script = ExtResource("10_gdsc3")
+script = ExtResource("23_jj3bm")
 keys_unlocked = Array[String](["store_open"])
 metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
 
 [node name="AreaTriggerComponent2" type="Area3D" parent="Items/KeyComponent" unique_id=281842877 node_paths=PackedStringArray("trigger_object", "target_object")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 10.3, 1, -8.115099)
 top_level = true
-script = ExtResource("8_884kg")
+script = ExtResource("17_21dn7")
 trigger_on_exit = true
-trigger_object = NodePath("../../../NPCController")
+trigger_object = NodePath("../../../StoreClerk1")
 target_object = NodePath("..")
 target_method_string = "trigger"
 metadata/_custom_type_script = "uid://lsbultvx6w"
@@ -1924,4 +1946,32 @@ metadata/_custom_type_script = "uid://lsbultvx6w"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0361328, 0.07357788, 0)
 shape = SubResource("BoxShape3D_yf5fn")
 
-[editable path="NPCController"]
+[node name="Spawners" type="Node3D" parent="." unique_id=1701895753]
+
+[node name="Client1Spawner" type="Node3D" parent="Spawners" unique_id=1039985683]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.836267, 0, 4.948242)
+script = ExtResource("25_oneeo")
+target_object = ExtResource("26_dfdl1")
+metadata/_custom_type_script = "uid://dugv8721fwbhv"
+
+[node name="TimeTriggerComponent" type="Node3D" parent="Spawners/Client1Spawner" unique_id=1891746459 node_paths=PackedStringArray("target_object")]
+script = ExtResource("13_dph0q")
+time_start = Vector2i(6, 55)
+time_end = Vector2i(6, 55)
+target_object = NodePath("..")
+target_method_string = "spawn_object"
+metadata/_custom_type_script = "uid://bhxrj8d406tli"
+
+[node name="ObjectKiller" type="Node3D" parent="Spawners/Client1Spawner" unique_id=1981241491 node_paths=PackedStringArray("target_object")]
+script = ExtResource("12_6n7fr")
+target_object = NodePath("..")
+metadata/_custom_type_script = "uid://b1f77w6o3usir"
+
+[node name="TimeTriggerComponent" type="Node3D" parent="Spawners/Client1Spawner/ObjectKiller" unique_id=33819215 node_paths=PackedStringArray("target_object")]
+script = ExtResource("13_dph0q")
+time_start = Vector2i(7, 40)
+target_object = NodePath("../..")
+target_method_string = "spawn_object"
+metadata/_custom_type_script = "uid://bhxrj8d406tli"
+
+[editable path="StoreClerk1"]

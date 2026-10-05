@@ -8,7 +8,7 @@
 [ext_resource type="Script" uid="uid://lsbultvx6w" path="res://Scripts/Components/area_trigger_component.gd" id="5_0m0f1"]
 [ext_resource type="Script" uid="uid://e5dqcesgwl0e" path="res://Scripts/Resources/readable_entry.gd" id="5_vbegm"]
 [ext_resource type="Script" uid="uid://bu4nmx7368xsj" path="res://Scripts/UI/dialogue_ui.gd" id="6_g14j6"]
-[ext_resource type="Script" uid="uid://bbw6x7xvlpo48" path="res://ui_controller.gd" id="6_xersf"]
+[ext_resource type="Script" uid="uid://bbw6x7xvlpo48" path="res://Scripts/UI/ui_controller.gd" id="6_xersf"]
 [ext_resource type="Script" uid="uid://bnokdyx5eqkgr" path="res://Scripts/UI/clock_ui.gd" id="8_ehkex"]
 [ext_resource type="Texture2D" uid="uid://bwqo2vqi2dpfi" path="res://Assets/GasStation/textures/market_tile_dirty.png" id="8_vxl6d"]
 [ext_resource type="PackedScene" uid="uid://2kuglcl05m3q" path="res://Assets/Shelves/shelves_pack.glb" id="9_0m0f1"]

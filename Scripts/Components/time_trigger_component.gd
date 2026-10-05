@@ -2,6 +2,7 @@
 ## Triggers a method if the current time is inside the target window.
 class_name TimeTriggerComponent extends Node3D
 
+@export var one_shot: bool = true
 @export var time_start: Vector2i = Vector2i.ZERO:
 	set(value):
 		time_start = value
@@ -41,6 +42,8 @@ func _process(delta: float) -> void:
 	if not target_method_callable.is_valid():
 		return
 	target_method_callable.call()
+	if one_shot:
+		self.queue_free()
 
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "target_method_string":

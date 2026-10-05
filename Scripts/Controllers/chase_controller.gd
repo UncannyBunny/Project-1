@@ -20,6 +20,7 @@ func _ready() -> void:
 	# Bind target callable for 
 	if target_object and not target_method_string.is_empty():
 		target_method_callable = Callable(target_object, target_method_string)
+	chase_target = get_tree().current_scene.find_child("PlayerController")
 
 func _physics_process(delta: float) -> void:
 	# Avoid execution in editor environment.

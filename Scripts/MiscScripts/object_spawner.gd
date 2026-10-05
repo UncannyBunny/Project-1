@@ -1,7 +1,7 @@
-class_name ObjectSpawner extends Node
+class_name ObjectSpawner extends Node3D
 
 @export var target_object: PackedScene
 
 func spawn_object() -> void:
 	var spawned_object: Node = target_object.instantiate()
-	get_tree().current_scene.add_child(spawned_object)
+	self.add_child(spawned_object)
