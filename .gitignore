@@ -1,3 +1,5 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+Project 1 - UncannyBunny.exe
+*.exe
