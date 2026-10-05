@@ -116,7 +116,7 @@ script = ExtResource("14_jbdfk")
 priority = 2
 time_start = Vector2i(8, 9)
 time_end = Vector2i(8, 30)
-position = Vector3(0.15797806, 0.9, 0)
+position = Vector3(8.532873, 0.10000038, -4.1711435)
 keys_whitelist = Array[String](["phone_ringing"])
 metadata/_custom_type_script = "uid://tcrug5x5hlpx"
 
@@ -234,6 +234,9 @@ metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 [sub_resource type="BoxShape3D" id="BoxShape3D_57qmd"]
 size = Vector3(0.3684082, 1.0828857, 0.5917969)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_npcgs"]
+size = Vector3(1.0412598, 2.2338867, 1.2236328)
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3gngh"]
 metallic = 1.0
 emission_enabled = true
@@ -261,9 +264,6 @@ size = Vector3(0.2, 0.11123047, 0.23818359)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_d0u6y"]
 albedo_color = Color(1, 0.60784316, 0.30588236, 1)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_npcgs"]
-size = Vector3(2.13443, 3.5605469, 5.636524)
 
 [sub_resource type="Resource" id="Resource_g4v7s"]
 script = ExtResource("13_jbdfk")
@@ -1775,6 +1775,22 @@ time_end = Vector2i(8, 9)
 target_object = NodePath("..")
 target_method_string = "trigger"
 metadata/_custom_type_script = "uid://bhxrj8d406tli"
+
+[node name="KeyComponent2" type="Node3D" parent="Items/phone" unique_id=785541310]
+script = ExtResource("10_gdsc3")
+keys_taken = Array[String](["phone_ringing"])
+metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
+
+[node name="AreaTriggerComponent" type="Area3D" parent="Items/phone/KeyComponent2" unique_id=1353612155 node_paths=PackedStringArray("trigger_object", "target_object")]
+script = ExtResource("8_884kg")
+trigger_object = NodePath("../../../../PlayerController")
+target_object = NodePath("..")
+target_method_string = "trigger"
+metadata/_custom_type_script = "uid://lsbultvx6w"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Items/phone/KeyComponent2/AreaTriggerComponent" unique_id=1132841985]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0841694, -0.28881836, 0)
+shape = SubResource("BoxShape3D_npcgs")
 
 [node name="Keypad" type="Node3D" parent="Items" unique_id=1347953933]
 transform = Transform3D(0.655, 0, 0, 0, 0.655, 0, 0, 0, 0.655, 15.505933, 1.4583441, -5.7116942)
