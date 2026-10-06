@@ -7,7 +7,7 @@ class_name AreaTriggerComponent extends Area3D
 ## If true, the method is triggered on exit
 @export var trigger_on_exit: bool = false
 ## Object to track entry/exit of
-@export var trigger_object: Node3D
+@export var trigger_objects: Array[PackedScene]
 ## Object to receive the input
 @export var target_object: Node3D:
 	set(value):
@@ -31,15 +31,16 @@ func _ready() -> void:
 		body_exited.connect(trigger)
 
 ## Triggers on entrance
-func trigger(body) -> void:
-	# If not tracked body, return
-	if not body == trigger_object:
-		return
+func trigger(body: Node3D) -> void:
 	# If method invalid, return
 	if not target_method_callable.is_valid():
 		return
-	# Method trigger
-	target_method_callable.call()
+	# If not tracked body, return
+	for trigger in trigger_objects:
+		if body.scene_file_path == trigger.resource_path:
+			# Method trigger
+			target_method_callable.call()
+			return
 
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "target_method_string":

@@ -1,0 +1,150 @@
+[gd_scene format=3 uid="uid://dismfceid33u5"]
+
+[ext_resource type="PackedScene" uid="uid://ctupd4j60qvup" path="res://Scenes/Presets/npc_controller.tscn" id="1_sbqe6"]
+[ext_resource type="Script" uid="uid://tcrug5x5hlpx" path="res://Scripts/Resources/schedule_entry.gd" id="2_sggcc"]
+[ext_resource type="Script" uid="uid://e5dqcesgwl0e" path="res://Scripts/Resources/readable_entry.gd" id="3_2nw3r"]
+
+[sub_resource type="Resource" id="Resource_36gju"]
+script = ExtResource("2_sggcc")
+time_start = Vector2i(6, 15)
+position = Vector3(9.472994, 0.10000038, -9.127531)
+keys_blacklist = Array[String](["store_open"])
+metadata/_custom_type_script = "uid://tcrug5x5hlpx"
+
+[sub_resource type="Resource" id="Resource_i1g04"]
+script = ExtResource("2_sggcc")
+time_start = Vector2i(6, 15)
+time_end = Vector2i(8, 45)
+position = Vector3(14.782409, 0.10000038, -6.737757)
+keys_whitelist = Array[String](["store_open"])
+metadata/_custom_type_script = "uid://tcrug5x5hlpx"
+
+[sub_resource type="Resource" id="Resource_y4qkf"]
+script = ExtResource("2_sggcc")
+priority = 1
+time_start = Vector2i(6, 37)
+time_end = Vector2i(6, 57)
+position = Vector3(11.741274, 0.10000038, -3.7547953)
+keys_unlocked = Array[String](["bathroom_break"])
+metadata/_custom_type_script = "uid://tcrug5x5hlpx"
+
+[sub_resource type="Resource" id="Resource_oncxo"]
+script = ExtResource("2_sggcc")
+priority = 1
+time_start = Vector2i(6, 57)
+time_end = Vector2i(8, 48)
+position = Vector3(14.782409, 0.10000038, -6.737757)
+keys_taken = Array[String](["bathroom_break"])
+metadata/_custom_type_script = "uid://tcrug5x5hlpx"
+
+[sub_resource type="Resource" id="Resource_5g7v7"]
+script = ExtResource("2_sggcc")
+priority = 2
+time_start = Vector2i(8, 9)
+time_end = Vector2i(8, 30)
+position = Vector3(8.532873, 0.10000038, -4.1711435)
+keys_whitelist = Array[String](["phone_ringing"])
+metadata/_custom_type_script = "uid://tcrug5x5hlpx"
+
+[sub_resource type="Resource" id="Resource_hu8bq"]
+script = ExtResource("2_sggcc")
+time_start = Vector2i(8, 45)
+time_end = Vector2i(9, 0)
+position = Vector3(13.945253, 0.10000038, -4.628764)
+keys_unlocked = Array[String](["second_turn"])
+metadata/_custom_type_script = "uid://tcrug5x5hlpx"
+
+[sub_resource type="Resource" id="Resource_l07pr"]
+script = ExtResource("2_sggcc")
+time_start = Vector2i(9, 0)
+time_end = Vector2i(9, 31)
+position = Vector3(16.715868, 0.10000038, -12.547983)
+keys_unlocked = Array[String](["cigarette_break"])
+metadata/_custom_type_script = "uid://tcrug5x5hlpx"
+
+[sub_resource type="Resource" id="Resource_vtas4"]
+script = ExtResource("2_sggcc")
+time_start = Vector2i(9, 31)
+time_end = Vector2i(9, 52)
+position = Vector3(-0.02070564, 0.10000038, -10.932439)
+metadata/_custom_type_script = "uid://tcrug5x5hlpx"
+
+[sub_resource type="Resource" id="Resource_bej8n"]
+script = ExtResource("3_2nw3r")
+priority = 1
+readable_text = "What do you want? Store is not open yet."
+key_blacklist = Array[String](["store_open"])
+metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+
+[sub_resource type="Resource" id="Resource_hhe36"]
+script = ExtResource("3_2nw3r")
+readable_text = "Not for sale, they are mine."
+metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+
+[sub_resource type="Resource" id="Resource_ob8ie"]
+script = ExtResource("3_2nw3r")
+readable_text = "Sure, what do I care? One person at a time."
+metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+
+[sub_resource type="Resource" id="Resource_npcgs"]
+script = ExtResource("3_2nw3r")
+readable_text = "The fuck? Working here? Why the fuck would you ask that?"
+keys_unlocked = Array[String](["irritated"])
+metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+
+[sub_resource type="Resource" id="Resource_wavrw"]
+script = ExtResource("3_2nw3r")
+readable_text = "What? Buy something or go away, I am working."
+readable_chain = Dictionary[String, ExtResource("3_2nw3r")]({
+"Can I buy some cigarettes?": SubResource("Resource_hhe36"),
+"Can I use the bathroom?": SubResource("Resource_ob8ie"),
+"How do I get into the staff room?": SubResource("Resource_npcgs")
+})
+metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+
+[sub_resource type="Resource" id="Resource_0gupw"]
+script = ExtResource("3_2nw3r")
+readable_text = "Thanks."
+metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+
+[sub_resource type="Resource" id="Resource_pryqw"]
+script = ExtResource("3_2nw3r")
+readable_text = "Tomorrow, actually, February 29th, four years since my last birthday."
+keys_unlocked = Array[String](["birthday"])
+readable_chain = Dictionary[String, ExtResource("3_2nw3r")]({
+"Well, happy birthday.": SubResource("Resource_0gupw")
+})
+metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+
+[sub_resource type="Resource" id="Resource_18kiu"]
+script = ExtResource("3_2nw3r")
+readable_text = "Oh man, thanks, early birthday gift I guess."
+key_whitelist = Array[String](["cigarettes"])
+readable_chain = Dictionary[String, ExtResource("3_2nw3r")]({
+"Oh? Is it your birthday soon? When?": SubResource("Resource_pryqw")
+})
+metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+
+[sub_resource type="Resource" id="Resource_dci70"]
+script = ExtResource("3_2nw3r")
+priority = 5
+readable_text = "Its my cigarette break, what do you want?"
+key_whitelist = Array[String](["cigarette_break"])
+readable_chain = Dictionary[String, ExtResource("3_2nw3r")]({
+"Break with no smokes? Do you want one of mine?": SubResource("Resource_18kiu")
+})
+metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+
+[node name="Clerk1" unique_id=2030344370 instance=ExtResource("1_sbqe6")]
+
+[node name="ScheduleController" parent="Pathfinding" parent_id_path=PackedInt32Array(540558769) index="3" unique_id=871290188]
+schedule_entries = Array[ExtResource("2_sggcc")]([SubResource("Resource_36gju"), SubResource("Resource_i1g04"), SubResource("Resource_y4qkf"), SubResource("Resource_oncxo"), SubResource("Resource_5g7v7"), SubResource("Resource_hu8bq"), SubResource("Resource_l07pr"), SubResource("Resource_vtas4")])
+
+[node name="StateMachine" parent="Behaviour" parent_id_path=PackedInt32Array(1905118480) index="0" unique_id=611879470 node_paths=PackedStringArray("state_machine")]
+state_machine = {
+"aggresive": NodePath("../../Pathfinding/ChaseController"),
+"neutral": NodePath("../../Pathfinding/PathfindingComponent")
+}
+
+[node name="ReadableComponent" parent="Behaviour" parent_id_path=PackedInt32Array(1905118480) index="1" unique_id=2027071843]
+entries = Array[ExtResource("3_2nw3r")]([SubResource("Resource_bej8n"), SubResource("Resource_wavrw"), SubResource("Resource_dci70")])

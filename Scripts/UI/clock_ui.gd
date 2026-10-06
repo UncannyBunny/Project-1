@@ -32,13 +32,10 @@ func hour_changed() -> void:
 	target_time = TimeManager.time_from_vector(time)
 
 func minute_changed() -> void:
-	print("minutes button pressed")
 	var time: Vector2i = TimeManager.time_as_vector(target_time)
 	if time.y + 5 < 60:
-		print("added minutes")
 		time.y += 5
 	else:
-		print("minutes looped around")
 		time.y = TimeManager.time_as_vector(TimeManager._day_start).y
 	target_time = TimeManager.time_from_vector(time)
 

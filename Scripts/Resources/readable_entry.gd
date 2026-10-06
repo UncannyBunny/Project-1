@@ -3,7 +3,7 @@ class_name ReadableEntry extends Resource
 ## The priority of the entry, if multiple entries overlap the one with the highest priority should be picked.
 @export var priority: int
 ## Time in multiplier for the text animation
-@export var text_speed: float = 10
+@export var text_speed: float = 15
 ## The text content of the entry
 @export_multiline var readable_text: String
 ## If true, a response box will be used

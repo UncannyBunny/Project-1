@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cq1ddvvm3aidv"]
 
-[ext_resource type="PackedScene" uid="uid://ctupd4j60qvup" path="res://Scripts/Controllers/npc_controller.tscn" id="1_m8plf"]
+[ext_resource type="PackedScene" uid="uid://ctupd4j60qvup" path="res://Scenes/Presets/npc_controller.tscn" id="1_m8plf"]
 [ext_resource type="Script" uid="uid://tcrug5x5hlpx" path="res://Scripts/Resources/schedule_entry.gd" id="2_05gkw"]
 [ext_resource type="Script" uid="uid://e5dqcesgwl0e" path="res://Scripts/Resources/readable_entry.gd" id="3_05gkw"]
 

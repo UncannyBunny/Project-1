@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://0n5f0p8a75gl"]
+
+[ext_resource type="PackedScene" uid="uid://ctupd4j60qvup" path="res://Scenes/Presets/npc_controller.tscn" id="1_du8ed"]
+
+[node name="Clerk2" unique_id=2030344370 instance=ExtResource("1_du8ed")]
+
+[node name="StateMachine" parent="Behaviour" parent_id_path=PackedInt32Array(1905118480) index="0" unique_id=611879470 node_paths=PackedStringArray("state_machine")]
+state_machine = {
+"aggresive": NodePath("../../Pathfinding/ChaseController"),
+"neutral": NodePath("../../Pathfinding/PathfindingComponent")
+}

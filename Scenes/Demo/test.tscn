@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://bisuxvwdp0013"]
 
-[ext_resource type="PackedScene" uid="uid://dlygyllacfx4x" path="res://Scripts/Controllers/player_controller.tscn" id="1_37kl0"]
+[ext_resource type="PackedScene" uid="uid://dlygyllacfx4x" path="res://Scenes/Presets/player_controller.tscn" id="1_37kl0"]
 [ext_resource type="Script" uid="uid://2pl1xrcafii3" path="res://Scripts/Components/readable_component.gd" id="3_5tkv4"]
-[ext_resource type="PackedScene" uid="uid://ctupd4j60qvup" path="res://Scripts/Controllers/npc_controller.tscn" id="3_6uqi0"]
+[ext_resource type="PackedScene" uid="uid://ctupd4j60qvup" path="res://Scenes/Presets/npc_controller.tscn" id="3_6uqi0"]
 [ext_resource type="Texture2D" uid="uid://d2cgn1puj7f5r" path="res://icon.svg" id="3_ykrsh"]
 [ext_resource type="Script" uid="uid://tcrug5x5hlpx" path="res://Scripts/Resources/schedule_entry.gd" id="4_00tp4"]
 [ext_resource type="Script" uid="uid://lsbultvx6w" path="res://Scripts/Components/area_trigger_component.gd" id="5_0m0f1"]
