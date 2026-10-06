@@ -53,6 +53,7 @@ func display_dialogue(dialogue: ReadableEntry) -> void:
 
 func _on_response_entered(value: String) -> void:
 	if text_tween.is_running():
+		text_tween.custom_step(100.0)
 		return
 	if entry.readable_chain.has(value):
 		display_dialogue(entry.readable_chain[value])
@@ -62,6 +63,7 @@ func _on_response_entered(value: String) -> void:
 ## Triggered when a dialogue choice with a chained entry is selected
 func _on_response_pressed(next_entry: ReadableEntry) -> void:
 	if text_tween.is_running():
+		text_tween.custom_step(100.0)
 		return
 	# Pass the chained entry back into the display function
 	display_dialogue(next_entry)

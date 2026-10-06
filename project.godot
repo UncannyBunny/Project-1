@@ -83,12 +83,6 @@ debug_die={
 ]
 }
 
-[layer_names]
-
-3d_physics/layer_1="General"
-3d_physics/layer_2="Doors"
-3d_physics/layer_3="Interaction"
-
 [navigation]
 
 3d/default_cell_size=0.05
