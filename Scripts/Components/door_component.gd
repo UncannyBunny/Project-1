@@ -30,7 +30,7 @@ func toggle() -> void:
 	var time_current: float = time
 	var value_target: float = value_initial + value if is_open else value_initial
 	if door_tween and door_tween.is_running():
-		var time_step: float = abs(value - value_initial) / time
+		var time_step: float = abs(value) / time
 		var distance: float = abs(value_target - self.get_indexed(property_path))
 		time_current = distance / time_step
 		door_tween.kill()

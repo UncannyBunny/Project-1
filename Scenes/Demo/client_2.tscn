@@ -40,7 +40,7 @@ readable_chain = Dictionary[String, ExtResource("3_kfmkc")]({
 })
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
-[node name="Client2" unique_id=2030344370 instance=ExtResource("1_mq30w")]
+[node name="NPCClient2" unique_id=2030344370 instance=ExtResource("1_mq30w")]
 
 [node name="ScheduleController" parent="Pathfinding" parent_id_path=PackedInt32Array(540558769) index="3" unique_id=871290188]
 schedule_entries = Array[ExtResource("2_dvnfk")]([SubResource("Resource_dvnfk"), SubResource("Resource_kfmkc"), SubResource("Resource_imbko")])

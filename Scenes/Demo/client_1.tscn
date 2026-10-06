@@ -36,7 +36,7 @@ script = ExtResource("3_05gkw")
 readable_text = "Nice day for shopping, isnt it?"
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
-[node name="Client1" unique_id=2030344370 instance=ExtResource("1_m8plf")]
+[node name="NPCClient1" unique_id=2030344370 instance=ExtResource("1_m8plf")]
 
 [node name="ScheduleController" parent="Pathfinding" parent_id_path=PackedInt32Array(540558769) index="3" unique_id=871290188]
 schedule_entries = Array[ExtResource("2_05gkw")]([SubResource("Resource_xms7c"), SubResource("Resource_mioy6"), SubResource("Resource_n55vl"), SubResource("Resource_rn1d6")])

@@ -17,7 +17,6 @@
 [ext_resource type="Script" uid="uid://ba5yjgajhffab" path="res://Scripts/Components/interaction_component.gd" id="15_nrglc"]
 [ext_resource type="Script" uid="uid://lsbultvx6w" path="res://Scripts/Components/area_trigger_component.gd" id="17_21dn7"]
 [ext_resource type="PackedScene" uid="uid://dlygyllacfx4x" path="res://Scenes/Presets/player_controller.tscn" id="18_crjoo"]
-[ext_resource type="PackedScene" uid="uid://0n5f0p8a75gl" path="res://Scenes/Demo/clerk_2.tscn" id="20_ehx30"]
 [ext_resource type="Script" uid="uid://e5dqcesgwl0e" path="res://Scripts/Resources/readable_entry.gd" id="21_0yl2m"]
 [ext_resource type="Script" uid="uid://2pl1xrcafii3" path="res://Scripts/Components/readable_component.gd" id="22_dssw4"]
 [ext_resource type="Script" uid="uid://dfd5vok7q0jsh" path="res://Scripts/Components/key_component.gd" id="23_jj3bm"]
@@ -1535,7 +1534,10 @@ transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 10.3
 top_level = true
 script = ExtResource("17_21dn7")
 trigger_on_exit = true
-trigger_objects = Array[PackedScene]([ExtResource("18_crjoo"), ExtResource("24_6uqla"), ExtResource("20_ehx30"), ExtResource("26_dfdl1"), ExtResource("27_ehx30")])
+trigger_objects = Dictionary[String, StringName]({
+"NPC*": &"CharacterController3D",
+"Player*": &"CharacterController3D"
+})
 target_object = NodePath("..")
 target_method_string = "trigger"
 metadata/_custom_type_script = "uid://lsbultvx6w"
@@ -1565,7 +1567,10 @@ transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 10.3
 top_level = true
 script = ExtResource("17_21dn7")
 trigger_on_exit = true
-trigger_objects = Array[PackedScene]([ExtResource("18_crjoo"), ExtResource("24_6uqla"), ExtResource("20_ehx30"), ExtResource("26_dfdl1"), ExtResource("27_ehx30")])
+trigger_objects = Dictionary[String, StringName]({
+"NPC*": &"CharacterController3D",
+"Player*": &"CharacterController3D"
+})
 target_object = NodePath("..")
 target_method_string = "trigger"
 metadata/_custom_type_script = "uid://lsbultvx6w"
@@ -1648,7 +1653,9 @@ metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
 
 [node name="AreaTriggerComponent" type="Area3D" parent="Items/phone/KeyComponent2" unique_id=1353612155 node_paths=PackedStringArray("target_object")]
 script = ExtResource("17_21dn7")
-trigger_objects = Array[PackedScene]([ExtResource("24_6uqla")])
+trigger_objects = Dictionary[String, StringName]({
+"NPCClerk1": &"CharacterController3D"
+})
 target_object = NodePath("..")
 target_method_string = "trigger"
 metadata/_custom_type_script = "uid://lsbultvx6w"
@@ -1740,7 +1747,9 @@ metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
 [node name="AreaTriggerComponent" type="Area3D" parent="Items/TrespassArea" unique_id=1194836908 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.206532, 0, -6.548625)
 script = ExtResource("17_21dn7")
-trigger_objects = Array[PackedScene]([ExtResource("18_crjoo")])
+trigger_objects = Dictionary[String, StringName]({
+"Player*": &"CharacterController3D"
+})
 target_object = NodePath("..")
 target_method_string = "trigger"
 metadata/_custom_type_script = "uid://lsbultvx6w"
@@ -1757,7 +1766,9 @@ metadata/_custom_type_script = "uid://2pl1xrcafii3"
 [node name="AreaTriggerComponent" type="Area3D" parent="Items/WarningArea" unique_id=512380136 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.206532, 0, -6.548625)
 script = ExtResource("17_21dn7")
-trigger_objects = Array[PackedScene]([ExtResource("18_crjoo")])
+trigger_objects = Dictionary[String, StringName]({
+"Player*": &"CharacterController3D"
+})
 target_object = NodePath("..")
 target_method_string = "trigger"
 metadata/_custom_type_script = "uid://lsbultvx6w"
@@ -1775,8 +1786,9 @@ metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 10.3, 1, -8.115099)
 top_level = true
 script = ExtResource("17_21dn7")
-trigger_on_exit = true
-trigger_objects = Array[PackedScene]([ExtResource("24_6uqla")])
+trigger_objects = Dictionary[String, StringName]({
+"NPCClerk1": &"CharacterController3D"
+})
 target_object = NodePath("..")
 target_method_string = "trigger"
 metadata/_custom_type_script = "uid://lsbultvx6w"
