@@ -22,11 +22,9 @@ func _ready() -> void:
 	# Bind target callable for 
 	if target_object and not target_method_string.is_empty():
 		target_method_callable = Callable(target_object, target_method_string)
+	KeyManager.keys_changed.connect(on_keys_changed)
 
-func _process(delta: float) -> void:
-	# Avoid execution in editor environment.
-	if Engine.is_editor_hint():
-		return
+func on_keys_changed() -> void:
 	if check_keys():
 		target_method_callable.call()
 

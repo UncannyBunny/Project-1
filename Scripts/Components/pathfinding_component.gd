@@ -4,6 +4,8 @@ class_name PathfindingComponent extends Node3D
 
 ## Agent used to calculate the pathfinding
 @export var nav_agent: NavigationAgent3D
+var on_link: bool = false
+var link_target: Vector3
 ## Object to receive the input
 @export var target_object: Node3D:
 	set(value):
@@ -12,6 +14,7 @@ class_name PathfindingComponent extends Node3D
 ## Method that will be called with the input
 @export var target_method_string: String = ""
 var target_method_callable: Callable
+var nav_paused: bool = false
 
 func _ready() -> void:
 	# Avoid execution in editor environment.
@@ -20,6 +23,7 @@ func _ready() -> void:
 	# Bind target callable for 
 	if target_object and not target_method_string.is_empty():
 		target_method_callable = Callable(target_object, target_method_string)
+	nav_agent.link_reached.connect(on_nav_link)
 
 func _physics_process(delta: float) -> void:
 	# Avoid execution in editor environment.
@@ -29,15 +33,24 @@ func _physics_process(delta: float) -> void:
 		return
 	_navigation()
 
+func on_nav_link(details: Dictionary) -> void:
+	on_link = true
+	link_target = details["link_exit_position"]
+
 ## Function used to calculate pathfinding
 func _navigation() -> void:
-	if nav_agent.is_navigation_finished():
+	if nav_agent.is_navigation_finished() or nav_paused:
 		target_method_callable.call(Vector3.ZERO)
 		return
+	if on_link and global_position.distance_to(link_target) < nav_agent.path_desired_distance:
+		on_link = false
 	var pos_current: Vector3 = target_object.global_position
-	var pos_next: Vector3 = nav_agent.get_next_path_position()
+	var pos_next: Vector3 = link_target if on_link else nav_agent.get_next_path_position()
 	var direction: Vector3 = pos_current.direction_to(pos_next)
 	target_method_callable.call(direction, false)
+
+func pause_navigation(value: bool = true) -> void:
+	nav_paused = value
 
 ## Function called to set the target position
 func set_target_position(target_pos: Vector3) -> void:

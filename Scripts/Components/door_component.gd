@@ -10,20 +10,31 @@ var property_path: NodePath
 @export var time: float
 var value_initial: float
 var is_open: bool = false
+var is_locked: bool = false
 var door_tween: Tween
-# Keys that the door require
+## Keys that the door require
 @export var key_whitelist: Array[String]
-# Keys that the door rejects
+## Keys that the door rejects
 @export var key_blacklist: Array[String]
+## Optional Navigation Link to use for door lock/unlock.
+@export var navlink: NavigationLink3D
 
 func _ready() -> void:
 	value_initial = self.get_indexed(property_path)
+	KeyManager.keys_changed.connect(on_keys_changed)
+	is_locked = not KeyManager.check_keys(key_whitelist, key_blacklist)
+	if navlink:
+		navlink.enabled = not is_locked
 
 func trigger() -> void:
-	var is_locked = not KeyManager.check_keys(key_whitelist, key_blacklist)
 	if is_locked and not is_open:
 		return
 	toggle()
+
+func on_keys_changed() -> void:
+	is_locked = not KeyManager.check_keys(key_whitelist, key_blacklist)
+	if navlink:
+		navlink.enabled = not is_locked
 
 func toggle() -> void:
 	is_open = not is_open

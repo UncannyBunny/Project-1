@@ -1,11 +1,14 @@
 @tool
-## Trigfgers a method when the tracked object enters an area
+## Triggers a method when the tracked object enters an area
 class_name AreaTriggerComponent extends Area3D
 
 ## If true, the method is triggered on entry
 @export var trigger_on_enter: bool = true
 ## If true, the method is triggered on exit
 @export var trigger_on_exit: bool = false
+## If true, triggers only on the first body entering or the last body exiting
+@export var check_occupied: bool = false
+var valid_bodies: Array[Node3D]
 ## Object to track entry/exit of, in the format of "pattern", "type" similar to find_children()
 @export var trigger_objects: Dictionary[String, StringName]
 ## Object to receive the input
@@ -26,11 +29,43 @@ func _ready() -> void:
 		target_method_callable = Callable(target_object, target_method_string)
 	# Subscribe to signal depending on trigger conditions
 	if trigger_on_enter:
-		body_entered.connect(trigger)
+		body_entered.connect(on_trigger_enter)
 	if trigger_on_exit:
-		body_exited.connect(trigger)
+		body_exited.connect(on_trigger_exit)
 
 ## Triggers on entrance
+func on_trigger_enter(body: Node3D) -> void:
+	# If method invalid, return
+	if not target_method_callable.is_valid():
+		return
+	if not validate_body(body):
+		return
+	if not trigger_on_enter:
+		return
+	if check_occupied:
+		if valid_bodies.is_empty():
+			target_method_callable.call()
+		if not valid_bodies.has(body):
+			valid_bodies.append(body)
+	else:
+		target_method_callable.call()
+
+## Triggers on exit
+func on_trigger_exit(body: Node3D) -> void:
+	# If method invalid, return
+	if not target_method_callable.is_valid():
+		return
+	if not validate_body(body):
+		return
+	if not trigger_on_exit:
+		return
+	if check_occupied:
+		valid_bodies.erase(body)
+		if valid_bodies.is_empty():
+			target_method_callable.call()
+	else:
+		target_method_callable.call()
+
 func trigger(body: Node3D) -> void:
 	# If method invalid, return
 	if not target_method_callable.is_valid():
@@ -47,6 +82,18 @@ func trigger(body: Node3D) -> void:
 			if body.name.matchn(pattern):
 				target_method_callable.call()
 				return
+
+func validate_body(body: Node3D) -> bool:
+	for pattern in trigger_objects:
+		var type: StringName = trigger_objects.get(pattern)
+		var script = body.get_script()
+		if script and script.get_global_name() == type:
+			if body.name.matchn(pattern):
+				return true
+		elif body.is_class(type):
+			if body.name.matchn(pattern):
+				return true
+	return false
 
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "target_method_string":

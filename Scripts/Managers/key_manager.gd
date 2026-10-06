@@ -1,5 +1,7 @@
 extends Node3D
 
+signal keys_changed
+
 ## Keys active at the start of a loop
 var _keys_default: Array[String] = ["neutral"]
 ## Stores all active keys
@@ -27,6 +29,7 @@ func add_keys(keys_added: Array[String], persistent: bool = false) -> void:
 		_keys_stored.append(key)
 		if persistent:
 			_keys_persistent.append(key)
+		keys_changed.emit()
 
 ## Removes the array of keys from the stored values
 func remove_keys(keys_removed: Array[String], aggresive: bool = false) -> void:
@@ -34,9 +37,11 @@ func remove_keys(keys_removed: Array[String], aggresive: bool = false) -> void:
 		_keys_stored.erase(key)
 		if aggresive:
 			_keys_persistent.erase(key)
+		keys_changed.emit()
 
 func remove_all_keys() -> void:
 	_keys_stored = _keys_default + _keys_persistent
+	keys_changed.emit()
 
 ## Function that checks key values agains a white/black list
 func check_keys(key_whitelist: Array[String], key_blacklist: Array[String]) -> bool:
