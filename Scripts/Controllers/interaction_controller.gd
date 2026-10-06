@@ -9,19 +9,20 @@ class_name InteractionController extends Node3D
 @export var target_areas: bool = true
 ## If true, targets bodies
 @export var target_bodies: bool = false
-## Mask to use for the collision, by default only layer 3
-@export var collision_mask: int = 4
 
 func try_interaction() -> void:
 	var space_state = get_world_3d().direct_space_state
 	var start_pos = origin_object.global_position
 	var end_pos = origin_object.global_position - origin_object.global_transform.basis.z * reach
 	var query = PhysicsRayQueryParameters3D.create(start_pos, end_pos)
-	query.collision_mask = collision_mask
 	query.collide_with_areas = target_areas
 	query.collide_with_bodies = target_bodies
-	var result = space_state.intersect_ray(query)
-	if result:
+	while true:
+		var result = space_state.intersect_ray(query)
+		if result.is_empty():
+			return
 		var object: Node = result.collider
 		if object.has_method("trigger_interaction"):
 			object.trigger_interaction()
+			return
+		query.exclude.append(result.rid)

@@ -87,8 +87,6 @@ script = ExtResource("7_18g42")
 metadata/_custom_type_script = "uid://2pl1xrcafii3"
 
 [node name="InteractionComponent" type="Area3D" parent="." unique_id=413553058 node_paths=PackedStringArray("target_object")]
-collision_layer = 4
-collision_mask = 0
 script = ExtResource("5_oudc5")
 target_object = NodePath("../Behaviour/ReadableComponent")
 target_method_string = "trigger"

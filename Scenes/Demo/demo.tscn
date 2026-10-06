@@ -17,6 +17,7 @@
 [ext_resource type="Script" uid="uid://ba5yjgajhffab" path="res://Scripts/Components/interaction_component.gd" id="15_nrglc"]
 [ext_resource type="Script" uid="uid://lsbultvx6w" path="res://Scripts/Components/area_trigger_component.gd" id="17_21dn7"]
 [ext_resource type="PackedScene" uid="uid://dlygyllacfx4x" path="res://Scenes/Presets/player_controller.tscn" id="18_crjoo"]
+[ext_resource type="PackedScene" uid="uid://0n5f0p8a75gl" path="res://Scenes/Demo/clerk_2.tscn" id="20_ehx30"]
 [ext_resource type="Script" uid="uid://e5dqcesgwl0e" path="res://Scripts/Resources/readable_entry.gd" id="21_0yl2m"]
 [ext_resource type="Script" uid="uid://2pl1xrcafii3" path="res://Scripts/Components/readable_component.gd" id="22_dssw4"]
 [ext_resource type="Script" uid="uid://dfd5vok7q0jsh" path="res://Scripts/Components/key_component.gd" id="23_jj3bm"]
@@ -1502,8 +1503,6 @@ collision_mask = 0
 size = Vector3(1.19, 1.98, 0.08)
 
 [node name="InteractionComponent" type="Area3D" parent="Terrain/DoorStaff" unique_id=626978883 node_paths=PackedStringArray("target_object")]
-collision_layer = 4
-collision_mask = 0
 script = ExtResource("15_nrglc")
 target_object = NodePath("..")
 target_method_string = "trigger"
@@ -1598,8 +1597,6 @@ size = Vector3(1.19, 1.98, 0.08)
 
 [node name="InteractionComponent" type="Area3D" parent="Terrain/DoorBathroom" unique_id=2121667502 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1789131, 0, 0)
-collision_layer = 4
-collision_mask = 0
 script = ExtResource("15_nrglc")
 target_object = NodePath("..")
 target_method_string = "trigger"
@@ -1616,8 +1613,6 @@ transform = Transform3D(0.57357633, 0, -0.8191521, 0, 1, 0, 0.8191521, 0, 0.5735
 
 [node name="phone" type="Area3D" parent="Items" unique_id=1645931198 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.535479, 1.5982914, -4.227086)
-collision_layer = 4
-collision_mask = 0
 script = ExtResource("15_nrglc")
 target_object = NodePath("ReadableComponent")
 target_method_string = "trigger"
@@ -1679,8 +1674,6 @@ metadata/_custom_type_script = "uid://2pl1xrcafii3"
 
 [node name="InteractionComponent" type="Area3D" parent="Items/Keypad/ReadableComponent" unique_id=1861689896 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(0.9999999, 0, 0, 0, 0.9999999, 0, 0, 0, 0.9999999, 0, 0, 0)
-collision_layer = 4
-collision_mask = 0
 script = ExtResource("15_nrglc")
 target_object = NodePath("..")
 target_method_string = "trigger"
@@ -1726,8 +1719,6 @@ keys_unlocked = Array[String](["cigarettes"])
 metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
 
 [node name="InteractionComponent" type="Area3D" parent="Items/Cigarettes/KeyComponent" unique_id=1655168796 node_paths=PackedStringArray("target_object")]
-collision_layer = 4
-collision_mask = 0
 script = ExtResource("15_nrglc")
 target_object = NodePath("..")
 target_method_string = "trigger"
@@ -1823,6 +1814,19 @@ one_shot = false
 time_start = Vector2i(9, 45)
 target_object = NodePath("..")
 target_method_string = "trigger_kill"
+metadata/_custom_type_script = "uid://bhxrj8d406tli"
+
+[node name="ClerkSpawner2" type="Node3D" parent="Spawners" unique_id=903731454]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.096178055, 0, -10.853515)
+script = ExtResource("25_oneeo")
+target_object = ExtResource("20_ehx30")
+metadata/_custom_type_script = "uid://dugv8721fwbhv"
+
+[node name="TimeTriggerComponent" type="Node3D" parent="Spawners/ClerkSpawner2" unique_id=1142513945 node_paths=PackedStringArray("target_object")]
+script = ExtResource("13_dph0q")
+time_start = Vector2i(8, 45)
+target_object = NodePath("..")
+target_method_string = "spawn_object"
 metadata/_custom_type_script = "uid://bhxrj8d406tli"
 
 [node name="ClientSpawner1" type="Node3D" parent="Spawners" unique_id=1039985683]
