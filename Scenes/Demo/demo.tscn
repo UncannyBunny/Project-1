@@ -205,6 +205,9 @@ size = Vector3(0.2, 0.11123047, 0.23818359)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_d0u6y"]
 albedo_color = Color(1, 0.60784316, 0.30588236, 1)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_sbtyc"]
+size = Vector3(2.2458801, 3.0690918, 5.583008)
+
 [sub_resource type="Resource" id="Resource_g4v7s"]
 script = ExtResource("21_0yl2m")
 readable_text = "This area is for staff only..."
@@ -1909,8 +1912,8 @@ target_method_string = "trigger"
 metadata/_custom_type_script = "uid://lsbultvx6w"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Items/TrespassArea/AreaTriggerComponent" unique_id=502646600]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.10801697, 1.2802734, 1.8982677)
-shape = SubResource("BoxShape3D_npcgs")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.18896484, 1.697876, 1.8982677)
+shape = SubResource("BoxShape3D_sbtyc")
 
 [node name="WarningArea" type="Node3D" parent="Items" unique_id=1795404037]
 script = ExtResource("22_dssw4")

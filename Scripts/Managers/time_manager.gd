@@ -10,7 +10,7 @@ var _time_passed: float = 0
 
 var _day_start: int = 360
 var _day_start_current: int
-var _day_end: int = 1440
+var _day_end: int = 592 #1440
 
 func _ready() -> void:
 	_day_start_current = _day_start
