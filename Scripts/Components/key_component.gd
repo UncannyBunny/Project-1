@@ -2,13 +2,13 @@
 class_name KeyComponent extends Node3D
 
 # Keys that the door requires
-@export var key_whitelist: Array[String]
+@export var key_whitelist: Array[StringName]
 # Keys that the door rejects
-@export var key_blacklist: Array[String]
+@export var key_blacklist: Array[StringName]
 ## The keys unlocked by triggering the entry
-@export var keys_unlocked: Array[String]
+@export var keys_unlocked: Array[StringName]
 ## The keys lost by triggering the entry
-@export var keys_taken: Array[String]
+@export var keys_taken: Array[StringName]
 # If true, affects persistent keys
 @export var aggresive: bool = false
 

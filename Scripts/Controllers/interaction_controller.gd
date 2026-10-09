@@ -17,6 +17,7 @@ func try_interaction() -> void:
 	var query = PhysicsRayQueryParameters3D.create(start_pos, end_pos)
 	query.collide_with_areas = target_areas
 	query.collide_with_bodies = target_bodies
+	var exclude_list: Array[RID] = []
 	while true:
 		var result = space_state.intersect_ray(query)
 		if result.is_empty():
@@ -25,4 +26,5 @@ func try_interaction() -> void:
 		if object.has_method("trigger_interaction"):
 			object.trigger_interaction()
 			return
-		query.exclude.append(result.rid)
+		exclude_list.append(result.rid)
+		query.exclude = exclude_list

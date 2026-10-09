@@ -11,6 +11,8 @@ var _movement_run: bool = false
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _movement_direction: Vector3 = Vector3.ZERO
 var _movement_jump: bool = false
+@export_group("Properties")
+@export var private_keys: Array[StringName]
 
 func _ready() -> void:
 	movement_speed = speed_walking

@@ -1,5 +1,7 @@
 extends Node
 
+signal time_changed
+
 @export var loading_screen: Control
 
 var _time_current: int = 0
@@ -22,7 +24,10 @@ func get_current_time() -> int:
 
 func _time_pass(delta: float) -> void:
 	_time_passed += delta / 60
-	_time_current = floori(_time_passed * _time_scale)
+	var time_calc: int = floori(_time_passed * _time_scale)
+	if _time_current != time_calc:
+		time_changed.emit()
+		_time_current = time_calc
 	if _time_current >= _day_end:
 		LoopManager.trigger_loop_reset()
 	if get_tree().current_scene:
@@ -55,7 +60,7 @@ func time_from_vector(time: Vector2i) -> int:
 
 func warp_time_until(time: int) -> void:
 	loading_screen.visible = true
-	KeyManager.add_keys(["time_warp"] as Array[String])
+	KeyManager.add_keys(["time_warp"] as Array[StringName])
 	var time_scale = Engine.time_scale
 	var physics_ticks = Engine.physics_ticks_per_second
 	Engine.time_scale *= 32
@@ -64,5 +69,5 @@ func warp_time_until(time: int) -> void:
 		await get_tree().physics_frame
 	Engine.time_scale = time_scale
 	Engine.physics_ticks_per_second = physics_ticks
-	KeyManager.remove_keys(["time_warp"] as Array[String])
+	KeyManager.remove_keys(["time_warp"] as Array[StringName])
 	loading_screen.visible = false

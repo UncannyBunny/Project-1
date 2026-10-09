@@ -40,6 +40,7 @@ func on_trigger_enter(body: Node3D) -> void:
 		return
 	if not validate_body(body):
 		return
+	print(body.name + " entered area trigger for " + target_object.name)
 	if not trigger_on_enter:
 		return
 	if check_occupied:

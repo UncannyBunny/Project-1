@@ -10,6 +10,7 @@ class_name ScheduleController extends Node3D
 @export var target_method_string: String = ""
 var target_method_callable: Callable
 @export var schedule_entries: Array[ScheduleEntry]
+var prev_schedule: ScheduleEntry
 
 func _ready() -> void:
 	# Avoid execution in editor environment.
@@ -18,16 +19,16 @@ func _ready() -> void:
 	# Bind target callable for 
 	if target_object and not target_method_string.is_empty():
 		target_method_callable = Callable(target_object, target_method_string)
+	TimeManager.time_changed.connect(schedule_process)
 
-func _process(delta: float) -> void:
-	# Avoid execution in editor environment.
-	if Engine.is_editor_hint():
-		return
+func schedule_process() -> void:
 	var schedule_current: ScheduleEntry = schedule_selection()
+	if schedule_current == prev_schedule: return
 	if schedule_current:
 		target_method_callable.call(schedule_current.position)
 		KeyManager.add_keys(schedule_current.keys_unlocked)
 		KeyManager.remove_keys(schedule_current.keys_taken)
+		prev_schedule = schedule_current
 
 func schedule_selection() -> ScheduleEntry:
 	if not schedule_entries or not target_object or schedule_entries.is_empty():

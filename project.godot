@@ -83,6 +83,12 @@ debug_die={
 ]
 }
 
+[layer_names]
+
+3d_physics/layer_1="General"
+3d_physics/layer_2="Character Collision"
+3d_physics/layer_3="Character Detection"
+
 [navigation]
 
 3d/default_cell_size=0.05

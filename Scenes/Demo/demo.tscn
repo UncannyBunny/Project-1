@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://b1pocavll3x5j"]
+[gd_scene format=4 uid="uid://b1pocavll3x5j"]
 
 [ext_resource type="Script" uid="uid://bbw6x7xvlpo48" path="res://Scripts/UI/ui_controller.gd" id="1_b5yyr"]
 [ext_resource type="Script" uid="uid://bnokdyx5eqkgr" path="res://Scripts/UI/clock_ui.gd" id="2_ehx30"]
@@ -16,6 +16,7 @@
 [ext_resource type="Script" uid="uid://8i4yj2hrs5ri" path="res://Scripts/Components/door_component.gd" id="14_p11k4"]
 [ext_resource type="Script" uid="uid://ba5yjgajhffab" path="res://Scripts/Components/interaction_component.gd" id="15_nrglc"]
 [ext_resource type="Script" uid="uid://lsbultvx6w" path="res://Scripts/Components/area_trigger_component.gd" id="17_21dn7"]
+[ext_resource type="Script" uid="uid://bsc7yb8is1gfn" path="res://Scripts/Components/door_pathfinding_component.gd" id="17_ehx30"]
 [ext_resource type="PackedScene" uid="uid://dlygyllacfx4x" path="res://Scenes/Presets/player_controller.tscn" id="18_crjoo"]
 [ext_resource type="PackedScene" uid="uid://0n5f0p8a75gl" path="res://Scenes/Demo/clerk_2.tscn" id="20_ehx30"]
 [ext_resource type="Script" uid="uid://e5dqcesgwl0e" path="res://Scripts/Resources/readable_entry.gd" id="21_0yl2m"]
@@ -74,11 +75,79 @@ uv1_offset = Vector3(0.135, -0.055, 0)
 material = SubResource("StandardMaterial3D_hhe36")
 size = Vector2(6, 9)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_3r3ly"]
+size = Vector3(2.5996094, 1.9663696, 0.89941406)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_7nsjt"]
+size = Vector3(2.5996094, 1.9663696, 0.8942871)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ehx30"]
+size = Vector3(1.0761719, 1.9663696, 0.7451172)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_p11k4"]
+size = Vector3(1.3457031, 1.9663696, 0.89746094)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_p11k4"]
+_surfaces = [{
+"aabb": AABB(-0.595, -0.99, -0.04, 1.19, 1.98, 0.08),
+"attribute_data": PackedByteArray("AACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/"),
+"format": 34359738391,
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 36,
+"vertex_data": PackedByteArray("7FEYv6Rwfb8K1yM97FEYv6Rwfb8K1yO97FEYv6RwfT8K1yO97FEYP6Rwfb8K1yO97FEYv6Rwfb8K1yO97FEYv6Rwfb8K1yM97FEYv6RwfT8K1yO97FEYv6Rwfb8K1yO97FEYP6Rwfb8K1yO97FEYv6RwfT8K1yO97FEYv6RwfT8K1yM97FEYv6Rwfb8K1yM97FEYv6Rwfb8K1yM97FEYv6RwfT8K1yM97FEYP6RwfT8K1yM97FEYP6RwfT8K1yM97FEYv6RwfT8K1yM97FEYv6RwfT8K1yO97FEYv6Rwfb8K1yM97FEYP6Rwfb8K1yM97FEYP6Rwfb8K1yO97FEYP6RwfT8K1yM97FEYP6Rwfb8K1yM97FEYv6Rwfb8K1yM97FEYP6Rwfb8K1yO97FEYP6Rwfb8K1yM97FEYP6RwfT8K1yM97FEYP6Rwfb8K1yO97FEYP6RwfT8K1yO97FEYv6RwfT8K1yO97FEYv6RwfT8K1yO97FEYP6RwfT8K1yO97FEYP6RwfT8K1yM97FEYP6RwfT8K1yM97FEYP6RwfT8K1yO97FEYP6Rwfb8K1yO9AAD/f/9//n8AAP9//3/+fwAA/3//f/5//38AAP//AAD/fwAA//8AAP9/AAD//wAA/////wAA/z//////AAD/P/////8AAP8/AAD/f/9//n8AAP9//3/+fwAA/3//f/5//3//fwAA/z//f/9/AAD/P/9//38AAP8//3//////AAD/f/////8AAP9//////wAA/38AAP//AAD/fwAA//8AAP9/AAD//wAA/3//fwAA/z//f/9/AAD/P/9//38AAP8/////f/9//n////9//3/+f////3//f/5//////wAA/z//////AAD/P/////8AAP8//3//////AAD/f/////8AAP9//////wAA////f/9//n////9//3/+f////3//f/5/")
+}]
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_ehx30"]
+data = PackedVector3Array(-0.595, -0.99, 0.04, -0.595, -0.99, -0.04, -0.595, 0.99, -0.04, 0.595, -0.99, -0.04, -0.595, -0.99, -0.04, -0.595, -0.99, 0.04, -0.595, 0.99, -0.04, -0.595, -0.99, -0.04, 0.595, -0.99, -0.04, -0.595, 0.99, -0.04, -0.595, 0.99, 0.04, -0.595, -0.99, 0.04, -0.595, -0.99, 0.04, -0.595, 0.99, 0.04, 0.595, 0.99, 0.04, 0.595, 0.99, 0.04, -0.595, 0.99, 0.04, -0.595, 0.99, -0.04, -0.595, -0.99, 0.04, 0.595, -0.99, 0.04, 0.595, -0.99, -0.04, 0.595, 0.99, 0.04, 0.595, -0.99, 0.04, -0.595, -0.99, 0.04, 0.595, -0.99, -0.04, 0.595, -0.99, 0.04, 0.595, 0.99, 0.04, 0.595, -0.99, -0.04, 0.595, 0.99, -0.04, -0.595, 0.99, -0.04, -0.595, 0.99, -0.04, 0.595, 0.99, -0.04, 0.595, 0.99, 0.04, 0.595, 0.99, 0.04, 0.595, 0.99, -0.04, 0.595, -0.99, -0.04)
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_g4v7s"]
 size = Vector3(0.92871094, 1.8439941, 0.41992188)
 
+[sub_resource type="ArrayMesh" id="ArrayMesh_7nsjt"]
+_surfaces = [{
+"aabb": AABB(-0.595, -0.99, -0.04, 1.19, 1.98, 0.08),
+"attribute_data": PackedByteArray("AACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/"),
+"format": 34359738391,
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 36,
+"vertex_data": PackedByteArray("7FEYv6Rwfb8K1yM97FEYv6Rwfb8K1yO97FEYv6RwfT8K1yO97FEYP6Rwfb8K1yO97FEYv6Rwfb8K1yO97FEYv6Rwfb8K1yM97FEYv6RwfT8K1yO97FEYv6Rwfb8K1yO97FEYP6Rwfb8K1yO97FEYv6RwfT8K1yO97FEYv6RwfT8K1yM97FEYv6Rwfb8K1yM97FEYv6Rwfb8K1yM97FEYv6RwfT8K1yM97FEYP6RwfT8K1yM97FEYP6RwfT8K1yM97FEYv6RwfT8K1yM97FEYv6RwfT8K1yO97FEYv6Rwfb8K1yM97FEYP6Rwfb8K1yM97FEYP6Rwfb8K1yO97FEYP6RwfT8K1yM97FEYP6Rwfb8K1yM97FEYv6Rwfb8K1yM97FEYP6Rwfb8K1yO97FEYP6Rwfb8K1yM97FEYP6RwfT8K1yM97FEYP6Rwfb8K1yO97FEYP6RwfT8K1yO97FEYv6RwfT8K1yO97FEYv6RwfT8K1yO97FEYP6RwfT8K1yO97FEYP6RwfT8K1yM97FEYP6RwfT8K1yM97FEYP6RwfT8K1yO97FEYP6Rwfb8K1yO9AAD/f/9//n8AAP9//3/+fwAA/3//f/5//38AAP//AAD/fwAA//8AAP9/AAD//wAA/////wAA/z//////AAD/P/////8AAP8/AAD/f/9//n8AAP9//3/+fwAA/3//f/5//3//fwAA/z//f/9/AAD/P/9//38AAP8//3//////AAD/f/////8AAP9//////wAA/38AAP//AAD/fwAA//8AAP9/AAD//wAA/3//fwAA/z//f/9/AAD/P/9//38AAP8/////f/9//n////9//3/+f////3//f/5//////wAA/z//////AAD/P/////8AAP8//3//////AAD/f/////8AAP9//////wAA////f/9//n////9//3/+f////3//f/5/")
+}]
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_3r3ly"]
+data = PackedVector3Array(-0.595, -0.99, 0.04, -0.595, -0.99, -0.04, -0.595, 0.99, -0.04, 0.595, -0.99, -0.04, -0.595, -0.99, -0.04, -0.595, -0.99, 0.04, -0.595, 0.99, -0.04, -0.595, -0.99, -0.04, 0.595, -0.99, -0.04, -0.595, 0.99, -0.04, -0.595, 0.99, 0.04, -0.595, -0.99, 0.04, -0.595, -0.99, 0.04, -0.595, 0.99, 0.04, 0.595, 0.99, 0.04, 0.595, 0.99, 0.04, -0.595, 0.99, 0.04, -0.595, 0.99, -0.04, -0.595, -0.99, 0.04, 0.595, -0.99, 0.04, 0.595, -0.99, -0.04, 0.595, 0.99, 0.04, 0.595, -0.99, 0.04, -0.595, -0.99, 0.04, 0.595, -0.99, -0.04, 0.595, -0.99, 0.04, 0.595, 0.99, 0.04, 0.595, -0.99, -0.04, 0.595, 0.99, -0.04, -0.595, 0.99, -0.04, -0.595, 0.99, -0.04, 0.595, 0.99, -0.04, 0.595, 0.99, 0.04, 0.595, 0.99, 0.04, 0.595, 0.99, -0.04, 0.595, -0.99, -0.04)
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_yf5fn"]
 size = Vector3(2.5996094, 1.9663696, 1.8095703)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_nqt4i"]
+_surfaces = [{
+"aabb": AABB(-0.5, -0.99, -0.04, 1, 1.98, 0.08),
+"attribute_data": PackedByteArray("AACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/"),
+"format": 34359738391,
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 36,
+"vertex_data": PackedByteArray("AAAAv6Rwfb8K1yM9AAAAv6Rwfb8K1yO9AAAAv6RwfT8K1yO9AAAAP6Rwfb8K1yO9AAAAv6Rwfb8K1yO9AAAAv6Rwfb8K1yM9AAAAv6RwfT8K1yO9AAAAv6Rwfb8K1yO9AAAAP6Rwfb8K1yO9AAAAv6RwfT8K1yO9AAAAv6RwfT8K1yM9AAAAv6Rwfb8K1yM9AAAAv6Rwfb8K1yM9AAAAv6RwfT8K1yM9AAAAP6RwfT8K1yM9AAAAP6RwfT8K1yM9AAAAv6RwfT8K1yM9AAAAv6RwfT8K1yO9AAAAv6Rwfb8K1yM9AAAAP6Rwfb8K1yM9AAAAP6Rwfb8K1yO9AAAAP6RwfT8K1yM9AAAAP6Rwfb8K1yM9AAAAv6Rwfb8K1yM9AAAAP6Rwfb8K1yO9AAAAP6Rwfb8K1yM9AAAAP6RwfT8K1yM9AAAAP6Rwfb8K1yO9AAAAP6RwfT8K1yO9AAAAv6RwfT8K1yO9AAAAv6RwfT8K1yO9AAAAP6RwfT8K1yO9AAAAP6RwfT8K1yM9AAAAP6RwfT8K1yM9AAAAP6RwfT8K1yO9AAAAP6Rwfb8K1yO9AAD/f/9//n8AAP9//3/+fwAA/3//f/5//38AAP//AAD/fwAA//8AAP9/AAD//wAA/////wAA/z//////AAD/P/////8AAP8/AAD/f/9//n8AAP9//3/+fwAA/3//f/5//3//fwAA/z//f/9/AAD/P/9//38AAP8//3//////AAD/f/////8AAP9//////wAA/38AAP//AAD/fwAA//8AAP9/AAD//wAA/3//fwAA/z//f/9/AAD/P/9//38AAP8/////f/9//n////9//3/+f////3//f/5//////wAA/z//////AAD/P/////8AAP8//3//////AAD/f/////8AAP9//////wAA////f/9//n////9//3/+f////3//f/5/")
+}]
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_sbtyc"]
+data = PackedVector3Array(-0.5, -0.99, 0.04, -0.5, -0.99, -0.04, -0.5, 0.99, -0.04, 0.5, -0.99, -0.04, -0.5, -0.99, -0.04, -0.5, -0.99, 0.04, -0.5, 0.99, -0.04, -0.5, -0.99, -0.04, 0.5, -0.99, -0.04, -0.5, 0.99, -0.04, -0.5, 0.99, 0.04, -0.5, -0.99, 0.04, -0.5, -0.99, 0.04, -0.5, 0.99, 0.04, 0.5, 0.99, 0.04, 0.5, 0.99, 0.04, -0.5, 0.99, 0.04, -0.5, 0.99, -0.04, -0.5, -0.99, 0.04, 0.5, -0.99, 0.04, 0.5, -0.99, -0.04, 0.5, 0.99, 0.04, 0.5, -0.99, 0.04, -0.5, -0.99, 0.04, 0.5, -0.99, -0.04, 0.5, -0.99, 0.04, 0.5, 0.99, 0.04, 0.5, -0.99, -0.04, 0.5, 0.99, -0.04, -0.5, 0.99, -0.04, -0.5, 0.99, -0.04, 0.5, 0.99, -0.04, 0.5, 0.99, 0.04, 0.5, 0.99, 0.04, 0.5, 0.99, -0.04, 0.5, -0.99, -0.04)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_q4uam"]
+_surfaces = [{
+"aabb": AABB(-0.5, -0.99, -0.04, 1, 1.98, 0.08),
+"attribute_data": PackedByteArray("AACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/"),
+"format": 34359738391,
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 36,
+"vertex_data": PackedByteArray("AAAAv6Rwfb8K1yM9AAAAv6Rwfb8K1yO9AAAAv6RwfT8K1yO9AAAAP6Rwfb8K1yO9AAAAv6Rwfb8K1yO9AAAAv6Rwfb8K1yM9AAAAv6RwfT8K1yO9AAAAv6Rwfb8K1yO9AAAAP6Rwfb8K1yO9AAAAv6RwfT8K1yO9AAAAv6RwfT8K1yM9AAAAv6Rwfb8K1yM9AAAAv6Rwfb8K1yM9AAAAv6RwfT8K1yM9AAAAP6RwfT8K1yM9AAAAP6RwfT8K1yM9AAAAv6RwfT8K1yM9AAAAv6RwfT8K1yO9AAAAv6Rwfb8K1yM9AAAAP6Rwfb8K1yM9AAAAP6Rwfb8K1yO9AAAAP6RwfT8K1yM9AAAAP6Rwfb8K1yM9AAAAv6Rwfb8K1yM9AAAAP6Rwfb8K1yO9AAAAP6Rwfb8K1yM9AAAAP6RwfT8K1yM9AAAAP6Rwfb8K1yO9AAAAP6RwfT8K1yO9AAAAv6RwfT8K1yO9AAAAv6RwfT8K1yO9AAAAP6RwfT8K1yO9AAAAP6RwfT8K1yM9AAAAP6RwfT8K1yM9AAAAP6RwfT8K1yO9AAAAP6Rwfb8K1yO9AAD/f/9//n8AAP9//3/+fwAA/3//f/5//38AAP//AAD/fwAA//8AAP9/AAD//wAA/////wAA/z//////AAD/P/////8AAP8/AAD/f/9//n8AAP9//3/+fwAA/3//f/5//3//fwAA/z//f/9/AAD/P/9//38AAP8//3//////AAD/f/////8AAP9//////wAA/38AAP//AAD/fwAA//8AAP9/AAD//wAA/3//fwAA/z//f/9/AAD/P/9//38AAP8/////f/9//n////9//3/+f////3//f/5//////wAA/z//////AAD/P/////8AAP8//3//////AAD/f/////8AAP9//////wAA////f/9//n////9//3/+f////3//f/5/")
+}]
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_22uo2"]
+data = PackedVector3Array(-0.5, -0.99, 0.04, -0.5, -0.99, -0.04, -0.5, 0.99, -0.04, 0.5, -0.99, -0.04, -0.5, -0.99, -0.04, -0.5, -0.99, 0.04, -0.5, 0.99, -0.04, -0.5, -0.99, -0.04, 0.5, -0.99, -0.04, -0.5, 0.99, -0.04, -0.5, 0.99, 0.04, -0.5, -0.99, 0.04, -0.5, -0.99, 0.04, -0.5, 0.99, 0.04, 0.5, 0.99, 0.04, 0.5, 0.99, 0.04, -0.5, 0.99, 0.04, -0.5, 0.99, -0.04, -0.5, -0.99, 0.04, 0.5, -0.99, 0.04, 0.5, -0.99, -0.04, 0.5, 0.99, 0.04, 0.5, -0.99, 0.04, -0.5, -0.99, 0.04, 0.5, -0.99, -0.04, 0.5, -0.99, 0.04, 0.5, 0.99, 0.04, 0.5, -0.99, -0.04, 0.5, 0.99, -0.04, -0.5, 0.99, -0.04, -0.5, 0.99, -0.04, 0.5, 0.99, -0.04, 0.5, 0.99, 0.04, 0.5, 0.99, 0.04, 0.5, 0.99, -0.04, 0.5, -0.99, -0.04)
 
 [sub_resource type="Resource" id="Resource_jbdfk"]
 script = ExtResource("21_0yl2m")
@@ -90,8 +159,8 @@ metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 script = ExtResource("21_0yl2m")
 priority = 5
 readable_text = "*Phone ringing*"
-key_whitelist = Array[String](["phone_ringing"])
-keys_taken = Array[String](["phone_ringing"])
+key_whitelist = Array[StringName]([&"phone_ringing"])
+keys_taken = Array[StringName]([&"phone_ringing"])
 readable_chain = Dictionary[String, ExtResource("21_0yl2m")]({
 "Answer": SubResource("Resource_jbdfk")
 })
@@ -117,14 +186,14 @@ emission_energy_multiplier = 0.2
 [sub_resource type="Resource" id="Resource_cul78"]
 script = ExtResource("21_0yl2m")
 readable_text = "The lock opens."
-keys_unlocked = Array[String](["staff_code"])
+keys_unlocked = Array[StringName]([&"staff_code"])
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
 [sub_resource type="Resource" id="Resource_kf85k"]
 script = ExtResource("21_0yl2m")
 readable_text = "It is a keypad, 4 digits."
 has_input = true
-key_whitelist = Array[String](["bathroom_break"])
+key_whitelist = Array[StringName]([&"bathroom_break"])
 readable_chain = Dictionary[String, ExtResource("21_0yl2m")]({
 "0229": SubResource("Resource_cul78")
 })
@@ -139,14 +208,14 @@ albedo_color = Color(1, 0.60784316, 0.30588236, 1)
 [sub_resource type="Resource" id="Resource_g4v7s"]
 script = ExtResource("21_0yl2m")
 readable_text = "This area is for staff only..."
-key_blacklist = Array[String](["bathroom_break"])
+key_blacklist = Array[StringName]([&"bathroom_break"])
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_3gngh"]
 size = Vector3(2.13443, 3.7178955, 0.7088928)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_b5yyr"]
-size = Vector3(2.8769531, 2.3580627, 1.8095703)
+size = Vector3(2.5476227, 2.3580627, 1.7697754)
 
 [node name="Demo" type="Node3D" unique_id=1115106510]
 
@@ -1490,6 +1559,56 @@ metadata/_custom_type_script = "uid://bhxrj8d406tli"
 
 [node name="Doors" type="Node3D" parent="Terrain/NavigationRegion3D" unique_id=1446567440]
 
+[node name="DoorPathfindingComponent3" type="Area3D" parent="Terrain/NavigationRegion3D/Doors" unique_id=1154044631 node_paths=PackedStringArray("door")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 10.3, 1, -8.115099)
+collision_layer = 0
+collision_mask = 4
+script = ExtResource("17_ehx30")
+door = NodePath("../DoorEntrance/DoorEntranceRight")
+toggle_door = false
+metadata/_custom_type_script = "uid://bsc7yb8is1gfn"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Terrain/NavigationRegion3D/Doors/DoorPathfindingComponent3" unique_id=221876914]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0361328, 0.07357788, 0)
+shape = SubResource("BoxShape3D_3r3ly")
+
+[node name="DoorPathfindingComponent4" type="Area3D" parent="Terrain/NavigationRegion3D/Doors" unique_id=185956480 node_paths=PackedStringArray("door")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 10.3, 1, -10.16154)
+collision_layer = 0
+collision_mask = 4
+script = ExtResource("17_ehx30")
+door = NodePath("../DoorEntrance/DoorEntranceLeft")
+toggle_door = false
+metadata/_custom_type_script = "uid://bsc7yb8is1gfn"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Terrain/NavigationRegion3D/Doors/DoorPathfindingComponent4" unique_id=792207155]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0361328, 0.07357788, 0)
+shape = SubResource("BoxShape3D_7nsjt")
+
+[node name="DoorPathfindingComponent" type="Area3D" parent="Terrain/NavigationRegion3D/Doors" unique_id=49730910 node_paths=PackedStringArray("door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.2, 1, -5.65)
+collision_layer = 0
+collision_mask = 4
+script = ExtResource("17_ehx30")
+door = NodePath("../DoorStaff")
+metadata/_custom_type_script = "uid://bsc7yb8is1gfn"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Terrain/NavigationRegion3D/Doors/DoorPathfindingComponent" unique_id=1803664353]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5276995, 0.07357788, 0)
+shape = SubResource("BoxShape3D_ehx30")
+
+[node name="DoorPathfindingComponent2" type="Area3D" parent="Terrain/NavigationRegion3D/Doors" unique_id=2093996842 node_paths=PackedStringArray("door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.342919, 1, -5.65)
+collision_layer = 0
+collision_mask = 4
+script = ExtResource("17_ehx30")
+door = NodePath("../DoorBathroom")
+metadata/_custom_type_script = "uid://bsc7yb8is1gfn"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Terrain/NavigationRegion3D/Doors/DoorPathfindingComponent2" unique_id=240943878]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6003418, 0.07357788, 0)
+shape = SubResource("BoxShape3D_p11k4")
+
 [node name="NavigationLink3D" type="NavigationLink3D" parent="Terrain/NavigationRegion3D/Doors" unique_id=1646688112]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.643576, 0.11389196, -9.166111)
 end_position = Vector3(1.46, 0, 0)
@@ -1499,26 +1618,28 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.851371, 0.11389196, -6.229
 start_position = Vector3(0, 0, 1.495)
 
 [node name="NavigationLink3D3" type="NavigationLink3D" parent="Terrain/NavigationRegion3D/Doors" unique_id=1748175818]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.6180935, 0.11389196, -6.276928)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.6180935, 0.11389196, -6.381434)
 start_position = Vector3(0, 0, 1.495)
 
-[node name="DoorStaff" type="Node3D" parent="Terrain/NavigationRegion3D/Doors" unique_id=728578282 node_paths=PackedStringArray("navlink")]
+[node name="DoorStaff" type="AnimatableBody3D" parent="Terrain/NavigationRegion3D/Doors" unique_id=678394479 node_paths=PackedStringArray("navlink")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.2, 1, -5.65)
+collision_layer = 2
+collision_mask = 2
 script = ExtResource("14_p11k4")
 property = "rotation:y"
-value = -120.0
+value = -2.094
 time = 2.0
-key_whitelist = Array[String](["staff_code", "store_open"])
-key_blacklist = Array[String](["second_turn"])
+key_whitelist = Array[StringName]([&"staff_code", &"store_open"])
 navlink = NodePath("../NavigationLink3D2")
 metadata/_custom_type_script = "uid://8i4yj2hrs5ri"
 
-[node name="CSGBox3D" type="CSGBox3D" parent="Terrain/NavigationRegion3D/Doors/DoorStaff" unique_id=230787656]
+[node name="CSGBakedMeshInstance3D" type="MeshInstance3D" parent="Terrain/NavigationRegion3D/Doors/DoorStaff" unique_id=825314683]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5674486, 0.10059762, 0)
-use_collision = true
-collision_layer = 2
-collision_mask = 2
-size = Vector3(1.19, 1.98, 0.08)
+mesh = SubResource("ArrayMesh_p11k4")
+
+[node name="CSGBakedCollisionShape3D" type="CollisionShape3D" parent="Terrain/NavigationRegion3D/Doors/DoorStaff" unique_id=430152733]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5674486, 0.10059762, 0)
+shape = SubResource("ConcavePolygonShape3D_ehx30")
 
 [node name="InteractionComponent" type="Area3D" parent="Terrain/NavigationRegion3D/Doors/DoorStaff" unique_id=626978883 node_paths=PackedStringArray("target_object")]
 script = ExtResource("15_nrglc")
@@ -1530,22 +1651,18 @@ metadata/_custom_type_script = "uid://ba5yjgajhffab"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55898476, 0.10974121, 0)
 shape = SubResource("BoxShape3D_g4v7s")
 
-[node name="DoorBathroom" type="Node3D" parent="Terrain/NavigationRegion3D/Doors" unique_id=1332340484]
+[node name="DoorBathroom" type="AnimatableBody3D" parent="Terrain/NavigationRegion3D/Doors" unique_id=1253921832 node_paths=PackedStringArray("navlink")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.342919, 1, -5.65)
-script = ExtResource("14_p11k4")
-property = "rotation:y"
-value = -120.0
-time = 1.0
-key_whitelist = Array[String](["store_open"])
-key_blacklist = Array[String](["bathroom_break"])
-metadata/_custom_type_script = "uid://8i4yj2hrs5ri"
-
-[node name="CSGBox3D" type="CSGBox3D" parent="Terrain/NavigationRegion3D/Doors/DoorBathroom" unique_id=2065570465]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6114645, 0.10059762, 0)
-use_collision = true
 collision_layer = 2
 collision_mask = 2
-size = Vector3(1.19, 1.98, 0.08)
+script = ExtResource("14_p11k4")
+property = "rotation:y"
+value = -2.094
+time = 2.0
+key_whitelist = Array[StringName]([&"store_open"])
+key_blacklist = Array[StringName]([&"bathroom_break"])
+navlink = NodePath("../NavigationLink3D3")
+metadata/_custom_type_script = "uid://8i4yj2hrs5ri"
 
 [node name="InteractionComponent" type="Area3D" parent="Terrain/NavigationRegion3D/Doors/DoorBathroom" unique_id=2121667502 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1789131, 0, 0)
@@ -1558,28 +1675,33 @@ metadata/_custom_type_script = "uid://ba5yjgajhffab"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55898476, 0.10974121, 0)
 shape = SubResource("BoxShape3D_g4v7s")
 
+[node name="CSGBakedMeshInstance3D" type="MeshInstance3D" parent="Terrain/NavigationRegion3D/Doors/DoorBathroom" unique_id=1410360181]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6114645, 0.10059762, 0)
+mesh = SubResource("ArrayMesh_7nsjt")
+
+[node name="CSGBakedCollisionShape3D" type="CollisionShape3D" parent="Terrain/NavigationRegion3D/Doors/DoorBathroom" unique_id=1483896361]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6114645, 0.10059762, 0)
+shape = SubResource("ConcavePolygonShape3D_3r3ly")
+
 [node name="DoorEntrance" type="Node3D" parent="Terrain/NavigationRegion3D/Doors" unique_id=918431285]
 
-[node name="DoorEntranceRight" type="Node3D" parent="Terrain/NavigationRegion3D/Doors/DoorEntrance" unique_id=850724948 node_paths=PackedStringArray("navlink")]
+[node name="DoorEntranceRight" type="AnimatableBody3D" parent="Terrain/NavigationRegion3D/Doors/DoorEntrance" unique_id=771873709 node_paths=PackedStringArray("navlink")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 10.3, 1, -8.115099)
+collision_layer = 2
+collision_mask = 2
 script = ExtResource("14_p11k4")
 property = "position:z"
 value = 0.8
 time = 0.5
-key_whitelist = Array[String](["store_open"])
+key_whitelist = Array[StringName]([&"store_open"])
 navlink = NodePath("../../NavigationLink3D")
 metadata/_custom_type_script = "uid://8i4yj2hrs5ri"
-
-[node name="CSGBox3D" type="CSGBox3D" parent="Terrain/NavigationRegion3D/Doors/DoorEntrance/DoorEntranceRight" unique_id=1008556418]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5207243, 0.10059762, 0)
-use_collision = true
-collision_layer = 2
-collision_mask = 2
-size = Vector3(1, 1.98, 0.08)
 
 [node name="AreaTriggerComponent" type="Area3D" parent="Terrain/NavigationRegion3D/Doors/DoorEntrance/DoorEntranceRight" unique_id=860143832 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 10.3, 1, -8.115099)
 top_level = true
+collision_layer = 0
+collision_mask = 4
 script = ExtResource("17_21dn7")
 trigger_on_exit = true
 check_occupied = true
@@ -1595,26 +1717,39 @@ metadata/_custom_type_script = "uid://lsbultvx6w"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0361328, 0.07357788, 0)
 shape = SubResource("BoxShape3D_yf5fn")
 
-[node name="DoorEntranceLeft" type="Node3D" parent="Terrain/NavigationRegion3D/Doors/DoorEntrance" unique_id=1825987470 node_paths=PackedStringArray("navlink")]
+[node name="CSGBakedMeshInstance3D" type="MeshInstance3D" parent="Terrain/NavigationRegion3D/Doors/DoorEntrance/DoorEntranceRight" unique_id=982458082]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5207243, 0.10059762, 0)
+mesh = SubResource("ArrayMesh_nqt4i")
+
+[node name="CSGBakedCollisionShape3D" type="CollisionShape3D" parent="Terrain/NavigationRegion3D/Doors/DoorEntrance/DoorEntranceRight" unique_id=820062230]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5207243, 0.10059762, 0)
+shape = SubResource("ConcavePolygonShape3D_sbtyc")
+
+[node name="DoorEntranceLeft" type="AnimatableBody3D" parent="Terrain/NavigationRegion3D/Doors/DoorEntrance" unique_id=1376916467 node_paths=PackedStringArray("navlink")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 10.3, 1, -10.16154)
+collision_layer = 2
+collision_mask = 2
 script = ExtResource("14_p11k4")
 property = "position:z"
 value = -0.8
 time = 0.5
-key_whitelist = Array[String](["store_open"])
+key_whitelist = Array[StringName]([&"store_open"])
 navlink = NodePath("../../NavigationLink3D")
 metadata/_custom_type_script = "uid://8i4yj2hrs5ri"
 
-[node name="CSGBox3D" type="CSGBox3D" parent="Terrain/NavigationRegion3D/Doors/DoorEntrance/DoorEntranceLeft" unique_id=1050911872]
+[node name="CSGBakedMeshInstance3D" type="MeshInstance3D" parent="Terrain/NavigationRegion3D/Doors/DoorEntrance/DoorEntranceLeft" unique_id=1002607362]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5207243, 0.10059762, 0)
-use_collision = true
-collision_layer = 2
-collision_mask = 2
-size = Vector3(1, 1.98, 0.08)
+mesh = SubResource("ArrayMesh_q4uam")
+
+[node name="CSGBakedCollisionShape3D" type="CollisionShape3D" parent="Terrain/NavigationRegion3D/Doors/DoorEntrance/DoorEntranceLeft" unique_id=1635316553]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5207243, 0.10059762, 0)
+shape = SubResource("ConcavePolygonShape3D_22uo2")
 
 [node name="AreaTriggerComponent" type="Area3D" parent="Terrain/NavigationRegion3D/Doors/DoorEntrance/DoorEntranceLeft" unique_id=464467719 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 10.3, 1, -8.115099)
 top_level = true
+collision_layer = 0
+collision_mask = 4
 script = ExtResource("17_21dn7")
 trigger_on_exit = true
 check_occupied = true
@@ -1654,7 +1789,7 @@ shape = SubResource("BoxShape3D_57qmd")
 
 [node name="KeyComponent" type="Node3D" parent="Items/phone" unique_id=185663030]
 script = ExtResource("23_jj3bm")
-keys_unlocked = Array[String](["phone_ringing"])
+keys_unlocked = Array[StringName]([&"phone_ringing"])
 metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
 
 [node name="TimeTriggerComponent" type="Node3D" parent="Items/phone/KeyComponent" unique_id=1629389848 node_paths=PackedStringArray("target_object")]
@@ -1667,12 +1802,13 @@ metadata/_custom_type_script = "uid://bhxrj8d406tli"
 
 [node name="KeyComponent2" type="Node3D" parent="Items/phone" unique_id=785541310]
 script = ExtResource("23_jj3bm")
-keys_taken = Array[String](["phone_ringing"])
+keys_taken = Array[StringName]([&"phone_ringing"])
 metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
 
 [node name="AreaTriggerComponent" type="Area3D" parent="Items/phone/KeyComponent2" unique_id=1353612155 node_paths=PackedStringArray("target_object")]
+collision_layer = 0
+collision_mask = 4
 script = ExtResource("17_21dn7")
-check_occupied = null
 trigger_objects = Dictionary[String, StringName]({
 "NPCClerk1": &"CharacterController3D"
 })
@@ -1724,7 +1860,7 @@ metadata/_custom_type_script = "uid://b1f77w6o3usir"
 [node name="KeyTriggerComponent" type="Node3D" parent="Items/Cigarettes/ObjectKiller" unique_id=1984324169 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(1, 0, 2.9802322e-08, 0, 0.99999994, 0, -2.9802322e-08, 0, 1, 0, 0, 0)
 script = ExtResource("24_kffkx")
-key_whitelist = Array[String](["cigarettes"])
+key_whitelist = Array[StringName]([&"cigarettes"])
 target_object = NodePath("..")
 target_method_string = "trigger_kill"
 metadata/_custom_type_script = "uid://di1ppwrw34hur"
@@ -1732,15 +1868,15 @@ metadata/_custom_type_script = "uid://di1ppwrw34hur"
 [node name="KeyTriggerComponent2" type="Node3D" parent="Items/Cigarettes/ObjectKiller" unique_id=639189919 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(1, 0, 2.9802322e-08, 0, 0.99999994, 0, -2.9802322e-08, 0, 1, 0, 0, 0)
 script = ExtResource("24_kffkx")
-key_whitelist = Array[String](["cigarette_break"])
+key_whitelist = Array[StringName]([&"cigarette_break"])
 target_object = NodePath("..")
 target_method_string = "trigger_kill"
 metadata/_custom_type_script = "uid://di1ppwrw34hur"
 
 [node name="KeyComponent" type="Node3D" parent="Items/Cigarettes" unique_id=2101444512]
 script = ExtResource("23_jj3bm")
-key_whitelist = Array[String](["bathroom_break"])
-keys_unlocked = Array[String](["cigarettes"])
+key_whitelist = Array[StringName]([&"bathroom_break"])
+keys_unlocked = Array[StringName]([&"cigarettes"])
 metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
 
 [node name="InteractionComponent" type="Area3D" parent="Items/Cigarettes/KeyComponent" unique_id=1655168796 node_paths=PackedStringArray("target_object")]
@@ -1755,15 +1891,16 @@ shape = SubResource("BoxShape3D_d0u6y")
 
 [node name="TrespassArea" type="Node3D" parent="Items" unique_id=1261257453]
 script = ExtResource("23_jj3bm")
-key_blacklist = Array[String](["bathroom_break"])
-keys_unlocked = Array[String](["aggresive"])
-keys_taken = Array[String](["neutral"])
+key_blacklist = Array[StringName]([&"bathroom_break"])
+keys_unlocked = Array[StringName]([&"aggresive"])
+keys_taken = Array[StringName]([&"neutral"])
 metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
 
 [node name="AreaTriggerComponent" type="Area3D" parent="Items/TrespassArea" unique_id=1194836908 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.206532, 0, -6.548625)
+collision_layer = 0
+collision_mask = 4
 script = ExtResource("17_21dn7")
-check_occupied = null
 trigger_objects = Dictionary[String, StringName]({
 "Player*": &"CharacterController3D"
 })
@@ -1782,8 +1919,9 @@ metadata/_custom_type_script = "uid://2pl1xrcafii3"
 
 [node name="AreaTriggerComponent" type="Area3D" parent="Items/WarningArea" unique_id=512380136 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.206532, 0, -6.548625)
+collision_layer = 0
+collision_mask = 4
 script = ExtResource("17_21dn7")
-check_occupied = null
 trigger_objects = Dictionary[String, StringName]({
 "Player*": &"CharacterController3D"
 })
@@ -1795,16 +1933,17 @@ metadata/_custom_type_script = "uid://lsbultvx6w"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.10801697, 1.3589478, -1.2336273)
 shape = SubResource("BoxShape3D_3gngh")
 
-[node name="KeyComponent" type="Node3D" parent="Items" unique_id=550277288]
+[node name="StoreOpener" type="Node3D" parent="Items" unique_id=550277288]
 script = ExtResource("23_jj3bm")
-keys_unlocked = Array[String](["store_open"])
+keys_unlocked = Array[StringName]([&"store_open"])
 metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
 
-[node name="AreaTriggerComponent2" type="Area3D" parent="Items/KeyComponent" unique_id=281842877 node_paths=PackedStringArray("target_object")]
+[node name="AreaTriggerComponent2" type="Area3D" parent="Items/StoreOpener" unique_id=281842877 node_paths=PackedStringArray("target_object")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 10.3, 1, -8.115099)
 top_level = true
+collision_layer = 0
+collision_mask = 4
 script = ExtResource("17_21dn7")
-check_occupied = null
 trigger_objects = Dictionary[String, StringName]({
 "NPCClerk1": &"CharacterController3D"
 })
@@ -1812,18 +1951,52 @@ target_object = NodePath("..")
 target_method_string = "trigger"
 metadata/_custom_type_script = "uid://lsbultvx6w"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Items/KeyComponent/AreaTriggerComponent2" unique_id=817503004]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Items/StoreOpener/AreaTriggerComponent2" unique_id=817503004]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0361328, 0.26942444, -0.61565495)
 shape = SubResource("BoxShape3D_b5yyr")
 
-[node name="ObjectKiller" type="Node3D" parent="Items/KeyComponent" unique_id=1950526935 node_paths=PackedStringArray("target_object")]
+[node name="ObjectKiller" type="Node3D" parent="Items/StoreOpener" unique_id=1950526935 node_paths=PackedStringArray("target_object")]
 script = ExtResource("12_6n7fr")
 target_object = NodePath("..")
 metadata/_custom_type_script = "uid://b1f77w6o3usir"
 
-[node name="KeyTriggerComponent" type="Node3D" parent="Items/KeyComponent/ObjectKiller" unique_id=1746577156 node_paths=PackedStringArray("target_object")]
+[node name="KeyTriggerComponent" type="Node3D" parent="Items/StoreOpener/ObjectKiller" unique_id=1746577156 node_paths=PackedStringArray("target_object")]
 script = ExtResource("24_kffkx")
-key_whitelist = Array[String](["store_open"])
+key_whitelist = Array[StringName]([&"store_open"])
+target_object = NodePath("..")
+target_method_string = "trigger_kill"
+metadata/_custom_type_script = "uid://di1ppwrw34hur"
+
+[node name="BathroomBreaker" type="Node3D" parent="Items" unique_id=73164505]
+script = ExtResource("23_jj3bm")
+keys_unlocked = Array[StringName]([&"bathroom_break"])
+metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
+
+[node name="AreaTriggerComponent2" type="Area3D" parent="Items/BathroomBreaker" unique_id=277316959 node_paths=PackedStringArray("target_object")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 11.635788, 1, -3.4735317)
+top_level = true
+collision_layer = 0
+collision_mask = 4
+script = ExtResource("17_21dn7")
+trigger_objects = Dictionary[String, StringName]({
+"NPCClerk1": &"CharacterController3D"
+})
+target_object = NodePath("..")
+target_method_string = "trigger"
+metadata/_custom_type_script = "uid://lsbultvx6w"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Items/BathroomBreaker/AreaTriggerComponent2" unique_id=1604880688]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.21234465, 0.26942444, 0.23901558)
+shape = SubResource("BoxShape3D_b5yyr")
+
+[node name="ObjectKiller" type="Node3D" parent="Items/BathroomBreaker" unique_id=1201790565 node_paths=PackedStringArray("target_object")]
+script = ExtResource("12_6n7fr")
+target_object = NodePath("..")
+metadata/_custom_type_script = "uid://b1f77w6o3usir"
+
+[node name="KeyTriggerComponent" type="Node3D" parent="Items/BathroomBreaker/ObjectKiller" unique_id=963521890 node_paths=PackedStringArray("target_object")]
+script = ExtResource("24_kffkx")
+key_whitelist = Array[StringName]([&"bathroom_break"])
 target_object = NodePath("..")
 target_method_string = "trigger_kill"
 metadata/_custom_type_script = "uid://di1ppwrw34hur"

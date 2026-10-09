@@ -25,6 +25,8 @@ height = 1.8
 radius = 0.4
 
 [node name="NPCController" type="CharacterBody3D" unique_id=2030344370]
+collision_layer = 6
+collision_mask = 3
 script = ExtResource("1_n77kb")
 speed_walking = 3.0
 speed_running = 8.0

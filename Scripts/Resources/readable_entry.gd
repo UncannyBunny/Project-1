@@ -9,11 +9,11 @@ class_name ReadableEntry extends Resource
 ## If true, a response box will be used
 @export var has_input: bool = false
 ## The keys required to be able to trigger the entry
-@export var key_whitelist: Array[String]
-@export var key_blacklist: Array[String]
+@export var key_whitelist: Array[StringName]
+@export var key_blacklist: Array[StringName]
 ## The keys unlocked by triggering the entry
-@export var keys_unlocked: Array[String]
+@export var keys_unlocked: Array[StringName]
 ## The keys lost by triggering the entry
-@export var keys_taken: Array[String]
+@export var keys_taken: Array[StringName]
 ## The response options for the entry, where the key is the response and the nested entry the next readable
 @export var readable_chain: Dictionary[String, ReadableEntry]

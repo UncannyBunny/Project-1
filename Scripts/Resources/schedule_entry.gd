@@ -16,9 +16,9 @@ var time_start_minutes: int = 0
 var time_end_minutes: int = 0
 ## Target schedule position
 @export var position: Vector3 = Vector3.ZERO
-@export var keys_whitelist: Array[String]
-@export var keys_blacklist: Array[String]
+@export var keys_whitelist: Array[StringName]
+@export var keys_blacklist: Array[StringName]
 ## The keys unlocked by triggering the entry
-@export var keys_unlocked: Array[String]
+@export var keys_unlocked: Array[StringName]
 ## The keys lost by triggering the entry
-@export var keys_taken: Array[String]
+@export var keys_taken: Array[StringName]

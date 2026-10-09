@@ -3,9 +3,9 @@
 class_name KeyTriggerComponent extends Node3D
 
 # Keys that the door requires
-@export var key_whitelist: Array[String]
+@export var key_whitelist: Array[StringName]
 # Keys that the door rejects
-@export var key_blacklist: Array[String]
+@export var key_blacklist: Array[StringName]
 ## Object to receive the input
 @export var target_object: Node3D:
 	set(value):
