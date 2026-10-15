@@ -1,34 +1,38 @@
-## Manages readable interaction.
+## Filters ReadableEntry resources by active keys and priority, sending the highest priority entry to DialogueUI.
 class_name ReadableComponent extends Node3D
 
-## Object to receive the input
-var target_object: DialogueUI
-## ReadableEntry array used by the component
-@export var entries: Array[ReadableEntry]
+signal readable_triggered(entry: ReadableEntry)
+
+@export var entries: Array[ReadableEntry] = []
+
+var _dialogue_ui: DialogueUI = null
 
 func _ready() -> void:
-	# Avoid execution in editor environment.
-	if Engine.is_editor_hint():
-		return
-	# Bind target callable for 
-	target_object = get_tree().current_scene.find_child("DialogueUI")
+	_find_dialogue_ui.call_deferred()
 
-## Method that will be called when interacting
+## Evaluates available entries and opens the dialogue UI
 func trigger() -> void:
 	var readable_current: ReadableEntry = filter_entries()
-	# Checks if a readable is available
-	if readable_current == null:
+	if not readable_current:
 		return
-	# Triggers method
-	target_object.display_dialogue(readable_current)
+	if not is_instance_valid(_dialogue_ui):
+		_find_dialogue_ui()
+	if is_instance_valid(_dialogue_ui):
+		_dialogue_ui.display_dialogue(readable_current)
+		readable_triggered.emit(readable_current)
 
-## Filters entries by unlocked keys and priority
+## Returns the highest-priority ReadableEntry whose key conditions are currently met
 func filter_entries() -> ReadableEntry:
-	var valid_entries: Array[ReadableEntry]
-	for readable in entries:
+	var best_entry: ReadableEntry = null
+	for readable: ReadableEntry in entries:
+		if not readable:
+			continue
 		if KeyManager.check_keys(readable.key_whitelist, readable.key_blacklist):
-			valid_entries.append(readable)
-	if valid_entries.is_empty():
-		return null
-	valid_entries.sort_custom(func(a, b): return a.priority > b.priority)
-	return valid_entries[0]
+			if best_entry == null or readable.priority > best_entry.priority:
+				best_entry = readable
+	return best_entry
+
+func _find_dialogue_ui() -> void:
+	_dialogue_ui = get_tree().get_first_node_in_group(&"dialogue_ui") as DialogueUI
+	if not _dialogue_ui and get_tree().current_scene:
+		_dialogue_ui = get_tree().current_scene.find_child("DialogueUI", true, false) as DialogueUI

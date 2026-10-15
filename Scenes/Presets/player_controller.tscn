@@ -1,136 +1,32 @@
-[gd_scene format=3 uid="uid://dlygyllacfx4x"]
+[gd_scene format=3 uid="uid://d0hk2qh72xci"]
 
-[ext_resource type="Script" uid="uid://d1rflb5mclp0d" path="res://Scripts/Controllers/character_controller.gd" id="1_iwpo4"]
-[ext_resource type="Script" uid="uid://y1ywe8tvdv0c" path="res://Scripts/Components/axis_input_component.gd" id="2_fb3t6"]
-[ext_resource type="Script" uid="uid://byrgu6dthsnix" path="res://Scripts/Components/single_input_component.gd" id="2_jvo56"]
-[ext_resource type="Script" uid="uid://t1u66x74hcm6" path="res://Scripts/Components/axis_to_vector.gd" id="3_vd578"]
-[ext_resource type="Script" uid="uid://r1wo016j1ww5" path="res://Scripts/Components/mouse_movement_component_3d.gd" id="4_c7tqt"]
-[ext_resource type="Script" uid="uid://ch2c44r2rtwru" path="res://Scripts/Components/rotation_component.gd" id="4_nl27k"]
+[ext_resource type="Script" uid="uid://bvvk8owlgwjbf" path="res://Scripts/Controllers/player_controller.gd" id="1_5awlv"]
+[ext_resource type="PackedScene" uid="uid://clhwh1s6h8kqn" path="res://Assets/human.blend" id="2_41qjy"]
 [ext_resource type="Script" uid="uid://bihwcsxm5a2es" path="res://Scripts/MiscScripts/camera_bobber.gd" id="6_obynr"]
-[ext_resource type="Script" uid="uid://xjxpd3me43y0" path="res://Scripts/Controllers/interaction_controller.gd" id="8_1igb4"]
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_g4v7s"]
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_g4v7s"]
 radius = 0.3
 height = 1.8
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_iwpo4"]
-radius = 0.3
-height = 1.8
+[node name="PlayerController" type="CharacterBody3D" unique_id=155462187 node_paths=PackedStringArray("camera", "collision_shape")]
+script = ExtResource("1_5awlv")
+camera = NodePath("Camera3D")
+collision_shape = NodePath("CollisionShape3D")
+metadata/_custom_type_script = "uid://bvvk8owlgwjbf"
 
-[node name="PlayerController" type="CharacterBody3D" unique_id=99017869]
-collision_layer = 6
-collision_mask = 3
-script = ExtResource("1_iwpo4")
-speed_walking = 3.0
-speed_running = 8.0
-jump_force = 15.0
-weight = 0.1
-freeze_while_warping = true
+[node name="human" parent="." unique_id=2071276015 instance=ExtResource("2_41qjy")]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=220183467]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
-mesh = SubResource("CapsuleMesh_g4v7s")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1818002371]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.90000004, 0)
+shape = SubResource("CapsuleShape3D_g4v7s")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=997496742]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
-shape = SubResource("CapsuleShape3D_iwpo4")
+[node name="Camera3D" type="Camera3D" parent="." unique_id=547835919]
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0, 1.6575015, 0.15283516)
 
-[node name="Camera3D" type="Camera3D" parent="." unique_id=673640683]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4955306, -0.2)
-
-[node name="RotationComponent2" type="Node3D" parent="Camera3D" unique_id=1048754700 node_paths=PackedStringArray("target_object")]
-script = ExtResource("4_nl27k")
-target_object = NodePath("..")
-is_local = true
-is_limited = true
-rotation_limit_upper = 80.0
-rotation_limit_lower = -80.0
-
-[node name="MouseMovementComponent3D" type="Node3D" parent="Camera3D/RotationComponent2" unique_id=915641600 node_paths=PackedStringArray("target_object")]
-script = ExtResource("4_c7tqt")
-target_object = NodePath("..")
-target_method_string = "modify_rotation_euler"
-sensitivity = 1.0
-swap_axis = true
-invert_x_axis = true
-metadata/_custom_type_script = "uid://r1wo016j1ww5"
-
-[node name="CameraBobberComponent" type="Node3D" parent="Camera3D" unique_id=593818004 node_paths=PackedStringArray("camera_object", "player_object")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.4955306, 0)
+[node name="CameraBobber" type="Node" parent="Camera3D" unique_id=486397005 node_paths=PackedStringArray("camera_object", "player_object")]
 script = ExtResource("6_obynr")
 camera_object = NodePath("..")
 player_object = NodePath("../..")
-bob_speed = 0.25
-bob_height = 0.1
-bob_width = 0.05
 metadata/_custom_type_script = "uid://bihwcsxm5a2es"
 
-[node name="RotationComponent" type="Node3D" parent="Camera3D" unique_id=99695442 node_paths=PackedStringArray("target_object")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.4955306, 0)
-script = ExtResource("4_nl27k")
-target_object = NodePath("../..")
-is_local = true
-single_axis = 1
-
-[node name="MouseMovementComponent3D" type="Node3D" parent="Camera3D/RotationComponent" unique_id=1694245289 node_paths=PackedStringArray("target_object")]
-script = ExtResource("4_c7tqt")
-target_object = NodePath("..")
-target_method_string = "modify_rotation_euler"
-sensitivity = 1.0
-target_axis = 1
-invert_x_axis = true
-metadata/_custom_type_script = "uid://r1wo016j1ww5"
-
-[node name="Movement" type="Node3D" parent="." unique_id=1227062262]
-
-[node name="SingleInputComponent" type="Node3D" parent="Movement" unique_id=55471534 node_paths=PackedStringArray("target_object")]
-script = ExtResource("2_jvo56")
-target_object = NodePath("../..")
-target_method_string = "set_jump"
-input_string = "move_jump"
-metadata/_custom_type_script = "uid://byrgu6dthsnix"
-
-[node name="SingleInputComponent2" type="Node3D" parent="Movement" unique_id=7176410 node_paths=PackedStringArray("target_object")]
-script = ExtResource("2_jvo56")
-target_object = NodePath("../..")
-target_method_string = "set_running"
-input_string = "move_sprint"
-metadata/_custom_type_script = "uid://byrgu6dthsnix"
-
-[node name="AxisToVector3D" type="Node3D" parent="Movement" unique_id=1012072495 node_paths=PackedStringArray("target_object")]
-script = ExtResource("3_vd578")
-target_object = NodePath("../..")
-target_method_string = "set_direction"
-is_local = true
-metadata/_custom_type_script = "uid://t1u66x74hcm6"
-
-[node name="AxisInputComponent" type="Node3D" parent="Movement/AxisToVector3D" unique_id=1736105387 node_paths=PackedStringArray("target_object")]
-script = ExtResource("2_fb3t6")
-target_object = NodePath("..")
-target_method_string = "set_component_x"
-input_name_positive = "move_left"
-input_name_negative = "move_right"
-metadata/_custom_type_script = "uid://y1ywe8tvdv0c"
-
-[node name="AxisInputComponent2" type="Node3D" parent="Movement/AxisToVector3D" unique_id=1314114967 node_paths=PackedStringArray("target_object")]
-script = ExtResource("2_fb3t6")
-target_object = NodePath("..")
-target_method_string = "set_component_z"
-input_name_positive = "move_forward"
-input_name_negative = "move_backward"
-metadata/_custom_type_script = "uid://y1ywe8tvdv0c"
-
-[node name="Interaction" type="Node3D" parent="." unique_id=590325271]
-
-[node name="InteractionController" type="Node3D" parent="Interaction" unique_id=931506142 node_paths=PackedStringArray("origin_object")]
-script = ExtResource("8_1igb4")
-origin_object = NodePath("../../Camera3D")
-reach = 1.0
-metadata/_custom_type_script = "uid://xjxpd3me43y0"
-
-[node name="SingleInputComponent" type="Node3D" parent="Interaction/InteractionController" unique_id=940735286 node_paths=PackedStringArray("target_object")]
-script = ExtResource("2_jvo56")
-target_object = NodePath("..")
-target_method_string = "try_interaction"
-input_string = "interact"
-metadata/_custom_type_script = "uid://byrgu6dthsnix"
+[editable path="human"]

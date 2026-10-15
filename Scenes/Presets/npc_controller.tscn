@@ -1,99 +1,51 @@
-[gd_scene format=3 uid="uid://ctupd4j60qvup"]
+[gd_scene format=3 uid="uid://culgairh0077d"]
 
 [ext_resource type="Script" uid="uid://d1rflb5mclp0d" path="res://Scripts/Controllers/character_controller.gd" id="1_n77kb"]
 [ext_resource type="Script" uid="uid://bob0cecyek087" path="res://Scripts/Components/pathfinding_component.gd" id="2_gil28"]
+[ext_resource type="PackedScene" uid="uid://clhwh1s6h8kqn" path="res://Assets/human.blend" id="2_wa21d"]
 [ext_resource type="Script" uid="uid://b8xe44ldak8mr" path="res://Scripts/Controllers/schedule_controller.gd" id="3_jc0uc"]
-[ext_resource type="Script" uid="uid://xc464bnxxm5m" path="res://Scripts/Components/rotate_with_movement_component.gd" id="4_jc0uc"]
-[ext_resource type="Script" uid="uid://cb1e4tnpnbd7a" path="res://Scripts/Controllers/chase_controller.gd" id="5_1yrgr"]
 [ext_resource type="Script" uid="uid://ba5yjgajhffab" path="res://Scripts/Components/interaction_component.gd" id="5_oudc5"]
 [ext_resource type="Script" uid="uid://2pl1xrcafii3" path="res://Scripts/Components/readable_component.gd" id="7_18g42"]
-[ext_resource type="Script" uid="uid://de6pqli7kcltq" path="res://Scripts/MiscScripts/state_machine.gd" id="7_7562c"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g4v7s"]
-albedo_color = Color(1, 0.627451, 1, 1)
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_eu3p8"]
-material = SubResource("StandardMaterial3D_g4v7s")
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6up6a"]
 radius = 0.3
 height = 1.8
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_gil28"]
-radius = 0.3
-height = 1.8
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_g4v7s"]
-radius = 0.4
-
-[node name="NPCController" type="CharacterBody3D" unique_id=2030344370]
-collision_layer = 6
-collision_mask = 3
+[node name="NPCController" type="CharacterBody3D" unique_id=1375238687]
 script = ExtResource("1_n77kb")
-speed_walking = 3.0
-speed_running = 8.0
+rotate_with_movement = true
 metadata/_custom_type_script = "uid://d1rflb5mclp0d"
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1785005663]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
-mesh = SubResource("CapsuleMesh_eu3p8")
+[node name="human" parent="." unique_id=2071276015 instance=ExtResource("2_wa21d")]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1389348679]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
-shape = SubResource("CapsuleShape3D_gil28")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1217021278]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.90000004, 0)
+shape = SubResource("CapsuleShape3D_6up6a")
 
-[node name="Pathfinding" type="Node3D" parent="." unique_id=540558769]
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=1624188493]
 
-[node name="NavigationAgent3D" type="NavigationAgent3D" parent="Pathfinding" unique_id=1650877709]
-path_desired_distance = 0.3
-target_desired_distance = 0.3
-
-[node name="PathfindingComponent" type="Node3D" parent="Pathfinding" unique_id=126924458 node_paths=PackedStringArray("nav_agent", "target_object")]
-script = ExtResource("2_gil28")
-nav_agent = NodePath("../NavigationAgent3D")
-target_object = NodePath("../..")
-target_method_string = "set_movement"
-metadata/_custom_type_script = "uid://bob0cecyek087"
-
-[node name="ChaseController" type="Node3D" parent="Pathfinding" unique_id=1426431388 node_paths=PackedStringArray("target_object", "nav_agent")]
-process_mode = 4
-script = ExtResource("5_1yrgr")
-target_object = NodePath("../..")
-target_method_string = "set_movement"
-nav_agent = NodePath("../NavigationAgent3D")
-metadata/_custom_type_script = "uid://cb1e4tnpnbd7a"
-
-[node name="ScheduleController" type="Node3D" parent="Pathfinding" unique_id=871290188 node_paths=PackedStringArray("target_object")]
+[node name="ScheduleController" type="Node3D" parent="." unique_id=992209931 node_paths=PackedStringArray("pathfinding_component")]
 script = ExtResource("3_jc0uc")
-target_object = NodePath("../PathfindingComponent")
-target_method_string = "set_target_position"
+pathfinding_component = NodePath("../PathfindingComponent")
 metadata/_custom_type_script = "uid://b8xe44ldak8mr"
 
-[node name="RotateWithMovementComponent" type="Node3D" parent="Pathfinding" unique_id=1493960200 node_paths=PackedStringArray("target_object")]
-script = ExtResource("4_jc0uc")
-target_object = NodePath("../..")
-target_method_string = "set_orientation"
-rotation_speed = 5.0
-metadata/_custom_type_script = "uid://xc464bnxxm5m"
+[node name="PathfindingComponent" type="Node3D" parent="." unique_id=810649962 node_paths=PackedStringArray("character", "nav_agent")]
+script = ExtResource("2_gil28")
+character = NodePath("..")
+nav_agent = NodePath("../NavigationAgent3D")
+metadata/_custom_type_script = "uid://bob0cecyek087"
 
-[node name="Behaviour" type="Node3D" parent="." unique_id=1905118480]
-
-[node name="StateMachine" type="Node3D" parent="Behaviour" unique_id=611879470 node_paths=PackedStringArray("state_machine")]
-script = ExtResource("7_7562c")
-state_machine = {
-"aggresive": NodePath("../../Pathfinding/ChaseController"),
-"neutral": NodePath("../../Pathfinding/PathfindingComponent")
-}
-metadata/_custom_type_script = "uid://de6pqli7kcltq"
-
-[node name="ReadableComponent" type="Node3D" parent="Behaviour" unique_id=2027071843]
+[node name="ReadableComponent" type="Node3D" parent="." unique_id=1531281973]
 script = ExtResource("7_18g42")
 metadata/_custom_type_script = "uid://2pl1xrcafii3"
 
-[node name="InteractionComponent" type="Area3D" parent="." unique_id=413553058 node_paths=PackedStringArray("target_object")]
+[node name="InteractionComponent" type="Area3D" parent="." unique_id=1063217240 node_paths=PackedStringArray("target_object")]
 script = ExtResource("5_oudc5")
-target_object = NodePath("../Behaviour/ReadableComponent")
-target_method_string = "trigger"
+target_object = NodePath("../ReadableComponent")
 metadata/_custom_type_script = "uid://ba5yjgajhffab"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionComponent" unique_id=1035732503]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
-shape = SubResource("CapsuleShape3D_g4v7s")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionComponent" unique_id=1976052848]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.90000004, 0)
+shape = SubResource("CapsuleShape3D_6up6a")
+
+[editable path="human"]
