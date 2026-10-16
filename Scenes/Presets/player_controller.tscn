@@ -2,31 +2,132 @@
 
 [ext_resource type="Script" uid="uid://bvvk8owlgwjbf" path="res://Scripts/Controllers/player_controller.gd" id="1_5awlv"]
 [ext_resource type="PackedScene" uid="uid://clhwh1s6h8kqn" path="res://Assets/human.blend" id="2_41qjy"]
-[ext_resource type="Script" uid="uid://bihwcsxm5a2es" path="res://Scripts/MiscScripts/camera_bobber.gd" id="6_obynr"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_g4v7s"]
 radius = 0.3
 height = 1.8
 
-[node name="PlayerController" type="CharacterBody3D" unique_id=155462187 node_paths=PackedStringArray("camera", "collision_shape")]
+[sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_5awlv"]
+
+[sub_resource type="AnimationNodeTransition" id="AnimationNodeTransition_41qjy"]
+xfade_time = 0.15
+input_0/name = "grounded"
+input_0/auto_advance = false
+input_0/break_loop_at_end = false
+input_0/reset = true
+input_1/name = "air"
+input_1/auto_advance = false
+input_1/break_loop_at_end = false
+input_1/reset = true
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ypsv4"]
+animation = &"RESET"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_2pgku"]
+animation = &"crouch_idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_jp7s5"]
+animation = &"crouch_walk"
+
+[sub_resource type="AnimationNodeBlendSpace1D" id="AnimationNodeBlendSpace1D_ygjap"]
+min_space = 0.0
+blend_point_0/node = SubResource("AnimationNodeAnimation_2pgku")
+blend_point_0/pos = 0.0
+blend_point_0/name = &"crouch_idle"
+blend_point_1/node = SubResource("AnimationNodeAnimation_jp7s5")
+blend_point_1/pos = 1.0
+blend_point_1/name = &"crouch_walk"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_i2210"]
+animation = &"Walk"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_u67c5"]
+animation = &"Run"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_8esga"]
+animation = &"lean_left"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_5awlv"]
+animation = &"Idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_41qjy"]
+animation = &"lean_right"
+
+[sub_resource type="AnimationNodeBlendSpace1D" id="AnimationNodeBlendSpace1D_ypsv4"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_8esga")
+blend_point_0/pos = -1.0
+blend_point_0/name = &"lean_left"
+blend_point_1/node = SubResource("AnimationNodeAnimation_5awlv")
+blend_point_1/pos = 0.0
+blend_point_1/name = &"Idle"
+blend_point_2/node = SubResource("AnimationNodeAnimation_41qjy")
+blend_point_2/pos = 1.0
+blend_point_2/name = &"lean_right"
+
+[sub_resource type="AnimationNodeBlendSpace1D" id="AnimationNodeBlendSpace1D_0qhpg"]
+min_space = 0.0
+max_space = 2.0
+blend_point_0/node = SubResource("AnimationNodeAnimation_i2210")
+blend_point_0/pos = 1.0
+blend_point_0/name = &"Walk"
+blend_point_1/node = SubResource("AnimationNodeAnimation_u67c5")
+blend_point_1/pos = 2.0
+blend_point_1/name = &"Run"
+blend_point_2/node = SubResource("AnimationNodeBlendSpace1D_ypsv4")
+blend_point_2/pos = 0.0
+blend_point_2/name = &"BlendSpace1D"
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_g4v7s"]
+graph_offset = Vector2(-635.7255, 178.14238)
+nodes/output/position = Vector2(660, 200)
+nodes/locomotion_stand/node = SubResource("AnimationNodeBlendSpace1D_0qhpg")
+nodes/locomotion_stand/position = Vector2(-200, 240)
+nodes/in_air/node = SubResource("AnimationNodeTransition_41qjy")
+nodes/in_air/position = Vector2(240, 320)
+nodes/jump_animation/node = SubResource("AnimationNodeAnimation_ypsv4")
+nodes/jump_animation/position = Vector2(0, 600)
+nodes/locomotion_crouch/node = SubResource("AnimationNodeBlendSpace1D_ygjap")
+nodes/locomotion_crouch/position = Vector2(-200, 440)
+nodes/crouch_blend/node = SubResource("AnimationNodeBlend2_5awlv")
+nodes/crouch_blend/position = Vector2(20, 320)
+node_connections = [&"output", 0, &"in_air", &"in_air", 0, &"crouch_blend", &"in_air", 1, &"jump_animation", &"crouch_blend", 0, &"locomotion_stand", &"crouch_blend", 1, &"locomotion_crouch"]
+
+[node name="PlayerController" type="CharacterBody3D" unique_id=155462187 node_paths=PackedStringArray("camera", "collision_shape", "animation_tree")]
 script = ExtResource("1_5awlv")
-camera = NodePath("Camera3D")
+camera = NodePath("human/Skeleton3D/BoneAttachment3D/Camera3D")
 collision_shape = NodePath("CollisionShape3D")
+animation_tree = NodePath("AnimationTree")
+jump_force = 3.0
 metadata/_custom_type_script = "uid://bvvk8owlgwjbf"
 
 [node name="human" parent="." unique_id=2071276015 instance=ExtResource("2_41qjy")]
+
+[node name="BoneAttachment3D" type="BoneAttachment3D" parent="human/Skeleton3D" parent_id_path=PackedInt32Array(2071276015, 378751954) index="1" unique_id=1502635820]
+transform = Transform3D(1.0000001, -1.4775195e-07, -5.828891e-07, 9.707044e-08, 0.99122816, -0.1321637, 5.971168e-07, 0.13216358, 0.9912281, -3.7405022e-07, 1.5612011, 0.107255325)
+bone_name = "Head"
+bone_idx = 31
+
+[node name="Camera3D" type="Camera3D" parent="human/Skeleton3D/BoneAttachment3D" unique_id=547835919]
+transform = Transform3D(-0.9999999, 6.941914e-08, -5.098803e-07, 1.6358189e-07, 0.9912276, -0.13216364, 4.923935e-07, -0.13216352, -0.9912277, 4.3566507e-07, 0.10760987, 0.078428924)
+
+[node name="AnimationPlayer" parent="human" index="1" unique_id=1303669753]
+playback_auto_capture_ease_type = 2
+playback_default_blend_time = 0.5
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1818002371]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.90000004, 0)
 shape = SubResource("CapsuleShape3D_g4v7s")
 
-[node name="Camera3D" type="Camera3D" parent="." unique_id=547835919]
-transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0, 1.6575015, 0.15283516)
-
-[node name="CameraBobber" type="Node" parent="Camera3D" unique_id=486397005 node_paths=PackedStringArray("camera_object", "player_object")]
-script = ExtResource("6_obynr")
-camera_object = NodePath("..")
-player_object = NodePath("../..")
-metadata/_custom_type_script = "uid://bihwcsxm5a2es"
+[node name="AnimationTree" type="AnimationTree" parent="." unique_id=162406718]
+root_node = NodePath("../human")
+tree_root = SubResource("AnimationNodeBlendTree_g4v7s")
+anim_player = NodePath("../human/AnimationPlayer")
+parameters/locomotion_stand/blend_position = 0.0
+parameters/locomotion_stand/BlendSpace1D/blend_position = 0.0
+parameters/in_air/current_state = "grounded"
+parameters/in_air/transition_request = ""
+parameters/in_air/current_index = 0
+parameters/locomotion_crouch/blend_position = 0.0
+parameters/crouch_blend/blend_amount = 0.0
 
 [editable path="human"]

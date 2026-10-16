@@ -1,0 +1,85 @@
+[gd_scene format=3 uid="uid://c2mmnc83hfp00"]
+
+[ext_resource type="PackedScene" uid="uid://d0hk2qh72xci" path="res://Scenes/Presets/player_controller.tscn" id="1_qc4db"]
+[ext_resource type="PackedScene" uid="uid://culgairh0077d" path="res://Scenes/Presets/npc_controller.tscn" id="2_ys1qc"]
+[ext_resource type="Script" uid="uid://e5dqcesgwl0e" path="res://Scripts/Resources/readable_entry.gd" id="3_35xla"]
+[ext_resource type="Script" uid="uid://tcrug5x5hlpx" path="res://Scripts/Resources/schedule_entry.gd" id="3_ys1qc"]
+[ext_resource type="PackedScene" uid="uid://ck5e1ldudywre" path="res://Scenes/Presets/ui_controller.tscn" id="5_35xla"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ys1qc"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_35xla"]
+sky_material = SubResource("ProceduralSkyMaterial_ys1qc")
+
+[sub_resource type="Environment" id="Environment_i3aeo"]
+background_mode = 2
+sky = SubResource("Sky_35xla")
+glow_enabled = true
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_g4v7s"]
+vertices = PackedVector3Array(-24.5, 0.5, -24.5, -24.5, 0.5, 24.5, 24.5, 0.5, 24.5, 24.5, 0.5, -24.5)
+polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
+
+[sub_resource type="Resource" id="Resource_i3aeo"]
+script = ExtResource("3_ys1qc")
+time_start = Vector2i(6, 0)
+position = Vector3(0, 0, 5)
+arrival_rotation_degrees = 180.0
+use_arrival_rotation = true
+run = true
+metadata/_custom_type_script = "uid://tcrug5x5hlpx"
+
+[sub_resource type="Resource" id="Resource_5wyu1"]
+script = ExtResource("3_ys1qc")
+priority = 1
+time_start = Vector2i(6, 20)
+position = Vector3(-5, 0, -20)
+arrival_rotation_degrees = 75.0
+use_arrival_rotation = true
+metadata/_custom_type_script = "uid://tcrug5x5hlpx"
+
+[sub_resource type="Resource" id="Resource_41qjy"]
+script = ExtResource("3_35xla")
+readable_text = "Hi"
+metadata/_custom_type_script = "uid://e5dqcesgwl0e"
+
+[node name="test" type="Node3D" unique_id=973123297]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=608441841]
+environment = SubResource("Environment_i3aeo")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1260679889]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=1761113044]
+navigation_mesh = SubResource("NavigationMesh_g4v7s")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="NavigationRegion3D" unique_id=1519163295]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+use_collision = true
+size = Vector3(50, 1, 50)
+
+[node name="PlayerController" parent="." unique_id=155462187 instance=ExtResource("1_qc4db")]
+enable_crouch = false
+enable_lean = false
+
+[node name="NPCController" parent="." unique_id=1375238687 instance=ExtResource("2_ys1qc")]
+process_mode = 4
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.0870214, 0, -7.346596)
+_movement_run = true
+
+[node name="ScheduleController" parent="NPCController" index="3" unique_id=992209931]
+schedule_entries = Array[ExtResource("3_ys1qc")]([SubResource("Resource_i3aeo"), SubResource("Resource_5wyu1")])
+
+[node name="ReadableComponent" parent="NPCController" index="5" unique_id=1531281973]
+entries = Array[ExtResource("3_35xla")]([SubResource("Resource_41qjy")])
+
+[node name="UIController" parent="." unique_id=966629272 instance=ExtResource("5_35xla")]
+
+[editable path="PlayerController"]
+[editable path="PlayerController/human"]
+[editable path="NPCController"]
+[editable path="NPCController/human"]

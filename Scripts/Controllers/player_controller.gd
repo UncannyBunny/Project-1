@@ -2,10 +2,13 @@
 class_name PlayerController extends CharacterController3D
 
 signal interaction_target_changed(interactable: Node)
+signal crouch_changed(is_crouching: bool)
+signal lean_changed(lean_direction: float)
 
 @export_group("Nodes")
 @export var camera: Camera3D
 @export var collision_shape: CollisionShape3D
+@export var animation_tree: AnimationTree
 
 @export_group("Mouse Look")
 @export var mouse_sensitivity: float = 0.002
@@ -20,17 +23,16 @@ signal interaction_target_changed(interactable: Node)
 @export_flags_3d_physics var interaction_collision_mask: int = 0xFFFFFFFF
 
 @export_group("Crouch & Lean")
-@export var enable_crouch: bool = true
-@export var speed_crouching: float = 1.5
-@export var crouch_height_offset: float = -0.6
-@export var enable_lean: bool = true
-@export var lean_angle_degrees: float = 12.0
-@export var lean_offset_distance: float = 0.35
-@export var posture_lerp_speed: float = 10.0
+@export var speed_crouching: float = 0.5
+@export var anim_blend_speed: float = 2.0
 
 var _is_crouching: bool = false
-var _base_camera_pos: Vector3 = Vector3.ZERO
+var _lean_direction: float = 0.0
 var _current_hovered_interactable: Node = null
+
+var _crouch_blend: float = 0.0
+var _lean_blend: float = 0.0
+var _move_blend: float = 0.0
 
 func _ready() -> void:
 	super._ready()
@@ -39,10 +41,10 @@ func _ready() -> void:
 		camera = get_node_or_null("Camera3D") as Camera3D
 	if not collision_shape:
 		collision_shape = get_node_or_null("CollisionShape3D") as CollisionShape3D
-	if camera:
-		_base_camera_pos = camera.position
+	if animation_tree:
+		animation_tree.active = true
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	# Mouse Look
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		var motion: Vector2 = event.relative * mouse_sensitivity
@@ -58,45 +60,82 @@ func _unhandled_input(event: InputEvent) -> void:
 			
 	# Discrete Action Inputs
 	if event.is_action_pressed(&"move_jump"):
-		set_jump()
-	elif event.is_action_pressed(&"move_sprint"):
-		set_running(not _movement_run)
+		if _is_crouching:
+			_set_crouching(false)
+		else:
+			set_jump()
 	elif event.is_action_pressed(&"interact"):
 		try_interaction()
-	elif enable_crouch and InputMap.has_action(&"move_crouch") and event.is_action_pressed(&"move_crouch"):
-		_is_crouching = not _is_crouching
+	elif event.is_action_pressed(&"move_crouch"):
+		if not _movement_run:
+			_set_crouching(not _is_crouching)
 
 func _physics_process(delta: float) -> void:
-	_process_movement_input()
-	_process_posture(delta)
+	_process_movement_and_posture_input()
 	_update_interaction_hover()
 	super._physics_process(delta)
+	_update_animation_tree(delta)
 
-func _process_movement_input() -> void:
-	var input_vec: Vector2 = Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_backward")
+func _process_movement_and_posture_input() -> void:
+	var input_vec: Vector2 = Input.get_vector(&"move_right", &"move_left", &"move_backward", &"move_forward")
 	var local_dir := Vector3(input_vec.x, 0.0, input_vec.y)
 	var world_dir: Vector3 = (global_basis * local_dir).normalized()
 	set_direction(world_dir)
+	
+	var is_trying_to_move: bool = input_vec != Vector2.ZERO
+	var wants_to_run: bool = false
+	wants_to_run = Input.is_action_pressed(&"move_sprint") and is_trying_to_move
+		
+	if wants_to_run:
+		set_running(true)
+		if _is_crouching:
+			_set_crouching(false)
+		if _lean_direction != 0.0:
+			_set_leaning(0.0)
+	else:
+		set_running(false)
+		if not is_trying_to_move and not _is_crouching and is_on_floor():
+			var raw_lean: float = Input.get_axis(&"lean_left", &"lean_right")
+			_set_leaning(raw_lean)
 	
 	if _is_crouching:
 		movement_speed = speed_crouching
 	else:
 		movement_speed = speed_running if _movement_run else speed_walking
 
-func _process_posture(delta: float) -> void:
-	if not camera:
+func _set_crouching(crouching: bool) -> void:
+	if _is_crouching == crouching:
 		return
-	var target_y: float = _base_camera_pos.y + (crouch_height_offset if _is_crouching else 0.0)
-	var lean_input: float = 0.0
-	if enable_lean and InputMap.has_action(&"lean_left") and InputMap.has_action(&"lean_right"):
-		lean_input = Input.get_axis(&"lean_left", &"lean_right")
-		
-	var target_x: float = _base_camera_pos.x + (lean_input * lean_offset_distance)
-	var target_roll: float = deg_to_rad(-lean_input * lean_angle_degrees)
+	_is_crouching = crouching
+	if _is_crouching and _lean_direction != 0.0:
+		_set_leaning(0.0)
+	crouch_changed.emit(_is_crouching)
+
+func _set_leaning(lean_dir: float) -> void:
+	if is_equal_approx(_lean_direction, lean_dir):
+		return
+	_lean_direction = lean_dir
+	lean_changed.emit(_lean_direction)
+
+#region AnimationTree Integration
+func _update_animation_tree(delta: float) -> void:
+	if not animation_tree:
+		return
+	var target_move: float = 0.0
+	var horizontal_speed: float = Vector2(velocity.x, velocity.z).length()
+	if horizontal_speed > 0.2:
+		target_move = 2.0 if _movement_run else 1.0
 	
-	camera.position.x = lerpf(camera.position.x, target_x, posture_lerp_speed * delta)
-	camera.position.y = lerpf(camera.position.y, target_y, posture_lerp_speed * delta)
-	camera.rotation.z = lerpf(camera.rotation.z, target_roll, posture_lerp_speed * delta)
+	_move_blend = move_toward(_move_blend, target_move, anim_blend_speed * delta)
+	_crouch_blend = move_toward(_crouch_blend, 1.0 if _is_crouching else 0.0, anim_blend_speed * delta)
+	_lean_blend = move_toward(_lean_blend, _lean_direction, anim_blend_speed * delta)
+	
+	animation_tree.set(&"parameters/locomotion_stand/blend_position", _move_blend)
+	animation_tree.set(&"parameters/locomotion_stand/BlendSpace1D/blend_position", _lean_blend)
+	animation_tree.set(&"parameters/locomotion_crouch/blend_position", clampf(_move_blend, 0.0, 1.0))
+	animation_tree.set(&"parameters/crouch_blend/blend_amount", _crouch_blend)
+	animation_tree.set(&"parameters/in_air/transition_request", "air" if not is_on_floor() else "grounded")
+#endregion
 
 #region Raycast Interaction
 func try_interaction() -> void:

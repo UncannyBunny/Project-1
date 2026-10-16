@@ -26,6 +26,8 @@ var time_end_minutes: int = 0
 ## Optional Y-axis rotation (in degrees) the NPC should face upon arriving
 @export var arrival_rotation_degrees: float = 0.0
 @export var use_arrival_rotation: bool = false
+## If true, the NPC should run on its way to the target position
+@export var run: bool = false
 
 @export_group("Key Conditions & Effects")
 ## Keys required for this schedule entry to be valid

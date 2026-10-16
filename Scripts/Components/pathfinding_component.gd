@@ -22,6 +22,7 @@ enum BehaviorMode {
 ## Optional explicit chase target; if null, automatically finds the node in group "player"
 @export var chase_target: Node3D
 
+var is_running: bool = false
 var current_mode: BehaviorMode = BehaviorMode.ROUTINE
 var nav_paused: bool = true
 var nav_layer: int = NavigationLayerManager.PUBLIC_LAYER
@@ -70,7 +71,7 @@ func _evaluate_behavior_mode() -> void:
 	var target_mode: BehaviorMode = BehaviorMode.CHASE if should_chase else BehaviorMode.ROUTINE
 	if target_mode == current_mode:
 		return
-		
+	
 	current_mode = target_mode
 	if current_mode == BehaviorMode.CHASE:
 		_find_chase_target()
@@ -96,17 +97,18 @@ func _find_chase_target() -> void:
 
 #region Routine Navigation
 ## Sets a new target destination for the NPC
-func set_target_position(target_pos: Vector3, use_rotation: bool = false, target_rot_degrees: float = 0.0) -> void:
+func set_target_position(target_pos: Vector3, use_rotation: bool = false, target_rot_degrees: float = 0.0, running: bool = false) -> void:
 	if not nav_agent or not character:
 		return
 	_routine_target_position = target_pos
 	_has_routine_target = true
 	_use_arrival_rotation = use_rotation
 	_arrival_rotation_y = deg_to_rad(target_rot_degrees)
+	is_running = running
 	
 	if current_mode == BehaviorMode.CHASE:
 		return
-		
+	
 	nav_paused = false
 	_update_accessible_doors()
 	nav_agent.target_position = target_pos
@@ -128,7 +130,8 @@ func _process_routine_navigation() -> void:
 			nav_paused = true
 			character.set_movement(Vector3.ZERO, false)
 			if _use_arrival_rotation:
-				character.set_orientation(_arrival_rotation_y)
+				var rot_tween: Tween = create_tween()
+				rot_tween.tween_property(character, "rotation:y", _arrival_rotation_y, 0.5)
 			destination_reached.emit()
 		else:
 			set_target_position(nav_agent.target_position, _use_arrival_rotation, rad_to_deg(_arrival_rotation_y))
@@ -140,7 +143,7 @@ func _process_routine_navigation() -> void:
 	var pos_current: Vector3 = character.global_position
 	var pos_next: Vector3 = _link_target if _on_link else nav_agent.get_next_path_position()
 	var direction: Vector3 = pos_current.direction_to(pos_next)
-	character.set_movement(direction, false)
+	character.set_movement(direction, is_running or current_mode == BehaviorMode.CHASE)
 
 func _on_nav_link_reached(details: Dictionary) -> void:
 	_on_link = true

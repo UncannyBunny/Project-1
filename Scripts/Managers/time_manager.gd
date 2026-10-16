@@ -98,6 +98,7 @@ func set_day_start(time_minutes: int) -> void:
 		_day_start_current = time_minutes
 #endregion
 
+var time_warp_key: Array[StringName] = [&"time_warp"]
 #region Time Warping
 func warp_time_until(target_time_minutes: int) -> void:
 	if target_time_minutes <= _time_current:
@@ -106,7 +107,7 @@ func warp_time_until(target_time_minutes: int) -> void:
 	time_warping_started.emit()
 	if loading_screen:
 		loading_screen.visible = true
-	KeyManager.add_keys([&"time_warp"])
+	KeyManager.add_keys(time_warp_key)
 	
 	var base_time_scale: float = Engine.time_scale
 	var base_physics_ticks: int = Engine.physics_ticks_per_second
@@ -118,7 +119,7 @@ func warp_time_until(target_time_minutes: int) -> void:
 		
 	Engine.time_scale = base_time_scale
 	Engine.physics_ticks_per_second = base_physics_ticks
-	KeyManager.remove_keys([&"time_warp"])
+	KeyManager.remove_keys(time_warp_key)
 	if loading_screen:
 		loading_screen.visible = false
 	_is_warping = false

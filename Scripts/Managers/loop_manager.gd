@@ -50,7 +50,7 @@ func trigger_loop_reset() -> void:
 	
 	# Release all dynamically claimed navigation layers before reloading
 	NavigationLayerManager.reset_layers()
-	KeyManager.reset_for_new_loop()
+	KeyManager.reset()
 	
 	get_tree().call_deferred(&"reload_current_scene")
 	

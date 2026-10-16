@@ -1,0 +1,3 @@
+fix animation for running only changing when stopped
+Make camera follow player model head
+Use player model for more stuff

@@ -7,8 +7,9 @@ signal landed
 signal footstep_triggered
 
 @export_group("Movement")
-@export var speed_walking: float = 3.0
-@export var speed_running: float = 8.0
+@export var speed_walking: float = 1.0
+@export var speed_running: float = 4.0
+@export var _movement_run: bool = false
 @export var acceleration_ratio: float = 0.25
 @export var jump_force: float = 15.0
 @export var weight: float = 1.0
@@ -30,14 +31,14 @@ signal footstep_triggered
 var movement_speed: float = 0.0
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _movement_direction: Vector3 = Vector3.ZERO
-var _movement_run: bool = false
 var _movement_jump: bool = false
 var _was_on_floor: bool = true
 var _was_moving: bool = false
+var _was_running: bool = false
 var _distance_since_last_step: float = 0.0
 
 func _ready() -> void:
-	movement_speed = speed_walking
+	movement_speed = speed_running if _movement_run else speed_walking
 
 func _physics_process(delta: float) -> void:
 	if freeze_while_warping and KeyManager.search_keys([&"time_warp"]):
@@ -75,11 +76,11 @@ func _move_character(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= _gravity * weight * delta
 		
-	if _movement_direction != Vector3.ZERO and is_on_floor():
+	if _movement_direction != Vector3.ZERO:
 		var accel_step: float = movement_speed * acceleration_ratio
 		velocity.x = move_toward(velocity.x, _movement_direction.x * movement_speed, accel_step)
 		velocity.z = move_toward(velocity.z, _movement_direction.z * movement_speed, accel_step)
-	elif is_on_floor():
+	else:
 		velocity.x = move_toward(velocity.x, 0.0, movement_speed)
 		velocity.z = move_toward(velocity.z, 0.0, movement_speed)
 		
@@ -93,7 +94,7 @@ func _move_character(delta: float) -> void:
 func _update_movement_rotation(delta: float) -> void:
 	var horizontal_velocity := Vector2(velocity.x, velocity.z)
 	if horizontal_velocity.length() >= 0.1:
-		var target_angle: float = atan2(-velocity.x, -velocity.z)
+		var target_angle: float = atan2(velocity.x, velocity.z)
 		rotation.y = lerp_angle(rotation.y, target_angle, rotation_speed * delta)
 
 func _update_movement_signals(delta: float) -> void:
@@ -104,10 +105,11 @@ func _update_movement_signals(delta: float) -> void:
 	
 	var horizontal_speed: float = Vector2(velocity.x, velocity.z).length()
 	var is_moving_now: bool = horizontal_speed > 0.2 and on_floor_now
-	if is_moving_now != _was_moving:
+	if is_moving_now != _was_moving or _movement_run != _was_running:
 		_was_moving = is_moving_now
+		_was_running = _movement_run
 		movement_state_changed.emit(is_moving_now, _movement_run)
-		
+	
 	if is_moving_now and step_distance > 0.0:
 		_distance_since_last_step += horizontal_speed * delta
 		if _distance_since_last_step >= step_distance:

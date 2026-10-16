@@ -30,7 +30,8 @@ func schedule_process() -> void:
 		pathfinding_component.set_target_position(
 			target_pos,
 			current_schedule.use_arrival_rotation,
-			current_schedule.arrival_rotation_degrees
+			current_schedule.arrival_rotation_degrees,
+			current_schedule.run
 		)
 		
 	if not current_schedule.keys_unlocked.is_empty():

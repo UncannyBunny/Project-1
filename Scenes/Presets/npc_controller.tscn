@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://d1rflb5mclp0d" path="res://Scripts/Controllers/character_controller.gd" id="1_n77kb"]
 [ext_resource type="Script" uid="uid://bob0cecyek087" path="res://Scripts/Components/pathfinding_component.gd" id="2_gil28"]
 [ext_resource type="PackedScene" uid="uid://clhwh1s6h8kqn" path="res://Assets/human.blend" id="2_wa21d"]
+[ext_resource type="Script" uid="uid://ckp7g70h2yswy" path="res://Scripts/MiscScripts/character_animator.gd" id="3_6up6a"]
 [ext_resource type="Script" uid="uid://b8xe44ldak8mr" path="res://Scripts/Controllers/schedule_controller.gd" id="3_jc0uc"]
 [ext_resource type="Script" uid="uid://ba5yjgajhffab" path="res://Scripts/Components/interaction_component.gd" id="5_oudc5"]
 [ext_resource type="Script" uid="uid://2pl1xrcafii3" path="res://Scripts/Components/readable_component.gd" id="7_18g42"]
@@ -16,7 +17,14 @@ script = ExtResource("1_n77kb")
 rotate_with_movement = true
 metadata/_custom_type_script = "uid://d1rflb5mclp0d"
 
-[node name="human" parent="." unique_id=2071276015 instance=ExtResource("2_wa21d")]
+[node name="human" parent="." unique_id=2071276015 node_paths=PackedStringArray("character", "animator") instance=ExtResource("2_wa21d")]
+script = ExtResource("3_6up6a")
+character = NodePath("..")
+animator = NodePath("AnimationPlayer")
+
+[node name="AnimationPlayer" parent="human" index="1" unique_id=1805775799]
+playback_auto_capture_ease_type = 2
+playback_default_blend_time = 0.5
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1217021278]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.90000004, 0)
