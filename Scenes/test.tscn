@@ -63,11 +63,8 @@ use_collision = true
 size = Vector3(50, 1, 50)
 
 [node name="PlayerController" parent="." unique_id=155462187 instance=ExtResource("1_qc4db")]
-enable_crouch = false
-enable_lean = false
 
 [node name="NPCController" parent="." unique_id=1375238687 instance=ExtResource("2_ys1qc")]
-process_mode = 4
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.0870214, 0, -7.346596)
 _movement_run = true
 
