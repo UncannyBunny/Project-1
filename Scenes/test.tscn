@@ -1,10 +1,12 @@
-[gd_scene format=3 uid="uid://c2mmnc83hfp00"]
+[gd_scene format=3 uid="uid://dvoefe3opwip"]
 
 [ext_resource type="PackedScene" uid="uid://d0hk2qh72xci" path="res://Scenes/Presets/player_controller.tscn" id="1_qc4db"]
 [ext_resource type="PackedScene" uid="uid://culgairh0077d" path="res://Scenes/Presets/npc_controller.tscn" id="2_ys1qc"]
 [ext_resource type="Script" uid="uid://e5dqcesgwl0e" path="res://Scripts/Resources/readable_entry.gd" id="3_35xla"]
 [ext_resource type="Script" uid="uid://tcrug5x5hlpx" path="res://Scripts/Resources/schedule_entry.gd" id="3_ys1qc"]
 [ext_resource type="PackedScene" uid="uid://ck5e1ldudywre" path="res://Scenes/Presets/ui_controller.tscn" id="5_35xla"]
+[ext_resource type="Script" uid="uid://dfd5vok7q0jsh" path="res://Scripts/Components/key_component.gd" id="5_i3aeo"]
+[ext_resource type="Script" uid="uid://bhxrj8d406tli" path="res://Scripts/Components/time_trigger_component.gd" id="6_5wyu1"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ys1qc"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -22,27 +24,71 @@ glow_enabled = true
 vertices = PackedVector3Array(-24.5, 0.5, -24.5, -24.5, 0.5, 24.5, 24.5, 0.5, 24.5, 24.5, 0.5, -24.5)
 polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
 
-[sub_resource type="Resource" id="Resource_i3aeo"]
+[sub_resource type="Resource" id="Resource_g4v7s"]
 script = ExtResource("3_ys1qc")
-time_start = Vector2i(6, 0)
-position = Vector3(0, 0, 5)
-arrival_rotation_degrees = 180.0
-use_arrival_rotation = true
+waypoint_node_path = NodePath("../Waypoints/Marker3D")
+keys_whitelist = Array[StringName]([&"1"])
+keys_unlocked = Array[StringName]([&"2"])
+keys_taken = Array[StringName]([&"1"])
+metadata/_custom_type_script = "uid://tcrug5x5hlpx"
+
+[sub_resource type="Resource" id="Resource_yf5fn"]
+script = ExtResource("3_ys1qc")
+waypoint_node_path = NodePath("../Waypoints/Marker3D2")
 run = true
+keys_whitelist = Array[StringName]([&"2"])
+keys_unlocked = Array[StringName]([&"3"])
+keys_taken = Array[StringName]([&"2"])
 metadata/_custom_type_script = "uid://tcrug5x5hlpx"
 
-[sub_resource type="Resource" id="Resource_5wyu1"]
+[sub_resource type="Resource" id="Resource_57qmd"]
 script = ExtResource("3_ys1qc")
-priority = 1
-time_start = Vector2i(6, 20)
-position = Vector3(-5, 0, -20)
-arrival_rotation_degrees = 75.0
-use_arrival_rotation = true
+waypoint_node_path = NodePath("../Waypoints/Marker3D3")
+run = true
+keys_whitelist = Array[StringName]([&"3"])
+keys_unlocked = Array[StringName]([&"4"])
+keys_taken = Array[StringName]([&"3"])
 metadata/_custom_type_script = "uid://tcrug5x5hlpx"
 
-[sub_resource type="Resource" id="Resource_41qjy"]
+[sub_resource type="Resource" id="Resource_d0u6y"]
+script = ExtResource("3_ys1qc")
+waypoint_node_path = NodePath("../Waypoints/Marker3D4")
+run = true
+keys_whitelist = Array[StringName]([&"4"])
+keys_unlocked = Array[StringName]([&"5"])
+keys_taken = Array[StringName]([&"4"])
+metadata/_custom_type_script = "uid://tcrug5x5hlpx"
+
+[sub_resource type="Resource" id="Resource_3gngh"]
+script = ExtResource("3_ys1qc")
+waypoint_node_path = NodePath("../Waypoints/Marker3D5")
+run = true
+keys_whitelist = Array[StringName]([&"5"])
+keys_unlocked = Array[StringName]([&"6"])
+keys_taken = Array[StringName]([&"5"])
+metadata/_custom_type_script = "uid://tcrug5x5hlpx"
+
+[sub_resource type="Resource" id="Resource_fcnqv"]
+script = ExtResource("3_ys1qc")
+waypoint_node_path = NodePath("../Waypoints/Marker3D6")
+run = true
+keys_whitelist = Array[StringName]([&"6"])
+keys_unlocked = Array[StringName]([&"7"])
+keys_taken = Array[StringName]([&"6"])
+metadata/_custom_type_script = "uid://tcrug5x5hlpx"
+
+[sub_resource type="Resource" id="Resource_7numd"]
+script = ExtResource("3_ys1qc")
+waypoint_node_path = NodePath("../Waypoints/Marker3D7")
+run = true
+keys_whitelist = Array[StringName]([&"7"])
+keys_unlocked = Array[StringName]([&"1"])
+keys_taken = Array[StringName]([&"7"])
+metadata/_custom_type_script = "uid://tcrug5x5hlpx"
+
+[sub_resource type="Resource" id="Resource_8esga"]
 script = ExtResource("3_35xla")
-readable_text = "Hi"
+readable_text = "Gotta go fast"
 metadata/_custom_type_script = "uid://e5dqcesgwl0e"
 
 [node name="test" type="Node3D" unique_id=973123297]
@@ -66,17 +112,42 @@ size = Vector3(50, 1, 50)
 
 [node name="NPCController" parent="." unique_id=1375238687 instance=ExtResource("2_ys1qc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.0870214, 0, -7.346596)
+schedule_entries = Array[ExtResource("3_ys1qc")]([SubResource("Resource_g4v7s"), SubResource("Resource_yf5fn"), SubResource("Resource_57qmd"), SubResource("Resource_d0u6y"), SubResource("Resource_3gngh"), SubResource("Resource_fcnqv"), SubResource("Resource_7numd")])
+readable_entries = Array[ExtResource("3_35xla")]([SubResource("Resource_8esga")])
 _movement_run = true
-
-[node name="ScheduleController" parent="NPCController" index="3" unique_id=992209931]
-schedule_entries = Array[ExtResource("3_ys1qc")]([SubResource("Resource_i3aeo"), SubResource("Resource_5wyu1")])
-
-[node name="ReadableComponent" parent="NPCController" index="5" unique_id=1531281973]
-entries = Array[ExtResource("3_35xla")]([SubResource("Resource_41qjy")])
 
 [node name="UIController" parent="." unique_id=966629272 instance=ExtResource("5_35xla")]
 
-[editable path="PlayerController"]
-[editable path="PlayerController/human"]
-[editable path="NPCController"]
-[editable path="NPCController/human"]
+[node name="Waypoints" type="Node3D" parent="." unique_id=536363956]
+
+[node name="Marker3D" type="Marker3D" parent="Waypoints" unique_id=1489297259]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.443165, 0, 2.438147)
+
+[node name="Marker3D2" type="Marker3D" parent="Waypoints" unique_id=1314990916]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.627567, 0, -8.734369)
+
+[node name="Marker3D3" type="Marker3D" parent="Waypoints" unique_id=490717277]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0140438, 0, -22.110245)
+
+[node name="Marker3D4" type="Marker3D" parent="Waypoints" unique_id=2036205900]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.92178, 0, -13.581255)
+
+[node name="Marker3D5" type="Marker3D" parent="Waypoints" unique_id=1904173466]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.700092, 0, 9.211503)
+
+[node name="Marker3D6" type="Marker3D" parent="Waypoints" unique_id=880456656]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.548193, 0, 16.445152)
+
+[node name="Marker3D7" type="Marker3D" parent="Waypoints" unique_id=1699841492]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.137226, 0, 8.145563)
+
+[node name="KeyComponent" type="Node3D" parent="." unique_id=1001028115]
+script = ExtResource("5_i3aeo")
+keys_unlocked = Array[StringName]([&"1"])
+metadata/_custom_type_script = "uid://dfd5vok7q0jsh"
+
+[node name="TimeTriggerComponent" type="Node3D" parent="KeyComponent" unique_id=1132225931 node_paths=PackedStringArray("target_object")]
+script = ExtResource("6_5wyu1")
+time_start = Vector2i(6, 15)
+target_object = NodePath("..")
+metadata/_custom_type_script = "uid://bhxrj8d406tli"

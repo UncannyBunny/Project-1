@@ -32,5 +32,7 @@ enum InputType {
 @export_group("Presentation Hooks")
 ## Optional voice blip or sound effect played when this dialogue node starts
 @export var dialogue_audio: AudioStream
+## Optional curve defining the pitch/modulation profile for NPC voice playback
+@export var npc_voice_profile: Curve
 ## Optional animation name to trigger on the speaker when this entry is read
 @export var speaker_animation: StringName = &""

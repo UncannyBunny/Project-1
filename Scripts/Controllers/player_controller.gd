@@ -15,6 +15,7 @@ signal lean_changed(lean_direction: float)
 @export var vertical_angle_limit: float = 80.0
 @export var invert_x_axis: bool = false
 @export var invert_y_axis: bool = false
+var _is_in_transition: bool = false
 
 @export_group("Interaction")
 @export var interaction_reach: float = 1.5
@@ -45,6 +46,8 @@ func _ready() -> void:
 		animation_tree.active = true
 
 func _input(event: InputEvent) -> void:
+	if _is_in_transition:
+		return
 	# Mouse Look
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		var motion: Vector2 = event.relative * mouse_sensitivity
@@ -77,6 +80,10 @@ func _physics_process(delta: float) -> void:
 	_update_animation_tree(delta)
 
 func _process_movement_and_posture_input() -> void:
+	if _is_in_transition:
+		set_direction(Vector3.ZERO)
+		set_running(false)
+		return
 	var input_vec: Vector2 = Input.get_vector(&"move_right", &"move_left", &"move_backward", &"move_forward")
 	var local_dir := Vector3(input_vec.x, 0.0, input_vec.y)
 	var world_dir: Vector3 = (global_basis * local_dir).normalized()
@@ -116,6 +123,53 @@ func _set_leaning(lean_dir: float) -> void:
 		return
 	_lean_direction = lean_dir
 	lean_changed.emit(_lean_direction)
+
+## Smoothly rotates the player body (Y) and camera pitch (X) to center target (Vector3 or Node3D) in view over duration
+func look_at_target(target: Variant, duration: float = 0.5) -> Tween:
+	_is_in_transition = true
+	set_movement(Vector3.ZERO, false)
+	
+	var tween: Tween = create_tween()
+	var prev_weight: float = 0.0
+	
+	tween.tween_method(func(weight: float) -> void:
+		if not camera:
+			return
+			
+		var target_pos: Vector3 = Vector3.ZERO
+		if target is Node3D:
+			if not is_instance_valid(target):
+				return
+			target_pos = target.global_position
+		elif target is Vector3:
+			target_pos = target
+		else:
+			return
+			
+		var step_fraction: float = (weight - prev_weight) / maxf(1.0 - prev_weight, 0.0001)
+		prev_weight = weight
+		
+		var cam_to_target: Vector3 = target_pos - camera.global_position
+		var current_forward: Vector3 = -camera.global_transform.basis.z
+		
+		# 1. Exact Yaw correction based on where the Camera is actually pointing right now
+		var current_cam_yaw: float = atan2(current_forward.x, current_forward.z)
+		var desired_cam_yaw: float = atan2(cam_to_target.x, cam_to_target.z)
+		var yaw_error: float = angle_difference(current_cam_yaw, desired_cam_yaw)
+		rotation.y += yaw_error * step_fraction
+		
+		# 2. Exact Pitch correction based on the Camera's live vertical angle
+		var horiz_dist: float = Vector2(cam_to_target.x, cam_to_target.z).length()
+		var desired_world_pitch: float = atan2(cam_to_target.y, horiz_dist)
+		var current_world_pitch: float = asin(clampf(current_forward.y, -1.0, 1.0))
+		var pitch_error: float = desired_world_pitch - current_world_pitch
+		
+		var limit_rad: float = deg_to_rad(vertical_angle_limit)
+		camera.rotation.x = clampf(camera.rotation.x + pitch_error * step_fraction, -limit_rad, limit_rad)
+	, 0.0, 1.0, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	
+	tween.finished.connect(func() -> void: _is_in_transition = false)
+	return tween
 
 #region AnimationTree Integration
 func _update_animation_tree(delta: float) -> void:

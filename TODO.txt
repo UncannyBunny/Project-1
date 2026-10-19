@@ -1,3 +1,4 @@
-fix animation for running only changing when stopped
-Make camera follow player model head
-Use player model for more stuff
+Fix DEMO scene to test behavior
+Add animations for actions
+NPC speech
+Add sounds

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://culgairh0077d"]
 
-[ext_resource type="Script" uid="uid://d1rflb5mclp0d" path="res://Scripts/Controllers/character_controller.gd" id="1_n77kb"]
+[ext_resource type="Script" uid="uid://cjtjw8rf8f88l" path="res://Scripts/Controllers/npc_controller.gd" id="1_6up6a"]
 [ext_resource type="Script" uid="uid://bob0cecyek087" path="res://Scripts/Components/pathfinding_component.gd" id="2_gil28"]
 [ext_resource type="PackedScene" uid="uid://clhwh1s6h8kqn" path="res://Assets/human.blend" id="2_wa21d"]
 [ext_resource type="Script" uid="uid://ckp7g70h2yswy" path="res://Scripts/MiscScripts/character_animator.gd" id="3_6up6a"]
@@ -12,10 +12,13 @@
 radius = 0.3
 height = 1.8
 
-[node name="NPCController" type="CharacterBody3D" unique_id=1375238687]
-script = ExtResource("1_n77kb")
-rotate_with_movement = true
-metadata/_custom_type_script = "uid://d1rflb5mclp0d"
+[node name="NPCController" type="CharacterBody3D" unique_id=392494869 node_paths=PackedStringArray("schedule_controller", "pathfinding_component", "readable_component", "interaction_component")]
+script = ExtResource("1_6up6a")
+schedule_controller = NodePath("ScheduleController")
+pathfinding_component = NodePath("PathfindingComponent")
+readable_component = NodePath("ReadableComponent")
+interaction_component = NodePath("InteractionComponent")
+metadata/_custom_type_script = "uid://cjtjw8rf8f88l"
 
 [node name="human" parent="." unique_id=2071276015 node_paths=PackedStringArray("character", "animator") instance=ExtResource("2_wa21d")]
 script = ExtResource("3_6up6a")
@@ -44,7 +47,10 @@ nav_agent = NodePath("../NavigationAgent3D")
 metadata/_custom_type_script = "uid://bob0cecyek087"
 
 [node name="ReadableComponent" type="Node3D" parent="." unique_id=1531281973]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0.2)
 script = ExtResource("7_18g42")
+entries = null
+look_turn_duration = null
 metadata/_custom_type_script = "uid://2pl1xrcafii3"
 
 [node name="InteractionComponent" type="Area3D" parent="." unique_id=1063217240 node_paths=PackedStringArray("target_object")]

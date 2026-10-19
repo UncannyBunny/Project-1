@@ -97,20 +97,21 @@ script = ExtResource("1_5awlv")
 camera = NodePath("human/Skeleton3D/BoneAttachment3D/Camera3D")
 collision_shape = NodePath("CollisionShape3D")
 animation_tree = NodePath("AnimationTree")
+interaction_collision_mask = 1
 jump_force = 3.0
 metadata/_custom_type_script = "uid://bvvk8owlgwjbf"
 
 [node name="human" parent="." unique_id=2071276015 instance=ExtResource("2_41qjy")]
 
-[node name="BoneAttachment3D" type="BoneAttachment3D" parent="human/Skeleton3D" parent_id_path=PackedInt32Array(2071276015, 1298761524) index="1" unique_id=1502635820]
-transform = Transform3D(1.0000001, -1.4775195e-07, -5.828891e-07, 9.707044e-08, 0.99122816, -0.1321637, 5.971168e-07, 0.13216358, 0.9912281, -3.7405022e-07, 1.5612011, 0.107255325)
+[node name="BoneAttachment3D" type="BoneAttachment3D" parent="human/Skeleton3D" parent_id_path=PackedInt32Array(2071276015, 493733887) index="1" unique_id=1502635820]
+transform = Transform3D(1.0000001, -3.8311168e-07, -5.476926e-07, 3.3495132e-07, 0.99122816, -0.1321637, 5.933508e-07, 0.13216361, 0.9912281, -4.9523504e-07, 1.5612011, 0.107255384)
 bone_name = "Head"
 bone_idx = 31
 
 [node name="Camera3D" type="Camera3D" parent="human/Skeleton3D/BoneAttachment3D" unique_id=547835919]
 transform = Transform3D(-0.9999999, 6.941914e-08, -5.098803e-07, 1.6358189e-07, 0.9912276, -0.13216364, 4.923935e-07, -0.13216352, -0.9912277, 4.3566507e-07, 0.10760987, 0.078428924)
 
-[node name="AnimationPlayer" parent="human" index="1" unique_id=241585345]
+[node name="AnimationPlayer" parent="human" index="1" unique_id=751809073]
 playback_auto_capture_ease_type = 2
 playback_default_blend_time = 0.5
 

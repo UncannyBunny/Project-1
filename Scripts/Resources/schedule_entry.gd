@@ -30,6 +30,8 @@ var time_end_minutes: int = 0
 @export var run: bool = false
 
 @export_group("Key Conditions & Effects")
+## If false, keys_unlocked and keys_taken are applied when the schedule starts instead of when the NPC reaches the destination
+@export var add_keys_on_arrival: bool = true
 ## Keys required for this schedule entry to be valid
 @export var keys_whitelist: Array[StringName] = []
 ## Keys that prevent this schedule entry from being valid

@@ -12,6 +12,9 @@ func _ready() -> void:
 	if not pathfinding_component:
 		pathfinding_component = get_node_or_null("../PathfindingComponent") as PathfindingComponent
 		
+	if pathfinding_component:
+		pathfinding_component.destination_reached.connect(_on_destination_reached)
+		
 	TimeManager.time_changed.connect(_on_time_or_keys_changed)
 	KeyManager.keys_changed.connect(_on_time_or_keys_changed)
 	schedule_process.call_deferred()
@@ -23,7 +26,7 @@ func schedule_process() -> void:
 	var selected: ScheduleEntry = select_best_schedule()
 	if selected == current_schedule or selected == null:
 		return
-		
+	
 	current_schedule = selected
 	var target_pos: Vector3 = _resolve_target_position(current_schedule)
 	if pathfinding_component:
@@ -33,13 +36,21 @@ func schedule_process() -> void:
 			current_schedule.arrival_rotation_degrees,
 			current_schedule.run
 		)
-		
-	if not current_schedule.keys_unlocked.is_empty():
-		KeyManager.add_keys(current_schedule.keys_unlocked)
-	if not current_schedule.keys_taken.is_empty():
-		KeyManager.remove_keys(current_schedule.keys_taken)
+	
+	if not current_schedule.add_keys_on_arrival:
+		_apply_schedule_keys(current_schedule)
 		
 	schedule_changed.emit(current_schedule)
+
+func _on_destination_reached() -> void:
+	if current_schedule and current_schedule.add_keys_on_arrival:
+		_apply_schedule_keys(current_schedule)
+
+func _apply_schedule_keys(entry: ScheduleEntry) -> void:
+	if not entry.keys_unlocked.is_empty():
+		KeyManager.add_keys(entry.keys_unlocked)
+	if not entry.keys_taken.is_empty():
+		KeyManager.remove_keys(entry.keys_taken)
 
 func select_best_schedule() -> ScheduleEntry:
 	if schedule_entries.is_empty():
@@ -64,7 +75,10 @@ func select_best_schedule() -> ScheduleEntry:
 
 func _resolve_target_position(entry: ScheduleEntry) -> Vector3:
 	if not entry.waypoint_node_path.is_empty():
-		var waypoint := get_node_or_null(entry.waypoint_node_path) as Node3D
+		var context_node: Node = get_parent() if get_parent() else self
+		var waypoint := context_node.get_node_or_null(entry.waypoint_node_path) as Node3D
+		if not waypoint:
+			waypoint = get_node_or_null(entry.waypoint_node_path) as Node3D
 		if waypoint:
 			return waypoint.global_position
 	return entry.position
