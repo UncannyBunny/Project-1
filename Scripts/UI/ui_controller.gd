@@ -38,6 +38,7 @@ var _current_page: int = 0
 var _line_edits: Array[LineEdit] = []
 
 func _ready() -> void:
+	add_to_group(&"ui_controller")
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	if pause_menu_container:
 		pause_menu_container.visible = false
@@ -45,6 +46,7 @@ func _ready() -> void:
 	_target_alarm_time = TimeManager.get_day_start_current()
 	_setup_pause_buttons()
 	_setup_clock_ui()
+	_load_saved_notebook()
 	_setup_notebook_ui()
 	_update_clock_display()
 
@@ -96,10 +98,13 @@ func _setup_pause_buttons() -> void:
 		button_save_and_exit.pressed.connect(_on_save_and_exit_pressed)
 
 func _on_save_and_exit_pressed() -> void:
+	SaveManager.save_game()
 	set_pause_menu_open(false)
 	get_tree().paused = false
 	if not main_menu_scene_path.is_empty():
 		get_tree().change_scene_to_file(main_menu_scene_path)
+	else:
+		get_tree().quit()
 
 func _is_in_main_menu() -> bool:
 	if main_menu_scene_path.is_empty() or not get_tree().current_scene:
@@ -242,4 +247,15 @@ func get_notebook_lines() -> Array[String]:
 func clear_notebook_lines() -> void:
 	_saved_notes.fill("")
 	_refresh_notebook_page()
-#endregion
+
+func _load_saved_notebook() -> void:
+	if SaveManager.has_save():
+		SaveManager.load_data()
+		_target_alarm_time = TimeManager.get_day_start_current()
+		
+	var saved_lines: Array = SaveManager.save_contents.get("notebook_lines", [])
+	if not saved_lines.is_empty():
+		var typed_lines: Array[String] = []
+		for line: Variant in saved_lines:
+			typed_lines.append(str(line))
+		set_notebook_lines(typed_lines)

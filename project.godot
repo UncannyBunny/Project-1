@@ -19,6 +19,7 @@ config/features=PackedStringArray("4.7", "Forward Plus")
 TimeManager="*uid://dilmn3v3bexvm"
 KeyManager="*uid://dm88gofyli3dp"
 LoopManager="*uid://b5nvdnatf7xxu"
+SaveManager="*uid://be4cnu76aatkn"
 
 [display]
 

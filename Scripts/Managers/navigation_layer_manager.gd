@@ -12,7 +12,6 @@ static var _available_layers: Array[int] = _ALL_PRIVATE_LAYERS.duplicate()
 ## Claims an available navigation bitmask layer for an NPC
 static func claim_layer() -> int:
 	if _available_layers.is_empty():
-		push_warning("NavigationLayerManager: All private layers exhausted, falling back to public layer.")
 		return PUBLIC_LAYER
 	return _available_layers.pop_back()
 

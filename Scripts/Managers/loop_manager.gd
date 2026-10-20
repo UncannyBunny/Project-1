@@ -28,13 +28,18 @@ func _unhandled_input(event: InputEvent) -> void:
 func get_loop_count() -> int:
 	return _loop_count
 
+## Sets the loop count directly
+func set_loop_count(count: int) -> void:
+	_loop_count = maxi(count, 0)
+	corruption_updated.emit(get_corruption_factor())
+
 ## Returns a normalized 0.0 to 1.0 value representing world corruption based on loop count
 func get_corruption_factor() -> float:
 	if max_corruption_loops <= 0:
 		return 0.0
 	return clampf(float(_loop_count) / float(max_corruption_loops), 0.0, 1.0)
 
-## Resets the current loop, clearing non-persistent keys, releasing nav layers, and warping to alarm time
+## Resets the current loop, clearing non-persistent keys, saving progress, releasing nav layers, and warping to alarm time
 func trigger_loop_reset() -> void:
 	if _is_resetting:
 		return
@@ -48,13 +53,13 @@ func trigger_loop_reset() -> void:
 	loop_reset_triggered.emit(_loop_count)
 	corruption_updated.emit(get_corruption_factor())
 	
-	# Release all dynamically claimed navigation layers before reloading
 	NavigationLayerManager.reset_layers()
 	KeyManager.reset()
 	
+	SaveManager.save_data()
+	
 	get_tree().call_deferred(&"reload_current_scene")
 	
-	# Wait for the scene tree to finish reloading before warping time
 	await get_tree().process_frame
 	await get_tree().process_frame
 	

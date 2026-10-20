@@ -86,4 +86,13 @@ func reset() -> void:
 ## Returns a read-only duplicate of currently active keys
 func get_active_keys() -> Array[StringName]:
 	return _keys_stored.duplicate()
+
+## Returns a copy of persistent keys for saving
+func get_persistent_keys() -> Array[StringName]:
+	return _keys_persistent.duplicate()
+
+## Restores persistent keys from a loaded save and resets active loop keys
+func set_persistent_keys(loaded_keys: Array[StringName]) -> void:
+	_keys_persistent = loaded_keys.duplicate()
+	reset()
 #endregion

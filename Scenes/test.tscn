@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://dvoefe3opwip"]
+[gd_scene format=3 uid="uid://c2mmnc83hfp00"]
 
 [ext_resource type="PackedScene" uid="uid://d0hk2qh72xci" path="res://Scenes/Presets/player_controller.tscn" id="1_qc4db"]
 [ext_resource type="PackedScene" uid="uid://culgairh0077d" path="res://Scenes/Presets/npc_controller.tscn" id="2_ys1qc"]
