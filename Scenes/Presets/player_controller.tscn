@@ -1,136 +1,134 @@
-[gd_scene format=3 uid="uid://dlygyllacfx4x"]
+[gd_scene format=3 uid="uid://d0hk2qh72xci"]
 
-[ext_resource type="Script" uid="uid://d1rflb5mclp0d" path="res://Scripts/Controllers/character_controller.gd" id="1_iwpo4"]
-[ext_resource type="Script" uid="uid://y1ywe8tvdv0c" path="res://Scripts/Components/axis_input_component.gd" id="2_fb3t6"]
-[ext_resource type="Script" uid="uid://byrgu6dthsnix" path="res://Scripts/Components/single_input_component.gd" id="2_jvo56"]
-[ext_resource type="Script" uid="uid://t1u66x74hcm6" path="res://Scripts/Components/axis_to_vector.gd" id="3_vd578"]
-[ext_resource type="Script" uid="uid://r1wo016j1ww5" path="res://Scripts/Components/mouse_movement_component_3d.gd" id="4_c7tqt"]
-[ext_resource type="Script" uid="uid://ch2c44r2rtwru" path="res://Scripts/Components/rotation_component.gd" id="4_nl27k"]
-[ext_resource type="Script" uid="uid://bihwcsxm5a2es" path="res://Scripts/MiscScripts/camera_bobber.gd" id="6_obynr"]
-[ext_resource type="Script" uid="uid://xjxpd3me43y0" path="res://Scripts/Controllers/interaction_controller.gd" id="8_1igb4"]
+[ext_resource type="Script" uid="uid://bvvk8owlgwjbf" path="res://Scripts/Controllers/player_controller.gd" id="1_5awlv"]
+[ext_resource type="PackedScene" uid="uid://clhwh1s6h8kqn" path="res://Assets/human.blend" id="2_41qjy"]
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_g4v7s"]
-radius = 0.3
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_g4v7s"]
+radius = 0.25
 height = 1.8
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_iwpo4"]
-radius = 0.3
-height = 1.8
+[sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_5awlv"]
 
-[node name="PlayerController" type="CharacterBody3D" unique_id=99017869]
-collision_layer = 6
-collision_mask = 3
-script = ExtResource("1_iwpo4")
-speed_walking = 3.0
-speed_running = 8.0
-jump_force = 15.0
-weight = 0.1
-freeze_while_warping = true
+[sub_resource type="AnimationNodeTransition" id="AnimationNodeTransition_41qjy"]
+xfade_time = 0.5
+input_0/name = "grounded"
+input_0/auto_advance = false
+input_0/break_loop_at_end = false
+input_0/reset = true
+input_1/name = "air"
+input_1/auto_advance = false
+input_1/break_loop_at_end = false
+input_1/reset = true
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=220183467]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
-mesh = SubResource("CapsuleMesh_g4v7s")
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ypsv4"]
+animation = &"Jump"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=997496742]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
-shape = SubResource("CapsuleShape3D_iwpo4")
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_2pgku"]
+animation = &"crouch_idle"
 
-[node name="Camera3D" type="Camera3D" parent="." unique_id=673640683]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4955306, -0.2)
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_jp7s5"]
+animation = &"crouch_walk"
 
-[node name="RotationComponent2" type="Node3D" parent="Camera3D" unique_id=1048754700 node_paths=PackedStringArray("target_object")]
-script = ExtResource("4_nl27k")
-target_object = NodePath("..")
-is_local = true
-is_limited = true
-rotation_limit_upper = 80.0
-rotation_limit_lower = -80.0
+[sub_resource type="AnimationNodeBlendSpace1D" id="AnimationNodeBlendSpace1D_ygjap"]
+min_space = 0.0
+blend_point_0/node = SubResource("AnimationNodeAnimation_2pgku")
+blend_point_0/pos = 0.0
+blend_point_0/name = &"crouch_idle"
+blend_point_1/node = SubResource("AnimationNodeAnimation_jp7s5")
+blend_point_1/pos = 1.0
+blend_point_1/name = &"crouch_walk"
 
-[node name="MouseMovementComponent3D" type="Node3D" parent="Camera3D/RotationComponent2" unique_id=915641600 node_paths=PackedStringArray("target_object")]
-script = ExtResource("4_c7tqt")
-target_object = NodePath("..")
-target_method_string = "modify_rotation_euler"
-sensitivity = 1.0
-swap_axis = true
-invert_x_axis = true
-metadata/_custom_type_script = "uid://r1wo016j1ww5"
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_i2210"]
+animation = &"Walk"
 
-[node name="CameraBobberComponent" type="Node3D" parent="Camera3D" unique_id=593818004 node_paths=PackedStringArray("camera_object", "player_object")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.4955306, 0)
-script = ExtResource("6_obynr")
-camera_object = NodePath("..")
-player_object = NodePath("../..")
-bob_speed = 0.25
-bob_height = 0.1
-bob_width = 0.05
-metadata/_custom_type_script = "uid://bihwcsxm5a2es"
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_u67c5"]
+animation = &"Run"
 
-[node name="RotationComponent" type="Node3D" parent="Camera3D" unique_id=99695442 node_paths=PackedStringArray("target_object")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.4955306, 0)
-script = ExtResource("4_nl27k")
-target_object = NodePath("../..")
-is_local = true
-single_axis = 1
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_8esga"]
+animation = &"lean_left"
 
-[node name="MouseMovementComponent3D" type="Node3D" parent="Camera3D/RotationComponent" unique_id=1694245289 node_paths=PackedStringArray("target_object")]
-script = ExtResource("4_c7tqt")
-target_object = NodePath("..")
-target_method_string = "modify_rotation_euler"
-sensitivity = 1.0
-target_axis = 1
-invert_x_axis = true
-metadata/_custom_type_script = "uid://r1wo016j1ww5"
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_5awlv"]
+animation = &"Idle"
 
-[node name="Movement" type="Node3D" parent="." unique_id=1227062262]
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_41qjy"]
+animation = &"lean_right"
 
-[node name="SingleInputComponent" type="Node3D" parent="Movement" unique_id=55471534 node_paths=PackedStringArray("target_object")]
-script = ExtResource("2_jvo56")
-target_object = NodePath("../..")
-target_method_string = "set_jump"
-input_string = "move_jump"
-metadata/_custom_type_script = "uid://byrgu6dthsnix"
+[sub_resource type="AnimationNodeBlendSpace1D" id="AnimationNodeBlendSpace1D_ypsv4"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_8esga")
+blend_point_0/pos = -1.0
+blend_point_0/name = &"lean_left"
+blend_point_1/node = SubResource("AnimationNodeAnimation_5awlv")
+blend_point_1/pos = 0.0
+blend_point_1/name = &"Idle"
+blend_point_2/node = SubResource("AnimationNodeAnimation_41qjy")
+blend_point_2/pos = 1.0
+blend_point_2/name = &"lean_right"
 
-[node name="SingleInputComponent2" type="Node3D" parent="Movement" unique_id=7176410 node_paths=PackedStringArray("target_object")]
-script = ExtResource("2_jvo56")
-target_object = NodePath("../..")
-target_method_string = "set_running"
-input_string = "move_sprint"
-metadata/_custom_type_script = "uid://byrgu6dthsnix"
+[sub_resource type="AnimationNodeBlendSpace1D" id="AnimationNodeBlendSpace1D_0qhpg"]
+min_space = 0.0
+max_space = 2.0
+blend_point_0/node = SubResource("AnimationNodeAnimation_i2210")
+blend_point_0/pos = 1.0
+blend_point_0/name = &"Walk"
+blend_point_1/node = SubResource("AnimationNodeAnimation_u67c5")
+blend_point_1/pos = 2.0
+blend_point_1/name = &"Run"
+blend_point_2/node = SubResource("AnimationNodeBlendSpace1D_ypsv4")
+blend_point_2/pos = 0.0
+blend_point_2/name = &"BlendSpace1D"
 
-[node name="AxisToVector3D" type="Node3D" parent="Movement" unique_id=1012072495 node_paths=PackedStringArray("target_object")]
-script = ExtResource("3_vd578")
-target_object = NodePath("../..")
-target_method_string = "set_direction"
-is_local = true
-metadata/_custom_type_script = "uid://t1u66x74hcm6"
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_g4v7s"]
+graph_offset = Vector2(-346.1796, 315.53018)
+nodes/output/position = Vector2(660, 200)
+nodes/locomotion_stand/node = SubResource("AnimationNodeBlendSpace1D_0qhpg")
+nodes/locomotion_stand/position = Vector2(-200, 240)
+nodes/in_air/node = SubResource("AnimationNodeTransition_41qjy")
+nodes/in_air/position = Vector2(240, 320)
+nodes/jump_animation/node = SubResource("AnimationNodeAnimation_ypsv4")
+nodes/jump_animation/position = Vector2(0, 600)
+nodes/locomotion_crouch/node = SubResource("AnimationNodeBlendSpace1D_ygjap")
+nodes/locomotion_crouch/position = Vector2(-200, 440)
+nodes/crouch_blend/node = SubResource("AnimationNodeBlend2_5awlv")
+nodes/crouch_blend/position = Vector2(20, 320)
+node_connections = [&"output", 0, &"in_air", &"in_air", 0, &"crouch_blend", &"in_air", 1, &"jump_animation", &"crouch_blend", 0, &"locomotion_stand", &"crouch_blend", 1, &"locomotion_crouch"]
 
-[node name="AxisInputComponent" type="Node3D" parent="Movement/AxisToVector3D" unique_id=1736105387 node_paths=PackedStringArray("target_object")]
-script = ExtResource("2_fb3t6")
-target_object = NodePath("..")
-target_method_string = "set_component_x"
-input_name_positive = "move_left"
-input_name_negative = "move_right"
-metadata/_custom_type_script = "uid://y1ywe8tvdv0c"
+[node name="PlayerController" type="CharacterBody3D" unique_id=155462187 node_paths=PackedStringArray("camera", "collision_shape", "animation_tree")]
+script = ExtResource("1_5awlv")
+camera = NodePath("human/Skeleton3D/BoneAttachment3D/Camera3D")
+collision_shape = NodePath("CollisionShape3D")
+animation_tree = NodePath("AnimationTree")
+interaction_collision_mask = 1
+jump_force = 3.0
+metadata/_custom_type_script = "uid://bvvk8owlgwjbf"
 
-[node name="AxisInputComponent2" type="Node3D" parent="Movement/AxisToVector3D" unique_id=1314114967 node_paths=PackedStringArray("target_object")]
-script = ExtResource("2_fb3t6")
-target_object = NodePath("..")
-target_method_string = "set_component_z"
-input_name_positive = "move_forward"
-input_name_negative = "move_backward"
-metadata/_custom_type_script = "uid://y1ywe8tvdv0c"
+[node name="human" parent="." unique_id=2071276015 instance=ExtResource("2_41qjy")]
 
-[node name="Interaction" type="Node3D" parent="." unique_id=590325271]
+[node name="BoneAttachment3D" type="BoneAttachment3D" parent="human/Skeleton3D" parent_id_path=PackedInt32Array(2071276015, 1777233725) index="1" unique_id=1502635820]
+transform = Transform3D(1.0000001, -3.8311168e-07, -5.476926e-07, 3.3495132e-07, 0.99122816, -0.1321637, 5.933508e-07, 0.13216361, 0.9912281, -4.9523504e-07, 1.5612011, 0.107255384)
+bone_name = "Head"
+bone_idx = 31
 
-[node name="InteractionController" type="Node3D" parent="Interaction" unique_id=931506142 node_paths=PackedStringArray("origin_object")]
-script = ExtResource("8_1igb4")
-origin_object = NodePath("../../Camera3D")
-reach = 1.0
-metadata/_custom_type_script = "uid://xjxpd3me43y0"
+[node name="Camera3D" type="Camera3D" parent="human/Skeleton3D/BoneAttachment3D" unique_id=547835919]
+transform = Transform3D(-0.9999999, 6.941914e-08, -5.098803e-07, 1.6358189e-07, 0.9912276, -0.13216364, 4.923935e-07, -0.13216352, -0.9912277, 4.3566507e-07, 0.10760987, 0.078428924)
 
-[node name="SingleInputComponent" type="Node3D" parent="Interaction/InteractionController" unique_id=940735286 node_paths=PackedStringArray("target_object")]
-script = ExtResource("2_jvo56")
-target_object = NodePath("..")
-target_method_string = "try_interaction"
-input_string = "interact"
-metadata/_custom_type_script = "uid://byrgu6dthsnix"
+[node name="AnimationPlayer" parent="human" index="1" unique_id=73334174]
+playback_auto_capture_ease_type = 2
+playback_default_blend_time = 0.5
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1818002371]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.90000004, 0)
+shape = SubResource("CapsuleShape3D_g4v7s")
+
+[node name="AnimationTree" type="AnimationTree" parent="." unique_id=162406718]
+root_node = NodePath("../human")
+tree_root = SubResource("AnimationNodeBlendTree_g4v7s")
+anim_player = NodePath("../human/AnimationPlayer")
+parameters/locomotion_stand/blend_position = 0.0
+parameters/locomotion_stand/BlendSpace1D/blend_position = 0.0
+parameters/in_air/current_state = "grounded"
+parameters/in_air/transition_request = ""
+parameters/in_air/current_index = 0
+parameters/locomotion_crouch/blend_position = 0.0
+parameters/crouch_blend/blend_amount = 0.0
+
+[editable path="human"]

@@ -1,155 +1,219 @@
-@tool
-## Outputs a direction torwards a received point using godot’s pathfinding.
+## Manages NPC navigation for both scheduled routines and hostile player chasing.
 class_name PathfindingComponent extends Node3D
 
-## Agent used to calculate the pathfinding
-@export var nav_agent: NavigationAgent3D
-var on_link: bool = false
-var link_target: Vector3
-## Object to receive the input
-@export var target_object: CharacterController3D:
-	set(value):
-		target_object = value
-		notify_property_list_changed()
-## Method that will be called with the input
-@export var target_method_string: String = ""
-var target_method_callable: Callable
-var nav_paused: bool = false
-var nav_layer: int = 1
-var accessible_doors: Array[DoorComponent]
+signal destination_reached
+signal player_caught
+signal behavior_mode_changed(is_chasing: bool)
 
-var last_pos: Vector3
-var stuck_time: float
-var is_clipping: bool
-var unstuck_timer: float
+enum BehaviorMode {
+	ROUTINE,
+	CHASE
+}
+
+@export_group("References")
+@export var character: CharacterController3D
+@export var nav_agent: NavigationAgent3D
+
+@export_group("Chase Behavior")
+## If any of these keys are active in KeyManager, the NPC switches from Routine to Chase mode
+@export var chase_trigger_keys: Array[StringName] = [&"aggresive"]
+## Distance at which the chasing NPC catches the player and resets the loop
+@export var catch_distance: float = 1.2
+## Optional explicit chase target; if null, automatically finds the node in group "player"
+@export var chase_target: Node3D
+
+var is_running: bool = false
+var current_mode: BehaviorMode = BehaviorMode.ROUTINE
+var nav_paused: bool = true
+var nav_layer: int = NavigationLayerManager.PUBLIC_LAYER
+var accessible_doors: Array[DoorComponent] = []
+
+var _routine_target_position: Vector3 = Vector3.ZERO
+var _has_routine_target: bool = false
+var _arrival_rotation_y: float = 0.0
+var _use_arrival_rotation: bool = false
+
+var _last_pos: Vector3 = Vector3.ZERO
+var _stuck_time: float = 0.0
+var _is_clipping: bool = false
+var _unstuck_timer: float = 0.0
 
 func _ready() -> void:
-	# Avoid execution in editor environment.
-	if Engine.is_editor_hint():
-		return
-	# Bind target callable for 
-	if target_object and not target_method_string.is_empty():
-		target_method_callable = Callable(target_object, target_method_string)
-	nav_agent.link_reached.connect(on_nav_link)
-	nav_agent.path_changed.connect(path_changed)
+	if not character and owner is CharacterController3D:
+		character = owner as CharacterController3D
+	if not nav_agent:
+		nav_agent = get_node_or_null("../NavigationAgent3D") as NavigationAgent3D
+	
+	KeyManager.keys_changed.connect(_evaluate_behavior_mode)
+	_evaluate_behavior_mode.call_deferred()
 
-func path_changed() -> void:
-	print(target_object.name + " is using path " + str(nav_agent.get_current_navigation_path()))
+func _exit_tree() -> void:
+	_release_private_nav_layer()
 
 func _physics_process(delta: float) -> void:
-	# Avoid execution in editor environment.
-	if Engine.is_editor_hint():
+	if not character or not nav_agent:
 		return
-	if not target_object or not nav_agent:
-		return
-	_navigation()
-	_check_if_stuck(delta)
+	match current_mode:
+		BehaviorMode.ROUTINE:
+			_process_routine_navigation()
+			_check_if_stuck(delta)
+		BehaviorMode.CHASE:
+			_process_chase_navigation()
 
+#region Mode Switching
+func _evaluate_behavior_mode() -> void:
+	var should_chase: bool = KeyManager.search_any_key(chase_trigger_keys)
+	var target_mode: BehaviorMode = BehaviorMode.CHASE if should_chase else BehaviorMode.ROUTINE
+	if target_mode == current_mode:
+		return
+	
+	current_mode = target_mode
+	if current_mode == BehaviorMode.CHASE:
+		_find_chase_target()
+		nav_paused = false
+		_update_accessible_doors()
+		behavior_mode_changed.emit(true)
+	else:
+		behavior_mode_changed.emit(false)
+		if _has_routine_target:
+			set_target_position(_routine_target_position, _use_arrival_rotation, _arrival_rotation_y)
+		else:
+			nav_paused = true
+			character.set_movement(Vector3.ZERO, false)
+
+func _find_chase_target() -> void:
+	if is_instance_valid(chase_target):
+		return
+	chase_target = get_tree().get_first_node_in_group(&"player") as Node3D
+	if not chase_target and get_tree().current_scene:
+		chase_target = get_tree().current_scene.find_child("PlayerController") as Node3D
+#endregion
+
+#region Routine Navigation
+## Sets a new target destination for the NPC
+func set_target_position(target_pos: Vector3, use_rotation: bool = false, target_rot_degrees: float = 0.0, running: bool = false) -> void:
+	if not nav_agent or not character:
+		return
+	_routine_target_position = target_pos
+	_has_routine_target = true
+	_use_arrival_rotation = use_rotation
+	_arrival_rotation_y = deg_to_rad(target_rot_degrees)
+	is_running = running
+	
+	if current_mode == BehaviorMode.CHASE:
+		return
+	
+	nav_paused = false
+	_update_accessible_doors()
+	nav_agent.target_position = target_pos
+
+func pause_navigation(paused: bool = true) -> void:
+	nav_paused = paused
+	if nav_paused and character:
+		character.set_movement(Vector3.ZERO, false)
+
+func _process_routine_navigation() -> void:
+	if nav_paused:
+		character.set_movement(Vector3.ZERO, false)
+		return
+		
+	if nav_agent.is_navigation_finished():
+		var distance_to_target: float = character.global_position.distance_to(nav_agent.target_position)
+		if distance_to_target < nav_agent.path_desired_distance + 1.5:
+			_release_private_nav_layer()
+			nav_paused = true
+			character.set_movement(Vector3.ZERO, false)
+			if _use_arrival_rotation:
+				character.set_orientation(_arrival_rotation_y)
+			destination_reached.emit()
+		else:
+			set_target_position(nav_agent.target_position, _use_arrival_rotation, rad_to_deg(_arrival_rotation_y))
+		return
+		
+	var pos_current: Vector3 = character.global_position
+	var pos_next: Vector3 = nav_agent.get_next_path_position()
+	
+	var direction: Vector3 = pos_current.direction_to(pos_next)
+	character.set_movement(direction, is_running or current_mode == BehaviorMode.CHASE)
+
+#region Chase Navigation
+func _process_chase_navigation() -> void:
+	if not is_instance_valid(chase_target):
+		_find_chase_target()
+		if not is_instance_valid(chase_target):
+			character.set_movement(Vector3.ZERO, false)
+			return
+			
+	nav_agent.target_position = chase_target.global_position
+	if character.global_position.distance_to(chase_target.global_position) <= catch_distance:
+		player_caught.emit()
+		LoopManager.trigger_loop_reset()
+		return
+		
+	if nav_agent.is_navigation_finished():
+		character.set_movement(Vector3.ZERO, false)
+		return
+	
+	var pos_current: Vector3 = character.global_position
+	var pos_next: Vector3 = nav_agent.get_next_path_position()
+	var direction: Vector3 = pos_current.direction_to(pos_next)
+	character.set_movement(direction, true)
+#endregion
+
+#region Door & Layer Management
+func _update_accessible_doors() -> void:
+	accessible_doors.clear()
+	var doors: Array[Node] = get_tree().get_nodes_in_group(&"doors")
+	if doors.is_empty() and get_tree().current_scene:
+		doors = get_tree().current_scene.find_children("*", "DoorComponent")
+		
+	for node: Node in doors:
+		var door := node as DoorComponent
+		if not door:
+			continue
+		if not door.key_whitelist.is_empty() or not door.key_blacklist.is_empty():
+			if door.check_lock(character.private_keys):
+				accessible_doors.append(door)
+				
+	if not accessible_doors.is_empty():
+		if nav_layer == NavigationLayerManager.PUBLIC_LAYER:
+			nav_layer = NavigationLayerManager.claim_layer()
+		for door: DoorComponent in accessible_doors:
+			door.add_nav_layer(nav_layer)
+		nav_agent.navigation_layers = NavigationLayerManager.PUBLIC_LAYER | nav_layer
+		NavigationServer3D.map_force_update(get_world_3d().navigation_map)
+
+func _release_private_nav_layer() -> void:
+	if nav_layer != NavigationLayerManager.PUBLIC_LAYER:
+		for door: DoorComponent in accessible_doors:
+			if is_instance_valid(door):
+				door.remove_nav_layer(nav_layer)
+		NavigationLayerManager.release_layer(nav_layer)
+		if is_instance_valid(nav_agent):
+			nav_agent.navigation_layers = NavigationLayerManager.PUBLIC_LAYER
+		nav_layer = NavigationLayerManager.PUBLIC_LAYER
+#endregion
+
+#region Anti-Stuck Clipping
 func _check_if_stuck(delta: float) -> void:
 	if nav_paused:
 		return
-	if target_object.global_position.distance_to(last_pos) < 0.1:
-		stuck_time += delta
-		if stuck_time > 1.0 and not is_clipping:
-			_enable_clipping()
+	if character.global_position.distance_to(_last_pos) < 0.05:
+		_stuck_time += delta
+		if _stuck_time > 1.0 and not _is_clipping:
+			_set_npc_collision_enabled(false)
 	else:
-		stuck_time = 0.0
-		if is_clipping:
-			unstuck_timer += delta
-			if unstuck_timer >= 0.5:
-				_reset_clipping()
-	last_pos = target_object.global_position
+		_stuck_time = 0.0
+		if _is_clipping:
+			_unstuck_timer += delta
+			if _unstuck_timer >= 0.5:
+				_set_npc_collision_enabled(true)
+	_last_pos = character.global_position
 
-func _enable_clipping() -> void:
-	is_clipping = true
-	stuck_time = 0.0
-	target_object.set_collision_layer_value(2, false)
-	target_object.set_collision_mask_value(2, false)
-
-func _reset_clipping() -> void:
-	is_clipping = false
-	unstuck_timer = 0.0
-	target_object.set_collision_layer_value(2, true)
-	target_object.set_collision_mask_value(2, true)
-
-func on_nav_link(details: Dictionary) -> void:
-	print(target_object.name + " has entered a link")
-	on_link = true
-	link_target = details["link_exit_position"]
-
-## Function used to calculate pathfinding
-func _navigation() -> void:
-	if nav_paused: 
-		target_method_callable.call(Vector3.ZERO)
-		return
-	if nav_agent.is_navigation_finished():
-		var distance_to_target: float = target_object.global_position.distance_to(nav_agent.target_position)
-		if distance_to_target < nav_agent.path_desired_distance + 1.5:
-			print(target_object.name + " reached its final waypoint safely")
-			if nav_layer != 1:
-				for door in accessible_doors:
-					door.remove_nav_layer(nav_layer)
-				NavigationLayerManager.release_layer(nav_layer)
-				nav_agent.navigation_layers = 1
-				print(target_object.name + " has released the layer " + str(nav_layer))
-				nav_layer = 1
-			nav_paused = true
-		else:
-			print(target_object.name + " path ended prematurely! Distance remaining: " + str(distance_to_target))
-			set_target_position(nav_agent.target_position)
-			return
-		target_method_callable.call(Vector3.ZERO)
-		return
-	if on_link and global_position.distance_to(link_target) < nav_agent.path_desired_distance:
-		on_link = false
-	var pos_current: Vector3 = target_object.global_position
-	var pos_next: Vector3 = link_target if on_link else nav_agent.get_next_path_position()
-	var direction: Vector3 = pos_current.direction_to(pos_next)
-	target_method_callable.call(direction, false)
-
-func pause_navigation(value: bool = true) -> void:
-	nav_paused = value
-
-## Function called to set the target position
-func set_target_position(target_pos: Vector3) -> void:
-	if not nav_agent: return
-	print(target_object.name + " received position " + str(target_pos))
-	nav_paused = false
-	check_doors()
-	if nav_layer == 1:
-		nav_layer = NavigationLayerManager.claim_layer()
-		print(target_object.name + " has claimed the layer " + str(nav_layer))
-	for door in accessible_doors:
-		door.add_nav_layer(nav_layer)
-	nav_agent.navigation_layers = 1 | nav_layer
-	NavigationServer3D.map_force_update(get_world_3d().navigation_map)
-	nav_agent.target_position = target_pos
-
-func check_doors() -> void:
-	accessible_doors.clear()
-	if not get_tree().current_scene:
-		return
-	var doors: Array[Node] = get_tree().current_scene.find_children("*", "DoorComponent")
-	for door in doors:
-		door = door as DoorComponent
-		if not door.key_whitelist.is_empty() or not door.key_blacklist.is_empty():
-			if KeyManager.check_keys(door.key_whitelist, door.key_blacklist, target_object.private_keys + KeyManager._keys_stored):
-				if not accessible_doors.has(door): accessible_doors.append(door)
-	print(target_object.name + " has found a total of " + str(accessible_doors.size()) + " locked doors on it's way")
-
-func _validate_property(property: Dictionary) -> void:
-	if property.name == "target_method_string":
-		var target_method_options: String = ""
-		
-		if target_object and target_object.get_script():
-			var methods: Array = target_object.get_script().get_script_method_list()
-			var method_names: Array[String] = []
-			
-			for method in methods:
-				if not method["name"].begins_with("_"):
-					method_names.append(method["name"])
-					
-			target_method_options = ",".join(method_names)
-			
-		property.hint = PROPERTY_HINT_ENUM
-		property.hint_string = target_method_options
+func _set_npc_collision_enabled(enabled: bool) -> void:
+	_is_clipping = not enabled
+	_stuck_time = 0.0
+	_unstuck_timer = 0.0
+	character.set_collision_layer_value(2, enabled)
+	character.set_collision_mask_value(2, enabled)
+#endregion

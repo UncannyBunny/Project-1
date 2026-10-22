@@ -1,0 +1,473 @@
+[gd_scene format=3 uid="uid://ck5e1ldudywre"]
+
+[ext_resource type="Script" uid="uid://bbw6x7xvlpo48" path="res://Scripts/UI/ui_controller.gd" id="1_pbvgq"]
+[ext_resource type="Script" uid="uid://bu4nmx7368xsj" path="res://Scripts/UI/dialogue_ui.gd" id="2_ttgi4"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_g4v7s"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yf5fn"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pbvgq"]
+
+[node name="UIController" type="Control" unique_id=966629272 node_paths=PackedStringArray("pause_menu_container", "dialogue_ui", "button_continue", "button_save_and_exit", "clock_text_label", "button_set_alarm", "button_hour", "button_minute", "notebook_lines_container", "button_prev_page", "button_next_page", "page_number_label")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_pbvgq")
+pause_menu_container = NodePath("PauseMenu")
+dialogue_ui = NodePath("DialogueUI")
+button_continue = NodePath("PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/MarginContainer/HBoxContainer/ButtonContinue")
+button_save_and_exit = NodePath("PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/MarginContainer/HBoxContainer/ButtonSaveAndExit")
+clock_text_label = NodePath("PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/ClockPanel/VBoxContainer/Panel/RichTextLabel")
+button_set_alarm = NodePath("PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/ClockPanel/VBoxContainer/HBoxContainer/ButtonAlarm")
+button_hour = NodePath("PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/ClockPanel/VBoxContainer/HBoxContainer/ButtonHour")
+button_minute = NodePath("PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/ClockPanel/VBoxContainer/HBoxContainer/ButtonMinute")
+notebook_lines_container = NodePath("PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer")
+button_prev_page = NodePath("PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer/HBoxContainer/ButtonPrevPage")
+button_next_page = NodePath("PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer/HBoxContainer/ButtonNextPage")
+page_number_label = NodePath("PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer/HBoxContainer/PageNumberLabel")
+metadata/_custom_type_script = "uid://bbw6x7xvlpo48"
+
+[node name="PauseMenu" type="Control" parent="." unique_id=226800448]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PauseMenu" unique_id=825662629]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu/MarginContainer" unique_id=623679043]
+layout_mode = 2
+
+[node name="NotebookPanel" type="MarginContainer" parent="PauseMenu/MarginContainer/VBoxContainer" unique_id=1801177641]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 3.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel" unique_id=1037830399]
+layout_mode = 2
+
+[node name="PanelL" type="Panel" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer" unique_id=888623228]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_g4v7s")
+
+[node name="Panel" type="Panel" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer" unique_id=465341632]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="MarginContainer" type="MarginContainer" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel" unique_id=264882860]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="NotebookLinesContainer" type="VBoxContainer" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer" unique_id=605598720]
+layout_mode = 2
+
+[node name="LineEdit" type="LineEdit" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer" unique_id=2044267395]
+layout_mode = 2
+size_flags_vertical = 3
+max_length = 50
+
+[node name="LineEdit2" type="LineEdit" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer" unique_id=2044005300]
+layout_mode = 2
+size_flags_vertical = 3
+max_length = 50
+
+[node name="LineEdit3" type="LineEdit" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer" unique_id=1311250520]
+layout_mode = 2
+size_flags_vertical = 3
+max_length = 50
+
+[node name="LineEdit4" type="LineEdit" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer" unique_id=1576367662]
+layout_mode = 2
+size_flags_vertical = 3
+max_length = 50
+
+[node name="LineEdit5" type="LineEdit" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer" unique_id=1487756754]
+layout_mode = 2
+size_flags_vertical = 3
+max_length = 50
+
+[node name="LineEdit6" type="LineEdit" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer" unique_id=1969029421]
+layout_mode = 2
+size_flags_vertical = 3
+max_length = 50
+
+[node name="LineEdit7" type="LineEdit" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer" unique_id=1585387806]
+layout_mode = 2
+size_flags_vertical = 3
+max_length = 50
+
+[node name="LineEdit8" type="LineEdit" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer" unique_id=617900939]
+layout_mode = 2
+size_flags_vertical = 3
+max_length = 50
+
+[node name="LineEdit9" type="LineEdit" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer" unique_id=46451319]
+layout_mode = 2
+size_flags_vertical = 3
+max_length = 50
+
+[node name="LineEdit10" type="LineEdit" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer" unique_id=392507256]
+layout_mode = 2
+size_flags_vertical = 3
+max_length = 50
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer" unique_id=2097359284]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ButtonPrevPage" type="Button" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer/HBoxContainer" unique_id=1814005495]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Previous Page"
+
+[node name="PageNumberLabel" type="Label" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer/HBoxContainer" unique_id=350230093]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ButtonNextPage" type="Button" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer/HBoxContainer" unique_id=1120519816]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Next Page"
+
+[node name="PanelR" type="Panel" parent="PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer" unique_id=1255384244]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_g4v7s")
+
+[node name="MarginContainer" type="MarginContainer" parent="PauseMenu/MarginContainer/VBoxContainer" unique_id=1024729909]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PauseMenu/MarginContainer/VBoxContainer/MarginContainer" unique_id=919149159]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer" unique_id=1468136980]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/MarginContainer" unique_id=1688306043]
+layout_mode = 2
+
+[node name="ButtonSaveAndExit" type="Button" parent="PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/MarginContainer/HBoxContainer" unique_id=1586394664]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 32
+text = "Save and Exit"
+
+[node name="ButtonContinue" type="Button" parent="PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/MarginContainer/HBoxContainer" unique_id=314359970]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 32
+text = "Continue"
+
+[node name="ClockPanel" type="MarginContainer" parent="PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer" unique_id=1660326720]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/ClockPanel" unique_id=532963329]
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/ClockPanel/VBoxContainer" unique_id=2106371854]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/ClockPanel/VBoxContainer/Panel" unique_id=208495508]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/normal_font_size = 64
+text = "00:00"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/ClockPanel/VBoxContainer" unique_id=1093397833]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ButtonHour" type="Button" parent="PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/ClockPanel/VBoxContainer/HBoxContainer" unique_id=8121565]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Hour"
+
+[node name="ButtonAlarm" type="Button" parent="PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/ClockPanel/VBoxContainer/HBoxContainer" unique_id=2015487652]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Set Alarm"
+
+[node name="ButtonMinute" type="Button" parent="PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/ClockPanel/VBoxContainer/HBoxContainer" unique_id=1204428483]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Minute"
+
+[node name="DialogueUI" type="Control" parent="." unique_id=1729640439 node_paths=PackedStringArray("text_container", "text_label", "button_container", "input_field", "keypad_container", "keypad_display_label", "keypad_buttons_container", "keypad_enter_button", "keypad_exit_button")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_ttgi4")
+text_container = NodePath("TextContainer")
+text_label = NodePath("TextContainer/VBoxContainer/MarginContainer/Panel/MarginContainer/Display")
+button_container = NodePath("TextContainer/VBoxContainer/MarginContainer2/ButtonContainer")
+input_field = NodePath("TextContainer/VBoxContainer/MarginContainer2/InputField")
+keypad_container = NodePath("KeypadContainer")
+keypad_display_label = NodePath("KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer/Panel/RichTextLabel")
+keypad_buttons_container = NodePath("KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer2/GridContainer")
+keypad_enter_button = NodePath("KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer2/GridContainer/Enter")
+keypad_exit_button = NodePath("KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer2/GridContainer/Exit")
+
+[node name="TextContainer" type="VBoxContainer" parent="DialogueUI" unique_id=1017760230]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="DialogueUI/TextContainer" unique_id=1455976474]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_yf5fn")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DialogueUI/TextContainer" unique_id=1145215238]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="DialogueUI/TextContainer/VBoxContainer" unique_id=580225529]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 3.0
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="Panel" type="Panel" parent="DialogueUI/TextContainer/VBoxContainer/MarginContainer" unique_id=468095331]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="DialogueUI/TextContainer/VBoxContainer/MarginContainer/Panel" unique_id=412266172]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="Display" type="RichTextLabel" parent="DialogueUI/TextContainer/VBoxContainer/MarginContainer/Panel/MarginContainer" unique_id=1689466671]
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 32
+
+[node name="MarginContainer2" type="MarginContainer" parent="DialogueUI/TextContainer/VBoxContainer" unique_id=265052045]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="ButtonContainer" type="HBoxContainer" parent="DialogueUI/TextContainer/VBoxContainer/MarginContainer2" unique_id=422721702]
+layout_mode = 2
+
+[node name="InputField" type="LineEdit" parent="DialogueUI/TextContainer/VBoxContainer/MarginContainer2" unique_id=2034626024]
+layout_mode = 2
+
+[node name="KeypadContainer" type="HBoxContainer" parent="DialogueUI" unique_id=1980346630]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="DialogueUI/KeypadContainer" unique_id=538600299]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_pbvgq")
+
+[node name="MarginContainer" type="MarginContainer" parent="DialogueUI/KeypadContainer" unique_id=491070282]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="Panel" type="Panel" parent="DialogueUI/KeypadContainer/MarginContainer" unique_id=1739812799]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DialogueUI/KeypadContainer/MarginContainer/Panel" unique_id=1533511955]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer" unique_id=19159069]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="Panel" type="Panel" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer" unique_id=1755065160]
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer/Panel" unique_id=1327136450]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/normal_font_size = 64
+text = "0000"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MarginContainer2" type="MarginContainer" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer" unique_id=1005506276]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 4.0
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="GridContainer" type="GridContainer" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer2" unique_id=1138613706]
+layout_mode = 2
+columns = 3
+
+[node name="1" type="Button" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer2/GridContainer" unique_id=1089367396]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 64
+text = "1"
+
+[node name="2" type="Button" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer2/GridContainer" unique_id=1612975335]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 64
+text = "2"
+
+[node name="3" type="Button" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer2/GridContainer" unique_id=1532594202]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 64
+text = "3"
+
+[node name="4" type="Button" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer2/GridContainer" unique_id=960395629]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 64
+text = "4"
+
+[node name="5" type="Button" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer2/GridContainer" unique_id=1008667851]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 64
+text = "5"
+
+[node name="6" type="Button" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer2/GridContainer" unique_id=1659559824]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 64
+text = "6"
+
+[node name="7" type="Button" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer2/GridContainer" unique_id=811495152]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 64
+text = "7"
+
+[node name="8" type="Button" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer2/GridContainer" unique_id=44973050]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 64
+text = "8"
+
+[node name="9" type="Button" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer2/GridContainer" unique_id=251393115]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 64
+text = "9"
+
+[node name="Exit" type="Button" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer2/GridContainer" unique_id=557878797]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 64
+text = "X"
+
+[node name="0" type="Button" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer2/GridContainer" unique_id=4105319]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 64
+text = "0"
+
+[node name="Enter" type="Button" parent="DialogueUI/KeypadContainer/MarginContainer/Panel/VBoxContainer/MarginContainer2/GridContainer" unique_id=1639076058]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 64
+text = "E"
+
+[node name="Panel2" type="Panel" parent="DialogueUI/KeypadContainer" unique_id=1070099727]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_pbvgq")

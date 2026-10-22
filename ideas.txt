@@ -1,0 +1,85 @@
+### 1. Town Buildings & Locations (Scoped for a Tight Deadline)
+To create the illusion of a 15-to-20-house rural village without overwhelming your modeling and level-building deadline, the map should divide structures into **5 interactive puzzle locations** and **15–18 inaccessible prop buildings** obscured by dense fog.
+#### Interactive Buildings (Playable Interiors / Semi-Interiors)
+* **The Newcomer’s House (Player Spawn)**: A small house at the edge of the residential street containing only a bed, an alarm clock, and unpacked moving boxes. It serves as the reset point for every loop.
+* **Administrative Building (Town Hall & Post Office)**: Located right next to the central plaza, combining municipal records and the local post office into a single two-room interior (front reception and a keypad-locked records room).
+* **The Minimarket**: The village’s only convenience store, run by an elderly couple. Features a public shop floor and a staff-only storage room in the back.
+* **Highway Gas Station**: Situated on the outskirts along the rural highway, attended by a local teenager. Includes outdoor fuel pumps, a small counter, a bathroom, and a locked manager’s office.
+* **Abandoned Train Station (The Core Anchor)**: An old cargo station on the outskirts that once handled coal exports. Most of it is boarded up, except for a locked dispatch room that gradually glitches into a hospital room as loop corruption increases.
+#### Recreational Spaces & Landmarks (Exterior Only)
+* **The Town Plaza**: The central hub connecting the residential streets and the Administrative Building, featuring benches, a few trees, a small children's playground, and a working telephone booth.
+* **The Wooden Docks**: A foggy stretch of wooden piers on the water's edge with moored fishing boats, representing the town's main industry.
+* **The Highway Roadblock (Map Limit Landmark)**: Just past the Gas Station on the rural highway, where a crashed moving truck and flashing ambulance lights are barely visible through the lethal boundary fog.
+#### Residential Prop Buildings (No Interiors Required)
+* **15–18 Inaccessible Villager Houses**: Low-poly exterior shells lining the unkempt streets with low fences. To save development time, reuse 3–4 house meshes with slight color, roof, or fence variations.
+* **2–3 Interactable Front Porches**: While the houses are locked, placing a `ReadableComponent` on a few mailboxes or porch notes lets the world feel alive without building interior rooms.
+---
+### 2. Cast of NPCs & Roles
+Keeping the cast to **6 NPCs** makes the town feel populated while keeping `ScheduleController` waypoints and `ReadableComponent` dialogue trees fast to implement.Remember that narratively, these villagers are mental projections acting as the subconscious mind's "immune system" to keep the player stagnant.
+* **Steve (Town Hall Janitor & Postal Clerk)**: Works at the Administrative Building. Husband of Martha and father of Louie. He obsesses over sorting undelivered mail for the "new resident" and guards the municipal records room.
+* **Martha (Minimarket Co-Owner)**: Wife of Steve and mother of Louie. She runs the Minimarket counter alongside Arthur and gossips about a loud crash on the highway the night before.
+* **Arthur (Minimarket Co-Owner)**: An elderly man with failing memory who manages the Minimarket stockroom with Martha. He constantly forgets door codes and writes reminders in odd places.
+* **Louie (Gas Station Attendant)**: The teenage son of Steve and Martha who works the Highway Gas Station shift. He slacks off, listens to the radio, and takes regular bathroom breaks at 8:30 PM.
+* **John (The Plaza Drifter)**: A homeless man who lives on a bench in the Town Plaza right next to the telephone booth. Because he stays in one central spot all day, he observes everyone's schedules and notices when the environment glitches.
+* **Elena (The Dock Fisherman)**: Works down at the Wooden Docks repairing nets and hauling crates. She represents the town's rigid labor routine and blocks access to the dock's tool shed until her daily routine is altered.
+---
+### 3. Overarching Escape Plot: "The Unfinished Move"
+#### Narrative Adaptation
+Instead of planning to leave town, the protagonist was **moving into the village** for a fresh start. While driving their moving truck into town late at night along the rural highway, they suffered a catastrophic accident right outside the Gas Station and are currently in a critical coma inside a hospital room.
+Their subconscious fabricated this foggy, low-poly version of the town around their new house (which is why it only has a bed and unpacked moving boxes) to trap their mind in a safe, stagnant loop of "settling in". If the player tries to leave town prematurely or disrupts a villager's routine (trespassing, brute-forcing keypads), the subconscious treats the player as an anomaly and turns the NPCs violently hostile (`aggresive` key), resetting the loop upon capture.
+#### How the Escape Works Mechanically
+To wake up and break the cycle before midnight, the player must reach the **Hospital Room** manifesting inside the **Abandoned Train Station**. Doing so requires three pieces of information/access gathered across loops and recorded in the player's **Notebook**:
+1. **The Moving Manifest & Patient ID (Puzzle 1)**: Reveals that the "moving boxes" in the player's house actually correspond to medical trauma records, unlocking dialogue branches (`persistent` key or player knowledge).
+2. **The Highway Accident Time / 4-Digit Code (Puzzle 2)**: Discovered in the Gas Station office, providing the exact 4-digit timestamp needed for the Train Station keypad.
+3. **The Train Station Master Key & Power Override (Puzzle 3)**: Obtained by altering the daily delivery routine between the Minimarket, the Docks, and the Administrative Building.
+---
+### 4. Town Puzzles & Escape Sequence
+All puzzles below follow your **Puzzle Design Guide** (no static waiting, 4-digit high-entropy locks, simple butterfly effects, and physical impossibility of solving and using a code in the same loop) and use your existing Godot components (`KeyManager`, `ScheduleController`, `DialogueUI` with `BUTTONS`, `TEXT`, and `KEYPAD`, and the Alarm Clock).
+#### Puzzle 1: The New Resident's File (Onboarding & Same-Loop Impossibility)
+* **Description**: A welcome notice in the Character's House instructs the player to register their move-in at the Administrative Building. The records room is locked behind a 4-digit `KEYPAD` door. Inside is the player's "Moving File," which reveals the first major plot twist (hospital admission papers mixed with postal forms) and the secret phrase needed to distract the Minimarket owners in Puzzle 3.
+* **Location**: Administrative Building & Town Plaza.
+* **NPCs**:
+* **Steve (Town Hall Janitor)**: Works the front desk all day, blocking the hallway. At 11:00 PM, he types the 4-digit code into the records room door (`private_keys`), enters, and stays inside auditing files until midnight.
+* **John (Homeless Drifter)**: Sits in the Plaza. If talked to after 9:00 PM, he mentions that Steve always mutters the combination out loud when he locks up at 11:00 PM, and that the phone booth in the Plaza rings at 10:55 PM.
+* **Steps to complete**:
+1. Explore the Administrative Building early in the loop and see the visually obvious objective: the locked Records Room door with a 4-digit keypad. Guessing the code triggers Steve's hostility (`aggresive` key).
+2. Set the **Alarm Clock** in the house to wake up at 10:30 PM on the next loop so there is no static waiting.
+3. At 11:00 PM, peek around the corner and observe Steve opening the Records Room, revealing the 4-digit code (e.g., `4912`) via a readable note/dialogue mutter. However, Steve immediately stands inside the tiny room until midnight, making it physically impossible to search the room on this loop without triggering hostility.
+4. Record `4912` in the **Notebook**, reset the loop with the Alarm Clock set to the morning (when Steve is sweeping the outer Plaza), unlock the keypad door, and read the Moving File inside.
+---
+#### Puzzle 2: The Gas Station Office & The Tow Log (Simple Butterfly Effect)
+* **Description**: Based on the GDD's core event, the player needs to get inside the locked manager's office at the Highway Gas Station to inspect the tow-truck log from the night they "moved in". However, Louie never leaves the office keys on the counter unless his routine is disrupted earlier in the day.
+* **Location**: Highway Gas Station & Minimarket.
+* **NPCs**:
+* **Louie (Gas Station Attendant)**: Stands behind the counter watching the office door all day. At 8:30 PM, he goes to the bathroom for 5 minutes, keeping the office key in his pocket unless he is flustered.
+* **Martha (Minimarket Co-Owner)**: Prepares a lunch box for her son Louie at the Minimarket in the morning.
+* **Steps to complete**:
+1. Visit the Gas Station around 8:30 PM. Observe Louie go to the bathroom, but notice the office door is still locked and the key isn't on the counter. When Louie comes out at 8:35 PM, talking to him reveals a post-window hint: *"I only ever leave my keys on the desk when Mom forgets to pack my thermos and I have to rush to the sink"*.
+2. Start a new loop in the morning and go to the Minimarket while Martha is in the back room with Arthur. Interact with the lunch crate near the counter (`KeyComponent` adding `&"thermos_hidden"`) to hide Louie's thermos.
+3. Because of this simple butterfly effect, when Martha delivers the crate or Louie picks it up, Louie's 8:30 PM `ScheduleEntry` switches to a higher-priority entry (`keys_whitelist = [&"thermos_hidden"]`): he rushes to the bathroom at 8:30 PM and leaves the office key (`KeyComponent`) on the counter.
+4. Grab the key during the 5-minute window (8:30 PM – 8:35 PM), unlock the Gas Station office, and read the Tow Log. It reveals that the player's moving truck crashed at **23:47** (`2347`) and gives the emergency dispatch radio frequency.
+---
+#### Puzzle 3: The Dock Shed & The Train Station Key (Text Password & Schedule Chain)
+* **Description**: To enter the Abandoned Train Station's outer gate, the player needs the heavy iron padlock key kept inside the locked tool shed at the Docks. Elena guards the Docks all day, and only Arthur at the Minimarket knows where the spare shed key is kept.
+* **Location**: Minimarket, Town Plaza Phone Booth, and Wooden Docks.
+* **NPCs**:
+* **Arthur (Minimarket Co-Owner)**: Suffers from memory lapses. If asked about the Dock shipment, he requires a specific shipping invoice word (`TEXT` input in `DialogueUI`) to trust the player.
+* **Elena (Dock Fisherman)**: Repairs nets right in front of the Dock tool shed until 6:00 PM, unless called away to the Plaza phone booth.
+* **Steps to complete**:
+1. Using the shipping invoice code discovered in Puzzle 1's Moving File (e.g., `"COAL-88"`), talk to Arthur at the Minimarket and type `"COAL-88"` into the `TEXT` input field. Arthur gives you the Plaza Phone Booth extension number and unlocks the key `&"knows_dock_call"`.
+2. Go to the Phone Booth in the Plaza and interact with it to ring the Docks payphone (`KeyComponent` unlocking `&"dock_phone_ringing"`).
+3. This triggers a high-priority `ScheduleEntry` for Elena, causing her to walk away from the tool shed to answer the payphone at the far end of the Docks (`add_keys_on_arrival` unlocks the shed access window).
+4. Sneak into the unguarded Dock shed while Elena is on the phone, grab the **Train Station Gate Key** (`&"train_gate_key"`), and read the medical glitch note inside (an EKG printout disguised as a tide chart).
+---
+#### Puzzle 4: Shattering the Construct (The Final Escape Sequence)
+* **Description**: With all clues written in the **Notebook**, the player must execute a clean final loop to unlock the Abandoned Train Station, bypass the increasingly corrupted environment and hostile villagers, and wake up in the hospital.
+* **Location**: Character's House $\rightarrow$ Minimarket/Plaza $\rightarrow$ Abandoned Train Station (Hospital Room).
+* **NPCs**:
+* **All Town NPCs**: Once the player unlocks the inner Train Station door, the subconscious realizes the illusion is failing and activates the global `&"aggresive"` key, turning nearby projections into active hunters.
+* **Steps to complete**:
+1. Wake up in the Character's House and interact with the moving boxes using knowledge from the previous loops to pull out the hidden **Hospital Wristband** (a hidden interactable in the starter room that requires a 4-digit code or `TEXT` input learned from combining the Moving File and EKG chart—allowing the player to skip repeating Puzzle 1).
+2. Quickly trigger the Plaza Phone Booth to pull Elena away from the Docks and grab the **Train Station Gate Key** (`&"train_gate_key"`).
+3. Head to the **Abandoned Train Station** and unlock the outer gate with `&"train_gate_key"`.
+4. At the inner Dispatch Room door, enter the highway crash timestamp **`2347`** (learned in Puzzle 2) into the 4-digit `KEYPAD`.
+5. Opening this door triggers Phase 3 corruption: the sound of an EKG monitor and flatline begins playing, villagers outside turn hostile (`&"aggresive"`), and the interior of the Train Station reveals a sterile **Hospital Room**.
+6. Interact with the hospital bed/monitor in the center of the room and answer the final `TEXT` prompt (entering the reality anchor word from the Wristband/Moving File) to shatter the loop and trigger the waking-up victory cutscene.

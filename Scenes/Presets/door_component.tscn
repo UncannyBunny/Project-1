@@ -1,0 +1,46 @@
+[gd_scene format=3 uid="uid://v6mwpm34qbtl"]
+
+[ext_resource type="Script" uid="uid://8i4yj2hrs5ri" path="res://Scripts/Components/door_component.gd" id="1_nkykg"]
+[ext_resource type="Script" uid="uid://ba5yjgajhffab" path="res://Scripts/Components/interaction_component.gd" id="2_2bxam"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_g4v7s"]
+size = Vector3(1, 2, 0.1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_yf5fn"]
+size = Vector3(1, 2, 0.1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_7n541"]
+size = Vector3(1, 2, 2)
+
+[node name="DoorComponent" type="AnimatableBody3D" unique_id=1404697686 node_paths=PackedStringArray("navlink", "npc_detection_area")]
+script = ExtResource("1_nkykg")
+navlink = NodePath("NavigationLink3D")
+npc_detection_area = NodePath("Area3D")
+metadata/_custom_type_script = "uid://8i4yj2hrs5ri"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=2005406293]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1, 0)
+mesh = SubResource("BoxMesh_g4v7s")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=692653411]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1, 0)
+shape = SubResource("BoxShape3D_yf5fn")
+
+[node name="NavigationLink3D" type="NavigationLink3D" parent="." unique_id=2014074170]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, -1)
+end_position = Vector3(0, 0, 2)
+
+[node name="Area3D" type="Area3D" parent="." unique_id=1540440107]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=195924390]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1, 0)
+shape = SubResource("BoxShape3D_7n541")
+
+[node name="InteractionComponent" type="Area3D" parent="." unique_id=884656452 node_paths=PackedStringArray("target_object")]
+script = ExtResource("2_2bxam")
+target_object = NodePath("..")
+metadata/_custom_type_script = "uid://ba5yjgajhffab"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionComponent" unique_id=1575565125]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1, 0)
+shape = SubResource("BoxShape3D_yf5fn")

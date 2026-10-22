@@ -1,69 +1,84 @@
-@tool
+## Evaluates ScheduleEntry resources on time or key changes and directs the NPC's PathfindingComponent.
 class_name ScheduleController extends Node3D
 
-## Object to receive the input
-@export var target_object: Node3D:
-	set(value):
-		target_object = value
-		notify_property_list_changed()
-## Method that will be called with the input
-@export var target_method_string: String = ""
-var target_method_callable: Callable
-@export var schedule_entries: Array[ScheduleEntry]
-var prev_schedule: ScheduleEntry
+signal schedule_changed(new_schedule: ScheduleEntry)
+
+@export var pathfinding_component: PathfindingComponent
+@export var schedule_entries: Array[ScheduleEntry] = []
+
+var current_schedule: ScheduleEntry = null
 
 func _ready() -> void:
-	# Avoid execution in editor environment.
-	if Engine.is_editor_hint():
-		return
-	# Bind target callable for 
-	if target_object and not target_method_string.is_empty():
-		target_method_callable = Callable(target_object, target_method_string)
-	TimeManager.time_changed.connect(schedule_process)
+	if not pathfinding_component:
+		pathfinding_component = get_node_or_null("../PathfindingComponent") as PathfindingComponent
+		
+	if pathfinding_component:
+		pathfinding_component.destination_reached.connect(_on_destination_reached)
+		
+	TimeManager.time_changed.connect(_on_time_or_keys_changed)
+	KeyManager.keys_changed.connect(_on_time_or_keys_changed)
+	schedule_process.call_deferred()
+
+func _on_time_or_keys_changed(_arg: Variant = null) -> void:
+	schedule_process()
 
 func schedule_process() -> void:
-	var schedule_current: ScheduleEntry = schedule_selection()
-	if schedule_current == prev_schedule: return
-	if schedule_current:
-		target_method_callable.call(schedule_current.position)
-		KeyManager.add_keys(schedule_current.keys_unlocked)
-		KeyManager.remove_keys(schedule_current.keys_taken)
-		prev_schedule = schedule_current
-
-func schedule_selection() -> ScheduleEntry:
-	if not schedule_entries or not target_object or schedule_entries.is_empty():
+	var selected: ScheduleEntry = select_best_schedule()
+	if selected == current_schedule or selected == null:
 		return
+	
+	current_schedule = selected
+	var target_pos: Vector3 = _resolve_target_position(current_schedule)
+	if pathfinding_component:
+		pathfinding_component.set_target_position(
+			target_pos,
+			current_schedule.use_arrival_rotation,
+			current_schedule.arrival_rotation_degrees,
+			current_schedule.run
+		)
+	
+	if not current_schedule.add_keys_on_arrival:
+		_apply_schedule_keys(current_schedule)
+		
+	schedule_changed.emit(current_schedule)
+
+func _on_destination_reached() -> void:
+	if current_schedule and current_schedule.add_keys_on_arrival:
+		_apply_schedule_keys(current_schedule)
+
+func _apply_schedule_keys(entry: ScheduleEntry) -> void:
+	if not entry.keys_unlocked.is_empty():
+		KeyManager.add_keys(entry.keys_unlocked)
+	if not entry.keys_taken.is_empty():
+		KeyManager.remove_keys(entry.keys_taken)
+
+func select_best_schedule() -> ScheduleEntry:
+	if schedule_entries.is_empty():
+		return null
+		
 	var time_current: int = TimeManager.get_current_time()
-	var schedule_candidates: Array[ScheduleEntry]
-	for schedule in schedule_entries:
+	var best_entry: ScheduleEntry = null
+	
+	for schedule: ScheduleEntry in schedule_entries:
+		if not schedule:
+			continue
 		if schedule.time_start_minutes > time_current:
 			continue
-		if time_current > schedule.time_end_minutes and not schedule.time_end_minutes == 0:
+		if schedule.time_end_minutes != 0 and time_current > schedule.time_end_minutes:
 			continue
-		if not KeyManager.search_keys(schedule.keys_whitelist):
+		if not KeyManager.check_keys(schedule.keys_whitelist, schedule.keys_blacklist):
 			continue
-		if KeyManager.search_keys(schedule.keys_blacklist) and not schedule.keys_blacklist.is_empty():
-			continue
-		schedule_candidates.append(schedule)
-	if schedule_candidates.is_empty():
-		return
-	else:
-		schedule_candidates.sort_custom(func(a: ScheduleEntry, b: ScheduleEntry): return a.priority > b.priority)
-		return schedule_candidates[0]
+		if best_entry == null or schedule.priority > best_entry.priority:
+			best_entry = schedule
+			
+	return best_entry
 
-func _validate_property(property: Dictionary) -> void:
-	if property.name == "target_method_string":
-		var target_method_options: String = ""
-		
-		if target_object and target_object.get_script():
-			var methods: Array = target_object.get_script().get_script_method_list()
-			var method_names: Array[String] = []
-			
-			for method in methods:
-				if not method["name"].begins_with("_"):
-					method_names.append(method["name"])
-					
-			target_method_options = ",".join(method_names)
-			
-		property.hint = PROPERTY_HINT_ENUM
-		property.hint_string = target_method_options
+func _resolve_target_position(entry: ScheduleEntry) -> Vector3:
+	if not entry.waypoint_node_path.is_empty():
+		var context_node: Node = get_parent() if get_parent() else self
+		var waypoint := context_node.get_node_or_null(entry.waypoint_node_path) as Node3D
+		if not waypoint:
+			waypoint = get_node_or_null(entry.waypoint_node_path) as Node3D
+		if waypoint:
+			return waypoint.global_position
+	return entry.position
