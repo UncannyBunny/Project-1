@@ -28,8 +28,6 @@ var nav_paused: bool = true
 var nav_layer: int = NavigationLayerManager.PUBLIC_LAYER
 var accessible_doors: Array[DoorComponent] = []
 
-var _on_link: bool = false
-var _link_target: Vector3 = Vector3.ZERO
 var _routine_target_position: Vector3 = Vector3.ZERO
 var _has_routine_target: bool = false
 var _arrival_rotation_y: float = 0.0
@@ -45,10 +43,7 @@ func _ready() -> void:
 		character = owner as CharacterController3D
 	if not nav_agent:
 		nav_agent = get_node_or_null("../NavigationAgent3D") as NavigationAgent3D
-		
-	if nav_agent:
-		nav_agent.link_reached.connect(_on_nav_link_reached)
-		
+	
 	KeyManager.keys_changed.connect(_evaluate_behavior_mode)
 	_evaluate_behavior_mode.call_deferred()
 
@@ -76,7 +71,6 @@ func _evaluate_behavior_mode() -> void:
 	if current_mode == BehaviorMode.CHASE:
 		_find_chase_target()
 		nav_paused = false
-		_on_link = false
 		_update_accessible_doors()
 		behavior_mode_changed.emit(true)
 	else:
@@ -130,25 +124,17 @@ func _process_routine_navigation() -> void:
 			nav_paused = true
 			character.set_movement(Vector3.ZERO, false)
 			if _use_arrival_rotation:
-				var rot_tween: Tween = create_tween()
-				rot_tween.tween_property(character, "rotation:y", _arrival_rotation_y, 0.5)
+				character.set_orientation(_arrival_rotation_y)
 			destination_reached.emit()
 		else:
 			set_target_position(nav_agent.target_position, _use_arrival_rotation, rad_to_deg(_arrival_rotation_y))
 		return
 		
-	if _on_link and character.global_position.distance_to(_link_target) < nav_agent.path_desired_distance:
-		_on_link = false
-		
 	var pos_current: Vector3 = character.global_position
-	var pos_next: Vector3 = _link_target if _on_link else nav_agent.get_next_path_position()
+	var pos_next: Vector3 = nav_agent.get_next_path_position()
+	
 	var direction: Vector3 = pos_current.direction_to(pos_next)
 	character.set_movement(direction, is_running or current_mode == BehaviorMode.CHASE)
-
-func _on_nav_link_reached(details: Dictionary) -> void:
-	_on_link = true
-	_link_target = details["link_exit_position"]
-#endregion
 
 #region Chase Navigation
 func _process_chase_navigation() -> void:
@@ -167,7 +153,7 @@ func _process_chase_navigation() -> void:
 	if nav_agent.is_navigation_finished():
 		character.set_movement(Vector3.ZERO, false)
 		return
-		
+	
 	var pos_current: Vector3 = character.global_position
 	var pos_next: Vector3 = nav_agent.get_next_path_position()
 	var direction: Vector3 = pos_current.direction_to(pos_next)

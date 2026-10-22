@@ -9,7 +9,7 @@
 [ext_resource type="Script" uid="uid://2pl1xrcafii3" path="res://Scripts/Components/readable_component.gd" id="7_18g42"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6up6a"]
-radius = 0.3
+radius = 0.25
 height = 1.8
 
 [node name="NPCController" type="CharacterBody3D" unique_id=392494869 node_paths=PackedStringArray("schedule_controller", "pathfinding_component", "readable_component", "interaction_component")]
@@ -25,7 +25,7 @@ script = ExtResource("3_6up6a")
 character = NodePath("..")
 animator = NodePath("AnimationPlayer")
 
-[node name="AnimationPlayer" parent="human" index="1" unique_id=751809073]
+[node name="AnimationPlayer" parent="human" index="1" unique_id=73334174]
 playback_auto_capture_ease_type = 2
 playback_default_blend_time = 0.5
 
@@ -34,20 +34,22 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.90000004, 0)
 shape = SubResource("CapsuleShape3D_6up6a")
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=1624188493]
+path_desired_distance = 0.3
+target_desired_distance = 0.3
+height = 1.8
+radius = 0.3
 
 [node name="ScheduleController" type="Node3D" parent="." unique_id=992209931 node_paths=PackedStringArray("pathfinding_component")]
 script = ExtResource("3_jc0uc")
 pathfinding_component = NodePath("../PathfindingComponent")
 metadata/_custom_type_script = "uid://b8xe44ldak8mr"
 
-[node name="PathfindingComponent" type="Node3D" parent="." unique_id=810649962 node_paths=PackedStringArray("character", "nav_agent")]
+[node name="PathfindingComponent" type="Node3D" parent="." unique_id=810649962]
 script = ExtResource("2_gil28")
-character = NodePath("..")
-nav_agent = NodePath("../NavigationAgent3D")
 metadata/_custom_type_script = "uid://bob0cecyek087"
 
 [node name="ReadableComponent" type="Node3D" parent="." unique_id=1531281973]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0.2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5596375, 0.094259575)
 script = ExtResource("7_18g42")
 entries = null
 look_turn_duration = null

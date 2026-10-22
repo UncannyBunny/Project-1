@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://clhwh1s6h8kqn" path="res://Assets/human.blend" id="2_41qjy"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_g4v7s"]
-radius = 0.3
+radius = 0.25
 height = 1.8
 
 [sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_5awlv"]
@@ -103,7 +103,7 @@ metadata/_custom_type_script = "uid://bvvk8owlgwjbf"
 
 [node name="human" parent="." unique_id=2071276015 instance=ExtResource("2_41qjy")]
 
-[node name="BoneAttachment3D" type="BoneAttachment3D" parent="human/Skeleton3D" parent_id_path=PackedInt32Array(2071276015, 493733887) index="1" unique_id=1502635820]
+[node name="BoneAttachment3D" type="BoneAttachment3D" parent="human/Skeleton3D" parent_id_path=PackedInt32Array(2071276015, 1777233725) index="1" unique_id=1502635820]
 transform = Transform3D(1.0000001, -3.8311168e-07, -5.476926e-07, 3.3495132e-07, 0.99122816, -0.1321637, 5.933508e-07, 0.13216361, 0.9912281, -4.9523504e-07, 1.5612011, 0.107255384)
 bone_name = "Head"
 bone_idx = 31
@@ -111,7 +111,7 @@ bone_idx = 31
 [node name="Camera3D" type="Camera3D" parent="human/Skeleton3D/BoneAttachment3D" unique_id=547835919]
 transform = Transform3D(-0.9999999, 6.941914e-08, -5.098803e-07, 1.6358189e-07, 0.9912276, -0.13216364, 4.923935e-07, -0.13216352, -0.9912277, 4.3566507e-07, 0.10760987, 0.078428924)
 
-[node name="AnimationPlayer" parent="human" index="1" unique_id=751809073]
+[node name="AnimationPlayer" parent="human" index="1" unique_id=73334174]
 playback_auto_capture_ease_type = 2
 playback_default_blend_time = 0.5
 

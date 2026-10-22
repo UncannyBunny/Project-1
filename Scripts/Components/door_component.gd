@@ -50,8 +50,10 @@ func _ready() -> void:
 	
 	if not navlink:
 		navlink = get_node_or_null("NavigationLink3D") as NavigationLink3D
+	navlink.top_level = true
 	if not npc_detection_area:
 		npc_detection_area = get_node_or_null("Area3D") as Area3D
+	npc_detection_area.top_level = true
 		
 	if not key_whitelist.is_empty() or not key_blacklist.is_empty():
 		if navlink:
@@ -63,6 +65,9 @@ func _ready() -> void:
 		
 	KeyManager.keys_changed.connect(_on_keys_changed)
 	_on_keys_changed()
+
+func trigger_interaction() -> void:
+	trigger()
 
 ## Attempts to toggle the door using global keys plus any provided private keys
 func trigger(private_keys: Array[StringName] = []) -> void:
@@ -128,22 +133,19 @@ func _on_npc_area_entered(body: Node3D) -> void:
 		
 	if not _valid_npcs_in_area.has(npc):
 		_valid_npcs_in_area.append(npc)
-		
 	if not is_open and check_lock(npc.private_keys):
 		if auto_toggle_for_npcs:
 			trigger(npc.private_keys)
 		await get_tree().physics_frame
-		
+	
 	if door_tween and door_tween.is_running() and check_lock(npc.private_keys):
 		pathfinder.pause_navigation(true)
-		npc.set_collision_mask_value(2, false)
-		npc.set_collision_layer_value(2, false)
+		add_collision_exception_with(npc)
 		await door_tween.finished
 		
 	if is_instance_valid(pathfinder) and is_instance_valid(npc):
 		pathfinder.pause_navigation(false)
-		npc.set_collision_mask_value(2, true)
-		npc.set_collision_layer_value(2, true)
+		remove_collision_exception_with(npc)
 
 func _on_npc_area_exited(body: Node3D) -> void:
 	var npc := body as CharacterController3D

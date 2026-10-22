@@ -20,7 +20,7 @@ var _is_in_transition: bool = false
 @export_group("Interaction")
 @export var interaction_reach: float = 1.5
 @export var interact_with_areas: bool = true
-@export var interact_with_bodies: bool = false
+@export var interact_with_bodies: bool = true
 @export_flags_3d_physics var interaction_collision_mask: int = 0xFFFFFFFF
 
 @export_group("Crouch & Lean")
