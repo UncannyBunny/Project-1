@@ -81,6 +81,9 @@ func get_day_start() -> int:
 func get_day_start_current() -> int:
 	return _day_start_current
 
+func reset_day_start_current() -> void:
+	_day_start_current = day_start
+
 func get_day_end() -> int:
 	return day_end
 

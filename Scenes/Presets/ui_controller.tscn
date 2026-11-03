@@ -17,6 +17,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_pbvgq")
+main_menu_scene_path = "uid://drdde1jro425c"
 pause_menu_container = NodePath("PauseMenu")
 dialogue_ui = NodePath("DialogueUI")
 button_continue = NodePath("PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/MarginContainer/HBoxContainer/ButtonContinue")

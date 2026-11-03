@@ -94,6 +94,11 @@ func _find_chase_target() -> void:
 func set_target_position(target_pos: Vector3, use_rotation: bool = false, target_rot_degrees: float = 0.0, running: bool = false) -> void:
 	if not nav_agent or not character:
 		return
+	if current_mode == BehaviorMode.CHASE and chase_target:
+		is_running = true
+		_update_accessible_doors()
+		nav_agent.target_position = chase_target.global_position
+		return
 	_routine_target_position = target_pos
 	_has_routine_target = true
 	_use_arrival_rotation = use_rotation

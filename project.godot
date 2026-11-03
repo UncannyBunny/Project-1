@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Project 1"
-run/main_scene="uid://c2mmnc83hfp00"
+run/main_scene="uid://drdde1jro425c"
 config/features=PackedStringArray("4.7", "Forward Plus")
 
 [autoload]

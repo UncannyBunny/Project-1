@@ -46,8 +46,8 @@ func _ready() -> void:
 	_target_alarm_time = TimeManager.get_day_start_current()
 	_setup_pause_buttons()
 	_setup_clock_ui()
-	_load_saved_notebook()
 	_setup_notebook_ui()
+	_load_saved_notebook()
 	_update_clock_display()
 
 func _process(_delta: float) -> void:
@@ -98,7 +98,7 @@ func _setup_pause_buttons() -> void:
 		button_save_and_exit.pressed.connect(_on_save_and_exit_pressed)
 
 func _on_save_and_exit_pressed() -> void:
-	SaveManager.save_game()
+	SaveManager.save_data()
 	set_pause_menu_open(false)
 	get_tree().paused = false
 	if not main_menu_scene_path.is_empty():

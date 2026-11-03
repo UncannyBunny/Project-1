@@ -117,7 +117,7 @@ func _refresh_slot_buttons() -> void:
 			btn.disabled = not exists
 
 func _on_slot_button_pressed(slot_number: int) -> void:
-	if game_scene.is_empty():
+	if not game_scene:
 		return
 		
 	var slot_name: String = "slot_%d" % slot_number
@@ -125,20 +125,16 @@ func _on_slot_button_pressed(slot_number: int) -> void:
 	
 	if _current_slot_mode == SlotMode.NEW_GAME:
 		SaveManager.delete_save(slot_name)
-		SaveManager.save_game(slot_name)
+		SaveManager.save_data(slot_name)
 		_start_game_scene(false)
 	elif _current_slot_mode == SlotMode.LOAD_GAME:
-		if not SaveManager.load_game(slot_name):
+		if not SaveManager.load_data(slot_name):
 			return
 		_start_game_scene(true)
 
 func _start_game_scene(is_loaded_game: bool) -> void:
 	NavigationLayerManager.reset_layers()
 	get_tree().change_scene_to_file(game_scene.resource_path)
-	
-	# Wait for the new scene tree to initialize before setting/warping time
-	await get_tree().process_frame
-	await get_tree().process_frame
 	
 	TimeManager.force_time(TimeManager.get_day_start())
 	if is_loaded_game:

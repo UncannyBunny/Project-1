@@ -65,4 +65,5 @@ func trigger_loop_reset() -> void:
 	
 	TimeManager.force_time(TimeManager.get_day_start())
 	await TimeManager.warp_time_until(TimeManager.get_day_start_current())
+	TimeManager.reset_day_start_current()
 	_is_resetting = false

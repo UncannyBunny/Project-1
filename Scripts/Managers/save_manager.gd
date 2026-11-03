@@ -7,7 +7,6 @@ var save_path_name: String = "slot_default"
 var save_contents: Dictionary = {
 	"persistent_keys": [],
 	"loop_count": 0,
-	"current_start_time": 0,
 	"notebook_lines": []
 }
 
@@ -49,7 +48,6 @@ func _collect_state_from_managers() -> void:
 	save_contents["current_keys"] = KeyManager.get_active_keys()
 	save_contents["loop_count"] = LoopManager.get_loop_count()
 	save_contents["current_time"] = TimeManager.get_current_time()
-	save_contents["current_start_time"] = TimeManager.get_day_start_current()
 	
 	var ui := get_tree().get_first_node_in_group(&"ui_controller") as UIController
 	if ui:
@@ -62,7 +60,6 @@ func _apply_state_to_managers() -> void:
 		
 	KeyManager.set_persistent_keys(loaded_persistent)
 	LoopManager.set_loop_count(int(save_contents["loop_count"]))
-	TimeManager.set_day_start(int(save_contents["current_start_time"]))
 
 func delete_save(file_name: String = save_path_name) -> bool:
 	var save_path: String = save_path_prefix + file_name + save_path_suffix
@@ -84,7 +81,6 @@ func reset_state() -> void:
 		"current_keys": [],
 		"loop_count": 0,
 		"current_time": TimeManager.get_day_start(),
-		"current_start_time": TimeManager.get_day_start(),
 		"notebook_lines": []
 	}
 	_apply_state_to_managers()

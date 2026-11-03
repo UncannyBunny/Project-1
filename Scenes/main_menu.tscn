@@ -1,0 +1,335 @@
+[gd_scene format=3 uid="uid://drdde1jro425c"]
+
+[ext_resource type="Script" uid="uid://bendbrdauxo4i" path="res://Scripts/UI/main_menu.gd" id="1_48xlc"]
+[ext_resource type="PackedScene" uid="uid://c2mmnc83hfp00" path="res://Scenes/test.tscn" id="2_1ehe0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yf5fn"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_g4v7s"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_57qmd"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_d0u6y"]
+
+[node name="MainMenu" type="Control" unique_id=16515360 node_paths=PackedStringArray("main_screen_container", "save_slots_container", "credits_container", "button_new_game", "button_load_game", "button_credits", "button_exit", "slot_buttons_container", "button_back_from_slots", "button_back_from_credits")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_48xlc")
+game_scene = ExtResource("2_1ehe0")
+main_screen_container = NodePath("MarginContainer/Main")
+save_slots_container = NodePath("MarginContainer/Saves")
+credits_container = NodePath("MarginContainer/Credits")
+button_new_game = NodePath("MarginContainer/Main/HBoxContainer/VBoxContainer/NewGame")
+button_load_game = NodePath("MarginContainer/Main/HBoxContainer/VBoxContainer/LoadGame")
+button_credits = NodePath("MarginContainer/Main/HBoxContainer/VBoxContainer/Credits")
+button_exit = NodePath("MarginContainer/Main/HBoxContainer/VBoxContainer/Exit")
+slot_buttons_container = NodePath("MarginContainer/Saves/HBoxContainer/VBoxContainer/SaveButtons")
+button_back_from_slots = NodePath("MarginContainer/Saves/HBoxContainer/VBoxContainer/HBoxContainer/Back")
+button_back_from_credits = NodePath("MarginContainer/Credits/HBoxContainer/VBoxContainer/HBoxContainer/Back")
+
+[node name="Background" type="Panel" parent="." unique_id=807228943]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1435282094]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="Main" type="Control" parent="MarginContainer" unique_id=719151481]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/Main" unique_id=1745059276]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/Main/HBoxContainer" unique_id=131003428]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Panel" type="Panel" parent="MarginContainer/Main/HBoxContainer/VBoxContainer" unique_id=918204027]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 4.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_yf5fn")
+
+[node name="NewGame" type="Button" parent="MarginContainer/Main/HBoxContainer/VBoxContainer" unique_id=1990593701]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 32
+text = "New Game"
+
+[node name="LoadGame" type="Button" parent="MarginContainer/Main/HBoxContainer/VBoxContainer" unique_id=2028448496]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 32
+text = "Load Game"
+
+[node name="Credits" type="Button" parent="MarginContainer/Main/HBoxContainer/VBoxContainer" unique_id=2029998467]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 32
+text = "Credits"
+
+[node name="Exit" type="Button" parent="MarginContainer/Main/HBoxContainer/VBoxContainer" unique_id=597239125]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 32
+text = "Exit"
+
+[node name="Panel" type="Panel" parent="MarginContainer/Main/HBoxContainer" unique_id=478052806]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_g4v7s")
+
+[node name="Saves" type="Control" parent="MarginContainer" unique_id=436097055]
+visible = false
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/Saves" unique_id=305524677]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="MarginContainer/Saves/HBoxContainer" unique_id=261841973]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_57qmd")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/Saves/HBoxContainer" unique_id=1700307167]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="Panel" type="Panel" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer" unique_id=1784667502]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_d0u6y")
+
+[node name="SaveButtons" type="GridContainer" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer" unique_id=1527632481]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.0
+columns = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer/SaveButtons" unique_id=1802707177]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="Button" type="Button" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer/SaveButtons/MarginContainer" unique_id=762957591]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Save Slot 1"
+
+[node name="MarginContainer2" type="MarginContainer" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer/SaveButtons" unique_id=956935425]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="Button" type="Button" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer/SaveButtons/MarginContainer2" unique_id=1965025427]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Save Slot 2"
+
+[node name="MarginContainer3" type="MarginContainer" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer/SaveButtons" unique_id=861234596]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="Button" type="Button" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer/SaveButtons/MarginContainer3" unique_id=184052015]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Save Slot 3"
+
+[node name="MarginContainer4" type="MarginContainer" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer/SaveButtons" unique_id=645495187]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="Button" type="Button" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer/SaveButtons/MarginContainer4" unique_id=378753414]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Save Slot 4"
+
+[node name="MarginContainer5" type="MarginContainer" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer/SaveButtons" unique_id=409953130]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="Button" type="Button" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer/SaveButtons/MarginContainer5" unique_id=2076264283]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Save Slot 5"
+
+[node name="MarginContainer6" type="MarginContainer" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer/SaveButtons" unique_id=623815167]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="Button" type="Button" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer/SaveButtons/MarginContainer6" unique_id=2002484324]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Save Slot 6"
+
+[node name="Panel3" type="Panel" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer" unique_id=1127620676]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_d0u6y")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer" unique_id=391377833]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.5
+
+[node name="Panel2" type="Panel" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer/HBoxContainer" unique_id=1511876463]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_d0u6y")
+
+[node name="Back" type="Button" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer/HBoxContainer" unique_id=2119845153]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Back to Menu"
+
+[node name="Panel" type="Panel" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer/HBoxContainer" unique_id=840042214]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_d0u6y")
+
+[node name="Panel2" type="Panel" parent="MarginContainer/Saves/HBoxContainer/VBoxContainer" unique_id=1114851148]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_d0u6y")
+
+[node name="Panel2" type="Panel" parent="MarginContainer/Saves/HBoxContainer" unique_id=1735365842]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_57qmd")
+
+[node name="Credits" type="Control" parent="MarginContainer" unique_id=1710952756]
+visible = false
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/Credits" unique_id=2072728333]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="MarginContainer/Credits/HBoxContainer" unique_id=1868439217]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_57qmd")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/Credits/HBoxContainer" unique_id=1160027559]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/Credits/HBoxContainer/VBoxContainer" unique_id=577825693]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 8.0
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/Credits/HBoxContainer/VBoxContainer/MarginContainer" unique_id=256642871]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 5.0
+horizontal_scroll_mode = 0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="MarginContainer/Credits/HBoxContainer/VBoxContainer/MarginContainer/ScrollContainer" unique_id=1453609378]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis ut tortor turpis. Nunc maximus quis ex sed feugiat. Cras congue est quam, ac ullamcorper nunc laoreet a. Etiam bibendum magna orci, ut volutpat arcu laoreet nec. Ut vitae purus vel purus tincidunt ultricies. Suspendisse vehicula, tortor quis condimentum mollis, urna eros finibus ex, vel venenatis nunc risus id arcu. Praesent suscipit ipsum ac lorem faucibus, id dapibus urna lobortis. Ut posuere leo nunc, blandit egestas ante tristique id. Vestibulum vehicula vestibulum elementum. Duis libero tortor, malesuada in massa vel, gravida eleifend mi.
+
+Etiam accumsan dapibus faucibus. Curabitur tincidunt sapien in diam ornare rutrum. Quisque ut pharetra dolor. Ut tellus tortor, convallis id nulla venenatis, feugiat tempus diam. Suspendisse porta, eros quis blandit hendrerit, turpis mauris lacinia nisl, ac varius magna ipsum id urna. Suspendisse potenti. Ut vel pulvinar nulla, vehicula finibus ligula. Nunc varius turpis non arcu pharetra, eget ultrices risus volutpat. Suspendisse in tristique ipsum, a vulputate diam. In convallis orci erat, sed commodo quam interdum ac. Morbi eget sollicitudin dolor. Vivamus sit amet justo ut tortor mollis tincidunt. Donec elementum venenatis lorem, a dictum augue interdum varius. Nulla ultrices scelerisque justo, eget aliquet dolor egestas vel. Phasellus sit amet auctor tortor. In id lacinia libero.
+
+Pellentesque imperdiet, tellus id vestibulum aliquet, dolor purus condimentum felis, at suscipit magna nibh viverra nulla. Etiam sit amet nulla vel orci ornare malesuada vel nec ipsum. Etiam in finibus diam. Vivamus vitae velit tellus. In hac habitasse platea dictumst. Vestibulum euismod augue dui, sit amet vestibulum tellus blandit nec. Mauris tempus nulla a tellus ullamcorper pulvinar. Donec luctus maximus ante id semper. Integer congue mi sem, et maximus ligula tempor hendrerit.
+
+Pellentesque tempor lectus nec pellentesque interdum. Donec at venenatis metus. Quisque consectetur purus vitae dolor bibendum pretium. Phasellus est nibh, pretium in porta et, sagittis eget ante. Cras facilisis dignissim odio, et accumsan risus sollicitudin laoreet. Ut pharetra hendrerit odio, ac lacinia nisi interdum a. Morbi suscipit placerat leo, eleifend laoreet dolor tristique quis. Maecenas et erat sollicitudin nisl volutpat feugiat in eu ex. Mauris ac aliquet ipsum, eget tempus odio. Mauris id elementum libero.
+
+Proin congue, ligula ut laoreet porttitor, enim quam interdum justo, et varius diam risus et elit. Sed faucibus diam in suscipit vulputate. Vestibulum gravida dapibus urna, eu commodo tortor pharetra et. Suspendisse tellus tortor, dapibus id laoreet at, pellentesque vitae enim. Proin ullamcorper tempus est et laoreet. Donec in vehicula massa. Donec et ligula in quam lacinia lobortis. Curabitur malesuada sem ut tortor egestas, commodo gravida magna elementum. Vivamus vel urna elit. Nam nisi augue, feugiat quis erat ullamcorper, consectetur convallis risus. Fusce et risus fermentum, ornare est eget, elementum arcu. Phasellus urna quam, pretium nec metus id, ornare sollicitudin lorem. Curabitur porttitor turpis eget risus facilisis porttitor. In ac accumsan massa.
+
+Integer ex sapien, condimentum eu lacus quis, tincidunt facilisis mi. Proin ac massa nulla. Vestibulum blandit tellus sed risus ullamcorper molestie. Praesent et pulvinar ex. Praesent tincidunt eu massa ut commodo. Phasellus blandit, felis eu vehicula sollicitudin, arcu ante pretium sapien, sed placerat dolor orci ac dolor. Mauris aliquam, metus eget faucibus fringilla, leo dui sodales urna, et facilisis felis mauris vel lacus. Duis in est nec est pellentesque tempor.
+
+Fusce sollicitudin magna orci, viverra sodales libero varius a. Donec mattis est mi, vitae interdum odio bibendum sit amet. Pellentesque in rutrum orci. Nullam vitae diam nisi. Duis dapibus nibh id risus viverra, ac pellentesque nunc aliquet. Ut blandit neque vel rutrum pellentesque. Duis turpis dolor, pretium eget libero sit amet, porta vestibulum libero. Pellentesque congue nisl sit amet risus ultrices, et dapibus tortor finibus. Morbi sed mauris et erat ultricies fringilla eu et urna. In et molestie leo, quis ultrices mi. Nunc vel aliquam odio, ut iaculis nulla.
+
+Donec varius elit sit amet turpis fermentum, vitae molestie velit dignissim. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Duis luctus ac felis vitae pulvinar. Donec aliquam laoreet accumsan. Donec accumsan elit vitae urna congue fringilla. Cras venenatis eleifend vehicula. In eget mi et augue semper iaculis ut vel elit. In ac erat id velit vulputate fermentum. Quisque urna dolor, porttitor suscipit orci id, faucibus aliquam velit. Sed ante ante, pretium non lorem in, luctus vestibulum diam.
+
+Fusce varius efficitur eros, ac interdum augue egestas id. Duis eu justo eget dolor pulvinar molestie at at augue. Nam pulvinar mauris dolor, id semper orci aliquam eu. Praesent vestibulum, libero nec euismod pulvinar, nisl dui porttitor turpis, quis mollis dolor velit sit amet augue. Nunc facilisis odio in odio lacinia ultricies. Aliquam erat volutpat. Cras nunc arcu, varius in accumsan quis, ultrices eget tellus. Curabitur facilisis commodo nunc vitae aliquet. Vestibulum ut condimentum nisi, et pulvinar purus. Morbi egestas mauris vel risus euismod ultricies. Ut eu mattis mauris. Phasellus mauris arcu, eleifend vitae imperdiet sit amet, convallis nec ipsum. Aenean finibus ipsum ut ligula rutrum consectetur. Integer felis justo, accumsan eu commodo ac, iaculis ut ligula. Pellentesque volutpat, odio at interdum dignissim, justo enim interdum libero, at consectetur orci nibh sit amet ex.
+
+Etiam consequat neque et quam consequat tristique. Maecenas vitae sapien semper, pulvinar dui at, commodo massa. Phasellus lacinia tempor erat mattis fermentum. Cras aliquam lobortis mi, ut posuere risus congue viverra. Pellentesque non tristique nisi, et bibendum leo. Vestibulum at nisl est. Duis fermentum, elit a rhoncus consequat, urna ante venenatis arcu, in accumsan risus metus ac purus. Duis rhoncus viverra urna sed bibendum. Nullam ut justo tempus urna commodo blandit. Donec posuere porta porttitor. Phasellus non justo facilisis, dictum leo vel, mollis velit. Sed nisi elit, vulputate id dignissim tincidunt, maximus id erat. Nullam mi elit, condimentum efficitur fringilla sit amet, ultricies nec odio. Phasellus fringilla bibendum porttitor. Nunc tincidunt ac purus ac porta. Nunc sed tristique arcu."
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/Credits/HBoxContainer/VBoxContainer" unique_id=2093818091]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Panel2" type="Panel" parent="MarginContainer/Credits/HBoxContainer/VBoxContainer/HBoxContainer" unique_id=40749173]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.25
+theme_override_styles/panel = SubResource("StyleBoxEmpty_d0u6y")
+
+[node name="Back" type="Button" parent="MarginContainer/Credits/HBoxContainer/VBoxContainer/HBoxContainer" unique_id=631645730]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Back to Menu"
+
+[node name="Panel" type="Panel" parent="MarginContainer/Credits/HBoxContainer/VBoxContainer/HBoxContainer" unique_id=382825673]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.25
+theme_override_styles/panel = SubResource("StyleBoxEmpty_d0u6y")
+
+[node name="Panel2" type="Panel" parent="MarginContainer/Credits/HBoxContainer" unique_id=746483365]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_57qmd")
