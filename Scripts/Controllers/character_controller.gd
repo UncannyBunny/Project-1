@@ -4,7 +4,6 @@ class_name CharacterController3D extends CharacterBody3D
 signal movement_state_changed(is_moving: bool, is_running: bool)
 signal jumped
 signal landed
-signal footstep_triggered
 
 @export_group("Movement")
 @export var speed_walking: float = 1.0
@@ -25,8 +24,8 @@ signal footstep_triggered
 @export var private_keys: Array[StringName] = []
 
 @export_group("Footsteps")
-## Distance traveled on the floor before emitting footstep_triggered
-@export var step_distance: float = 1.8
+## Sound player used to play footstep sounds
+@export var step_player: AudioStreamPlayer3D
 
 var movement_speed: float = 0.0
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -109,11 +108,10 @@ func _update_movement_signals(delta: float) -> void:
 		_was_moving = is_moving_now
 		_was_running = _movement_run
 		movement_state_changed.emit(is_moving_now, _movement_run)
-	
-	if is_moving_now and step_distance > 0.0:
-		_distance_since_last_step += horizontal_speed * delta
-		if _distance_since_last_step >= step_distance:
-			_distance_since_last_step = 0.0
-			footstep_triggered.emit()
-	elif not is_moving_now:
-		_distance_since_last_step = 0.0
+
+func play_step_audio(volume_db: float = 0.0, pitch_scale: float = 1.0):
+	if not is_on_floor():
+		return
+	step_player.volume_db = volume_db
+	step_player.pitch_scale = pitch_scale + randf_range(-0.1, 0.1)
+	step_player.play()

@@ -1,19 +1,127 @@
 [gd_scene format=3 uid="uid://dilmn3v3bexvm"]
 
 [ext_resource type="Script" uid="uid://dtcr3f0bp8tkh" path="res://Scripts/Managers/time_manager.gd" id="1_jtks5"]
+[ext_resource type="AudioStream" uid="uid://okrtrufrluk2" path="res://Assets/Audio/clock_tick.mp3" id="2_t0xbm"]
+[ext_resource type="AudioStream" uid="uid://dn58n4x5vyhe2" path="res://Assets/Audio/panting.mp3" id="3_0tnhl"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_g4v7s"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_g4v7s"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_57qmd"]
+bg_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_d0u6y"]
 bg_color = Color(0, 0, 0, 1)
 
-[node name="TimeManager" type="Node3D" unique_id=1108267259 node_paths=PackedStringArray("loading_screen")]
-script = ExtResource("1_jtks5")
-loading_screen = NodePath("Panel")
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yf5fn"]
+bg_color = Color(1, 1, 1, 0.78431374)
 
-[node name="Panel" type="Panel" parent="." unique_id=296255906]
+[node name="TimeManager" type="Node3D" unique_id=1108267259 node_paths=PackedStringArray("loading_screen", "clock_text_label", "warp_progress_bar", "warp_progress_bar_container", "tick_sound_player", "wake_sound_player")]
+script = ExtResource("1_jtks5")
+loading_screen = NodePath("LoadingScreen")
+clock_text_label = NodePath("LoadingScreen/ProgressUI/VBoxContainer/ClockPanel/RichTextLabel")
+warp_progress_bar = NodePath("LoadingScreen/ProgressUI/VBoxContainer/PanelBar/MarginContainer/ProgressBar")
+warp_progress_bar_container = NodePath("LoadingScreen/ProgressUI/VBoxContainer/PanelBar")
+tick_sound_player = NodePath("TickPlayer")
+wake_sound_player = NodePath("WakePlayer")
+
+[node name="LoadingScreen" type="Control" parent="." unique_id=925413061]
 visible = false
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_g4v7s")
+
+[node name="Background" type="ColorRect" parent="LoadingScreen" unique_id=1135296735]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="ProgressUI" type="HBoxContainer" parent="LoadingScreen" unique_id=225331967]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel2" type="Panel" parent="LoadingScreen/ProgressUI" unique_id=2031661770]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_g4v7s")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="LoadingScreen/ProgressUI" unique_id=2145876670]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Panel2" type="Panel" parent="LoadingScreen/ProgressUI/VBoxContainer" unique_id=392896002]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 4.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_g4v7s")
+
+[node name="ClockPanel" type="MarginContainer" parent="LoadingScreen/ProgressUI/VBoxContainer" unique_id=666865871]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="LoadingScreen/ProgressUI/VBoxContainer/ClockPanel" unique_id=1354210951]
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 64
+text = "00:00"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PanelBar" type="Panel" parent="LoadingScreen/ProgressUI/VBoxContainer" unique_id=1385284883]
+custom_maximum_size = Vector2(-1, 30)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_57qmd")
+
+[node name="MarginContainer" type="MarginContainer" parent="LoadingScreen/ProgressUI/VBoxContainer/PanelBar" unique_id=1034293476]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="ProgressBar" type="ProgressBar" parent="LoadingScreen/ProgressUI/VBoxContainer/PanelBar/MarginContainer" unique_id=59647438]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/outline_size = 5
+theme_override_styles/background = SubResource("StyleBoxFlat_d0u6y")
+theme_override_styles/fill = SubResource("StyleBoxFlat_yf5fn")
+value = 50.0
+show_percentage = false
+
+[node name="Panel" type="Panel" parent="LoadingScreen/ProgressUI/VBoxContainer" unique_id=1729042555]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 4.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_g4v7s")
+
+[node name="Panel" type="Panel" parent="LoadingScreen/ProgressUI" unique_id=1978361961]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_g4v7s")
+
+[node name="TickPlayer" type="AudioStreamPlayer" parent="." unique_id=273820819]
+stream = ExtResource("2_t0xbm")
+
+[node name="WakePlayer" type="AudioStreamPlayer" parent="." unique_id=1213233614]
+stream = ExtResource("3_0tnhl")
+pitch_scale = 0.9

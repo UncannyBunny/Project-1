@@ -1,6 +1,12 @@
 [gd_scene format=3 uid="uid://b5nvdnatf7xxu"]
 
 [ext_resource type="Script" uid="uid://c6tot81s1rmim" path="res://Scripts/Managers/loop_manager.gd" id="1_g8do4"]
+[ext_resource type="AudioStream" uid="uid://5pj263l3ppho" path="res://Assets/Audio/ear_ringing.mp3" id="2_o3mxu"]
 
-[node name="LoopManager" type="Node3D" unique_id=1914595885]
+[node name="LoopManager" type="Node3D" unique_id=1914595885 node_paths=PackedStringArray("reset_audio_player")]
 script = ExtResource("1_g8do4")
+reset_audio_player = NodePath("DeathPlayer")
+
+[node name="DeathPlayer" type="AudioStreamPlayer" parent="." unique_id=454116222]
+stream = ExtResource("2_o3mxu")
+pitch_scale = 0.95

@@ -7,6 +7,9 @@ signal time_warping_finished
 
 @export_group("UI")
 @export var loading_screen: Control
+@export var clock_text_label: RichTextLabel
+@export var warp_progress_bar: ProgressBar
+@export var warp_progress_bar_container: Control
 
 @export_group("Time Settings")
 ## Multiplier for how fast in-game minutes pass relative to real seconds (60 = 1 in-game minute per real second)
@@ -21,6 +24,12 @@ signal time_warping_finished
 ## Compass orientation of the sunrise-sunset axis in degrees (0 = North-South, 90 = East-West)
 @export_range(-180.0, 180.0, 1.0) var sun_azimuth_degrees: float = 90.0
 
+@export_group("Sound Settings")
+## Sound player with the ticking audio
+@export var tick_sound_player: AudioStreamPlayer
+## Sound player with the wake up audio
+@export var wake_sound_player: AudioStreamPlayer
+
 var _time_current: int = 0
 var _time_passed: float = 0.0
 var _day_start_current: int = 360
@@ -28,6 +37,8 @@ var _is_warping: bool = false
 var _cached_sun: DirectionalLight3D = null
 
 func _ready() -> void:
+	if loading_screen:
+		loading_screen.visible = false
 	_day_start_current = day_start
 	force_time(day_start)
 	get_tree().node_added.connect(_on_node_added)
@@ -35,6 +46,15 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_time_pass(delta)
+	if loading_screen and loading_screen.visible:
+		_update_clock_display()
+	if tick_sound_player and _is_warping:
+		if _time_current % 60 == 0:
+			if (_time_current / 60) % 2 == 0:
+				tick_sound_player.pitch_scale = 1.1
+			else:
+				tick_sound_player.pitch_scale = 0.9
+			tick_sound_player.play()
 
 #region Time Progression
 func _time_pass(delta: float) -> void:
@@ -132,12 +152,18 @@ func set_day_start(time_minutes: int) -> void:
 var time_warp_key: Array[StringName] = [&"time_warp"]
 #region Time Warping
 func warp_time_until(target_time_minutes: int) -> void:
-	if target_time_minutes <= _time_current:
-		return
 	_is_warping = true
 	time_warping_started.emit()
+	if warp_progress_bar:
+			warp_progress_bar.min_value = day_start
+			warp_progress_bar.max_value = target_time_minutes
+			if warp_progress_bar.min_value == warp_progress_bar.max_value:
+				warp_progress_bar_container.visible = false
+			else:
+				warp_progress_bar_container.visible = true
 	if loading_screen:
 		loading_screen.visible = true
+		loading_screen.modulate.a = 1
 	KeyManager.add_keys(time_warp_key)
 	
 	var base_time_scale: float = Engine.time_scale
@@ -151,10 +177,21 @@ func warp_time_until(target_time_minutes: int) -> void:
 	Engine.time_scale = base_time_scale
 	Engine.physics_ticks_per_second = base_physics_ticks
 	KeyManager.remove_keys(time_warp_key)
-	if loading_screen:
-		loading_screen.visible = false
 	_is_warping = false
 	time_warping_finished.emit()
+	wake_sound_player.play()
+	var tween: Tween = create_tween()
+	tween.tween_property(loading_screen, "modulate:a", 0, 2)
+	await tween.finished
+	loading_screen.visible = false
+	loading_screen.modulate.a = 1
+
+func _update_clock_display() -> void:
+	if warp_progress_bar:
+		warp_progress_bar.value = _time_current
+	if clock_text_label:
+		clock_text_label.text = TimeManager.time_as_string(_time_current)
+#endregion
 #endregion
 
 #region Static Formatting Helpers

@@ -137,6 +137,5 @@ func _start_game_scene(is_loaded_game: bool) -> void:
 	get_tree().change_scene_to_file(game_scene.resource_path)
 	
 	TimeManager.force_time(TimeManager.get_day_start())
-	if is_loaded_game:
-		await TimeManager.warp_time_until(TimeManager.get_day_start_current())
+	await TimeManager.warp_time_until(TimeManager.get_day_start_current())
 #endregion
