@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://fa05xba765ll" path="res://Assets/textures/pine_branch_BnW.png" id="2_42yjw"]
 [ext_resource type="Texture2D" uid="uid://bp5di562ksnp5" path="res://Assets/textures/objects_bark_willow_02_diff.png.jpg" id="2_ilbuc"]
 [ext_resource type="Shader" uid="uid://d1ka33jmkipx2" path="res://Assets/Shaders/branch_sway.gdshader" id="3_42hen"]
-[ext_resource type="Script" uid="uid://cj7q7ee3qtjk0" path="res://Scripts/Components/procedural_tree.gd" id="3_42yjw"]
+[ext_resource type="Script" uid="uid://cj7q7ee3qtjk0" path="res://Scripts/Tools/procedural_tree.gd" id="3_42yjw"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_x6to5"]
 render_priority = 0

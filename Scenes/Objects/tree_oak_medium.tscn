@@ -3,7 +3,7 @@
 [ext_resource type="Shader" uid="uid://cyjwgkxn5bktm" path="res://Assets/Shaders/log_sway.gdshader" id="1_w64l7"]
 [ext_resource type="Texture2D" uid="uid://bp5di562ksnp5" path="res://Assets/textures/objects_bark_willow_02_diff.png.jpg" id="2_un2qe"]
 [ext_resource type="Shader" uid="uid://d1ka33jmkipx2" path="res://Assets/Shaders/branch_sway.gdshader" id="3_owso2"]
-[ext_resource type="Script" uid="uid://cj7q7ee3qtjk0" path="res://Scripts/Components/procedural_tree.gd" id="3_w64l7"]
+[ext_resource type="Script" uid="uid://cj7q7ee3qtjk0" path="res://Scripts/Tools/procedural_tree.gd" id="3_w64l7"]
 [ext_resource type="Texture2D" uid="uid://pja3vp07f4ra" path="res://Assets/textures/oak_branch_BnW.png" id="4_pdvs8"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_dae6f"]
