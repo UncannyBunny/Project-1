@@ -1,4 +1,1 @@
-Fix DEMO scene to test behavior
-Add animations for actions
-NPC speech
-Add sounds
+Add tree collision for the trunk

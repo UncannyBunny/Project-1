@@ -2,6 +2,8 @@
 ## Editor tool component that bakes catenary power cables between nearby poles with the same script.
 class_name CableConnectorComponent extends Node3D
 
+# Cable algorithm from https://github.com/Ombarus/dfcyberpunk
+
 @export_group("Actions")
 ## Click in the Inspector (in Editor) to bake cables to all nearby CableConnectorComponents
 @export_tool_button("Bake Cables", "MeshInstance3D") var bake_action: Callable:

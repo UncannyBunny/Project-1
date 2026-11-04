@@ -2,20 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b056eedkg34tk"
-path.s3tc="res://.godot/imported/Buildings_oriented_strand_board_diff.jpg-afd6e4effe6b078ef8c0290982513e93.s3tc.ctex"
+uid="uid://ctvtmwbbsao42"
+path.s3tc="res://.godot/imported/Buildings_white_oak_veneer_diff.jpg-98b620a59bdb68d98d330ffe373d5c77.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "7d54c2469c1b353c1bb5c4a89f7fcdc2"
+"md5": "8687be2bac7b6656614178230af652dc"
 }
 
 [deps]
 
-source_file="res://Assets/Buildings_oriented_strand_board_diff.jpg"
-dest_files=["res://.godot/imported/Buildings_oriented_strand_board_diff.jpg-afd6e4effe6b078ef8c0290982513e93.s3tc.ctex"]
+source_file="res://Assets/textures/Buildings_white_oak_veneer_diff.jpg"
+dest_files=["res://.godot/imported/Buildings_white_oak_veneer_diff.jpg-98b620a59bdb68d98d330ffe373d5c77.s3tc.ctex"]
 
 [params]
 

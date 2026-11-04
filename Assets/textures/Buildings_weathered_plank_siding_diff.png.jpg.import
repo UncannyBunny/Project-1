@@ -2,20 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://6v6icl4mep2q"
-path.s3tc="res://.godot/imported/Buildings_roof_tiles_14_rough_4k.png.jpg-dfdf27e15196ee283bdfd5d6b4757bcd.s3tc.ctex"
+uid="uid://6j1wt75wn7iy"
+path.s3tc="res://.godot/imported/Buildings_weathered_plank_siding_diff.png.jpg-4aaceb5c0fe59ef3e8b5a0ad2ef97ecf.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "fe23330ea3d9a222c57971491256357d"
+"md5": "8c661d4b1863270df84fa757017a80af"
 }
 
 [deps]
 
-source_file="res://Assets/Buildings_roof_tiles_14_rough_4k.png.jpg"
-dest_files=["res://.godot/imported/Buildings_roof_tiles_14_rough_4k.png.jpg-dfdf27e15196ee283bdfd5d6b4757bcd.s3tc.ctex"]
+source_file="res://Assets/textures/Buildings_weathered_plank_siding_diff.png.jpg"
+dest_files=["res://.godot/imported/Buildings_weathered_plank_siding_diff.png.jpg-4aaceb5c0fe59ef3e8b5a0ad2ef97ecf.s3tc.ctex"]
 
 [params]
 

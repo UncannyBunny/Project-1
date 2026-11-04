@@ -2,20 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b1yiupaqc8bpg"
-path.s3tc="res://.godot/imported/Buildings_roof_tiles_14_diff_4k.png.jpg-f0ce85accf28eb7110432795a59fa5fe.s3tc.ctex"
+uid="uid://6v6icl4mep2q"
+path.s3tc="res://.godot/imported/Buildings_roof_tiles_14_rough_4k.png.jpg-a5cea5ee459ff48ac38a872c25c15017.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "83efda38b7928e360727c4999b650cf5"
+"md5": "fe23330ea3d9a222c57971491256357d"
 }
 
 [deps]
 
-source_file="res://Assets/Buildings_roof_tiles_14_diff_4k.png.jpg"
-dest_files=["res://.godot/imported/Buildings_roof_tiles_14_diff_4k.png.jpg-f0ce85accf28eb7110432795a59fa5fe.s3tc.ctex"]
+source_file="res://Assets/textures/Buildings_roof_tiles_14_rough_4k.png.jpg"
+dest_files=["res://.godot/imported/Buildings_roof_tiles_14_rough_4k.png.jpg-a5cea5ee459ff48ac38a872c25c15017.s3tc.ctex"]
 
 [params]
 

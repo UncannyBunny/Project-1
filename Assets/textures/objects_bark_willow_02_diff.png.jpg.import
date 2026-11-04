@@ -2,20 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c84npmbfju33p"
-path.s3tc="res://.godot/imported/Buildings_worn_planks_diff.jpg-a9cda5ba64505271b6e2659e8453a1ae.s3tc.ctex"
+uid="uid://bp5di562ksnp5"
+path.s3tc="res://.godot/imported/objects_bark_willow_02_diff.png.jpg-26153bd9b87444517ea88a3f0143bb50.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "21391fba08dae275b593bfaea7bc9205"
+"md5": "f591cb0e6fc70c2db3c6f955c15a5eff"
 }
 
 [deps]
 
-source_file="res://Assets/Buildings_worn_planks_diff.jpg"
-dest_files=["res://.godot/imported/Buildings_worn_planks_diff.jpg-a9cda5ba64505271b6e2659e8453a1ae.s3tc.ctex"]
+source_file="res://Assets/textures/objects_bark_willow_02_diff.png.jpg"
+dest_files=["res://.godot/imported/objects_bark_willow_02_diff.png.jpg-26153bd9b87444517ea88a3f0143bb50.s3tc.ctex"]
 
 [params]
 

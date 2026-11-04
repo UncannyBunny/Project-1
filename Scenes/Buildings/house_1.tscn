@@ -4,13 +4,13 @@
 [ext_resource type="Texture2D" uid="uid://bvpx28blphr8y" path="res://Assets/textures/white_oak_veneer_diff_1k.jpg" id="2_c252i"]
 [ext_resource type="Texture2D" uid="uid://bkbmx0qecp32t" path="res://Assets/textures/rusty_metal_sheet_diff_1k.jpg" id="3_wgcwo"]
 [ext_resource type="Texture2D" uid="uid://cq4co0civpv1h" path="res://Assets/textures/rusty_metal_sheet_rough_1k.exr" id="4_lxo0w"]
-[ext_resource type="Texture2D" uid="uid://b1yiupaqc8bpg" path="res://Assets/Buildings_roof_tiles_14_diff_4k.png.jpg" id="5_j84vs"]
+[ext_resource type="Texture2D" uid="uid://b1yiupaqc8bpg" path="res://Assets/textures/Buildings_roof_tiles_14_diff_4k.png.jpg" id="5_j84vs"]
 [ext_resource type="Script" uid="uid://ba5yjgajhffab" path="res://Scripts/Components/interaction_component.gd" id="5_lxo0w"]
 [ext_resource type="Script" uid="uid://2pl1xrcafii3" path="res://Scripts/Components/readable_component.gd" id="6_j84vs"]
-[ext_resource type="Texture2D" uid="uid://6v6icl4mep2q" path="res://Assets/Buildings_roof_tiles_14_rough_4k.png.jpg" id="6_tl66i"]
-[ext_resource type="Texture2D" uid="uid://6j1wt75wn7iy" path="res://Assets/Buildings_weathered_plank_siding_diff.png.jpg" id="7_pii4a"]
+[ext_resource type="Texture2D" uid="uid://6v6icl4mep2q" path="res://Assets/textures/Buildings_roof_tiles_14_rough_4k.png.jpg" id="6_tl66i"]
+[ext_resource type="Texture2D" uid="uid://6j1wt75wn7iy" path="res://Assets/textures/Buildings_weathered_plank_siding_diff.png.jpg" id="7_pii4a"]
 [ext_resource type="Script" uid="uid://e5dqcesgwl0e" path="res://Scripts/Resources/readable_entry.gd" id="7_tl66i"]
-[ext_resource type="Texture2D" uid="uid://c58lb2depi1e0" path="res://Assets/Buildings_mixed_brick_wall_diff.png.jpg" id="8_iuka8"]
+[ext_resource type="Texture2D" uid="uid://c58lb2depi1e0" path="res://Assets/textures/Buildings_mixed_brick_wall_diff.png.jpg" id="8_iuka8"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jnbpn"]
 resource_name = "oriented_strand_board"

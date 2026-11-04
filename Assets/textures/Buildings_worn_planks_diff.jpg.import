@@ -2,20 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://6j1wt75wn7iy"
-path.s3tc="res://.godot/imported/Buildings_weathered_plank_siding_diff.png.jpg-aa8d04c7700035148db1ba0393045e25.s3tc.ctex"
+uid="uid://c84npmbfju33p"
+path.s3tc="res://.godot/imported/Buildings_worn_planks_diff.jpg-5198fbbe844cb5bbd9b758bc62719b28.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "8c661d4b1863270df84fa757017a80af"
+"md5": "21391fba08dae275b593bfaea7bc9205"
 }
 
 [deps]
 
-source_file="res://Assets/Buildings_weathered_plank_siding_diff.png.jpg"
-dest_files=["res://.godot/imported/Buildings_weathered_plank_siding_diff.png.jpg-aa8d04c7700035148db1ba0393045e25.s3tc.ctex"]
+source_file="res://Assets/textures/Buildings_worn_planks_diff.jpg"
+dest_files=["res://.godot/imported/Buildings_worn_planks_diff.jpg-5198fbbe844cb5bbd9b758bc62719b28.s3tc.ctex"]
 
 [params]
 

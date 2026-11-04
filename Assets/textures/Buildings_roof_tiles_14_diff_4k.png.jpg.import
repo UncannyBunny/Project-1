@@ -2,20 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ctvtmwbbsao42"
-path.s3tc="res://.godot/imported/Buildings_white_oak_veneer_diff.jpg-bf07de43aa8e5d06fcd3cdd711cd7189.s3tc.ctex"
+uid="uid://b1yiupaqc8bpg"
+path.s3tc="res://.godot/imported/Buildings_roof_tiles_14_diff_4k.png.jpg-373a8a5bb0760cc31365a41c9f7304a3.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "8687be2bac7b6656614178230af652dc"
+"md5": "83efda38b7928e360727c4999b650cf5"
 }
 
 [deps]
 
-source_file="res://Assets/Buildings_white_oak_veneer_diff.jpg"
-dest_files=["res://.godot/imported/Buildings_white_oak_veneer_diff.jpg-bf07de43aa8e5d06fcd3cdd711cd7189.s3tc.ctex"]
+source_file="res://Assets/textures/Buildings_roof_tiles_14_diff_4k.png.jpg"
+dest_files=["res://.godot/imported/Buildings_roof_tiles_14_diff_4k.png.jpg-373a8a5bb0760cc31365a41c9f7304a3.s3tc.ctex"]
 
 [params]
 
