@@ -15,6 +15,11 @@ signal time_warping_finished
 @export var day_start: int = 360
 ## End time of the loop in minutes from midnight (1440 = 24:00)
 @export var day_end: int = 1440
+@export_group("Sun Settings")
+## Tilt of the sun's arc from vertical zenith in degrees (e.g. 25 to 35 gives a natural angled sun path and shadows)
+@export_range(-75.0, 75.0, 0.5) var sun_declination_degrees: float = 30.0
+## Compass orientation of the sunrise-sunset axis in degrees (0 = North-South, 90 = East-West)
+@export_range(-180.0, 180.0, 1.0) var sun_azimuth_degrees: float = 90.0
 
 var _time_current: int = 0
 var _time_passed: float = 0.0
@@ -49,8 +54,31 @@ func _time_pass(delta: float) -> void:
 func _update_sun_rotation() -> void:
 	if not is_instance_valid(_cached_sun):
 		return
+		
 	var current_minutes_float: float = _time_passed * time_scale
-	_cached_sun.rotation.x = deg_to_rad((current_minutes_float * 0.25) + 90.0)
+	var time_of_day: float = fmod(current_minutes_float, 1440.0)
+	var angle_degrees: float = 0.0
+	
+	var sunrise: float = 401.0
+	var sunset: float = 1212.0
+	var night_duration: float = 1440.0 - (sunset - sunrise)
+	
+	if time_of_day >= sunrise and time_of_day <= sunset:
+		angle_degrees = remap(time_of_day, sunrise, sunset, 180.0, 360.0)
+	elif time_of_day > sunset:
+		var night_passed: float = time_of_day - sunset
+		angle_degrees = 360.0 + (night_passed / night_duration) * 180.0
+	else:
+		var night_passed: float = (1440.0 - sunset) + time_of_day
+		angle_degrees = 360.0 + (night_passed / night_duration) * 180.0
+		
+	var orbit_plane_basis := Basis.from_euler(Vector3(
+		0.0,
+		deg_to_rad(sun_azimuth_degrees),
+		deg_to_rad(sun_declination_degrees)
+	))
+	var daily_spin_basis := Basis.from_euler(Vector3(deg_to_rad(angle_degrees), 0.0, 0.0))
+	_cached_sun.basis = orbit_plane_basis * daily_spin_basis
 
 func _on_node_added(node: Node) -> void:
 	if node is DirectionalLight3D and not node.editor_only:
