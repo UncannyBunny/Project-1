@@ -3,9 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://fa05xba765ll" path="res://Assets/textures/pine_branch_BnW.png" id="1_njwch"]
 
 [resource]
-transparency = 2
-alpha_scissor_threshold = 0.7
-alpha_antialiasing_mode = 0
+transparency = 4
 cull_mode = 2
 albedo_color = Color(0.19649905, 0.39076617, 3.85046e-07, 1)
 albedo_texture = ExtResource("1_njwch")

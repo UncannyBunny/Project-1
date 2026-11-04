@@ -60,6 +60,5 @@ environment = SubResource("Environment_udbg8")
 [node name="SunLight" type="DirectionalLight3D" parent="." unique_id=399566704]
 light_angular_distance = 0.5
 shadow_enabled = true
-directional_shadow_mode = 0
 script = ExtResource("1_njfos")
 sun_color_curve = SubResource("Gradient_aees8")

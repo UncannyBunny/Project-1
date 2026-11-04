@@ -1,0 +1,9 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://mbx7u5buap3d"]
+
+[ext_resource type="Texture2D" uid="uid://pja3vp07f4ra" path="res://Assets/textures/oak_branch_BnW.png" id="1_vfwsa"]
+
+[resource]
+transparency = 4
+cull_mode = 2
+albedo_color = Color(0.40392157, 0.7647059, 0, 1)
+albedo_texture = ExtResource("1_vfwsa")

@@ -1,1 +1,12 @@
-Add tree collision for the trunk
+Fix distance drawing being calculated by the distance to the multimesh, maybe use the shader instead?
+Make grass count depend on density (ammount per meter) instead of a fixed ammount
+Add randomization to grass cross's rotation
+Make the grass noise margin be smooth instead of a hard end
+Make it so that it uses multiple (three?) noise textures averaged, which are calculated from the seed
+Make it so the size variation depends on the noise used for density
+
+Fix the resource warning if possible:
+	The text-based scene at path "res://Scenes/test.tscn" is large on disk (12.82 MiB), likely because it has embedded binary data.
+	This slows down scene saving and loading.
+	Consider saving its binary subresource(s) to a binary `.res` file or saving the scene as a binary `.scn` file.
+	This warning can be disabled in the Editor Settings (FileSystem > On Save > Warn on Saving Large Text Resources).

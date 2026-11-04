@@ -26,6 +26,10 @@ SaveManager="*uid://be4cnu76aatkn"
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[global_group]
+
+grass_surface="for the grass tool to add grass onto an object"
+
 [input]
 
 move_forward={
