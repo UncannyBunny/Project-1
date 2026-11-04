@@ -8,7 +8,7 @@ enum SlotMode {
 
 @export_group("Scene Navigation")
 ## Path to the main gameplay scene loaded when starting or continuing a game
-@export var game_scene: PackedScene
+@export_file("*.tscn", "*scn") var game_scene_path: String = ""
 
 @export_group("Menu Containers")
 @export var main_screen_container: Control
@@ -40,6 +40,9 @@ func _ready() -> void:
 	_setup_slot_buttons()
 	_setup_credits_buttons()
 	show_main_screen()
+	
+	if not game_scene_path.is_empty():
+		ResourceLoader.load_threaded_request(game_scene_path)
 
 #region Screen Switching
 func show_main_screen() -> void:
@@ -117,7 +120,7 @@ func _refresh_slot_buttons() -> void:
 			btn.disabled = not exists
 
 func _on_slot_button_pressed(slot_number: int) -> void:
-	if not game_scene:
+	if not game_scene_path:
 		return
 		
 	var slot_name: String = "slot_%d" % slot_number
@@ -126,16 +129,18 @@ func _on_slot_button_pressed(slot_number: int) -> void:
 	if _current_slot_mode == SlotMode.NEW_GAME:
 		SaveManager.delete_save(slot_name)
 		SaveManager.save_data(slot_name)
-		_start_game_scene(false)
+		_change_to_game_scene()
 	elif _current_slot_mode == SlotMode.LOAD_GAME:
 		if not SaveManager.load_data(slot_name):
 			return
-		_start_game_scene(true)
+		_change_to_game_scene()
 
-func _start_game_scene(is_loaded_game: bool) -> void:
-	NavigationLayerManager.reset_layers()
-	get_tree().change_scene_to_file(game_scene.resource_path)
-	
-	TimeManager.force_time(TimeManager.get_day_start())
-	await TimeManager.warp_time_until(TimeManager.get_day_start_current())
+func _change_to_game_scene() -> void:
+	if game_scene_path.is_empty():
+		return
+	var packed_scene := ResourceLoader.load_threaded_get(game_scene_path) as PackedScene
+	if packed_scene:
+		get_tree().change_scene_to_packed(packed_scene)
+	else:
+		get_tree().change_scene_to_file(game_scene_path)
 #endregion

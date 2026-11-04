@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://drdde1jro425c"]
 
 [ext_resource type="Script" uid="uid://bendbrdauxo4i" path="res://Scripts/UI/main_menu.gd" id="1_48xlc"]
-[ext_resource type="PackedScene" uid="uid://c2mmnc83hfp00" path="res://Scenes/test.tscn" id="2_1ehe0"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yf5fn"]
 
@@ -19,7 +18,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_48xlc")
-game_scene = ExtResource("2_1ehe0")
+game_scene_path = "uid://c3crrvllcs1ox"
 main_screen_container = NodePath("MarginContainer/Main")
 save_slots_container = NodePath("MarginContainer/Saves")
 credits_container = NodePath("MarginContainer/Credits")

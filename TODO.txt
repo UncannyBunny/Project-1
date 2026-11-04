@@ -1,11 +1,3 @@
-Grass:
-	Fix distance drawing being calculated by the distance to the multimesh, maybe use the shader instead?
-	Make grass count depend on density (ammount per meter) instead of a fixed ammount
-	Add randomization to grass cross's rotation
-	Make the grass noise margin be smooth instead of a hard end
-	Make it so that it uses multiple (three?) noise textures averaged, which are calculated from the seed
-	Make it so the size variation depends on the noise used for density
-
 Menu:
 	Preload main scene from main menu
 	Preload main menu from main scene

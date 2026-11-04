@@ -72,7 +72,7 @@ func _time_pass(delta: float) -> void:
 	_update_sun_rotation()
 
 func _update_sun_rotation() -> void:
-	if not is_instance_valid(_cached_sun):
+	if not is_instance_valid(_cached_sun) or not _cached_sun.is_inside_tree():
 		return
 		
 	var current_minutes_float: float = _time_passed * time_scale
@@ -99,6 +99,9 @@ func _update_sun_rotation() -> void:
 	))
 	var daily_spin_basis := Basis.from_euler(Vector3(deg_to_rad(angle_degrees), 0.0, 0.0))
 	_cached_sun.basis = orbit_plane_basis * daily_spin_basis
+	
+	var sun_elevation: float = _cached_sun.basis.z.y
+	_cached_sun.light_energy = clampf(sun_elevation * 3.0, 0.0, 1.0)
 
 func _on_node_added(node: Node) -> void:
 	if node is DirectionalLight3D and not node.editor_only:

@@ -1,5 +1,5 @@
 @tool
-## Component that spawns MultiMesh grass across a parent StaticBody3D/VisualInstance3D's AABB using a group whitelist.
+## Component that spawns density-based MultiMesh grass across a parent's AABB using 3 seeded noises and smooth transitions.
 class_name ProceduralGrass extends MultiMeshInstance3D
 
 @export_group("Generator Actions")
@@ -14,39 +14,48 @@ class_name ProceduralGrass extends MultiMeshInstance3D
 		return clear_grass
 
 @export var seed_value: int = 12345
-@export_range(1, 100000, 1) var grass_count: int = 8000
+
+@export_group("Density & Noise Patches")
+## Number of grass clump candidates per square meter (m^2) of the AABB area
+@export_range(0.1, 50.0, 0.1) var grass_density: float = 5.5
+## Base world scale of the 3 averaged noise layers (Macro, Medium, Micro)
+@export_range(0.005, 0.5, 0.005) var noise_base_frequency: float = 0.04
+## Center threshold (0..1) of the averaged noise where grass starts growing
+@export_range(0.0, 1.0, 0.01) var noise_threshold: float = 0.42
+## Width of the smooth transition margin around noise_threshold (feathers density and height at patch edges)
+@export_range(0.01, 0.5, 0.01) var noise_transition_margin: float = 0.18
+
+@export_group("Clump Mesh, Scale & Cross-Planes")
+## Base Width (X) and Height (Y) of each grass plane in meters
+@export var blade_base_size: Vector2 = Vector2(0.45, 0.45)
+## Generates intersecting cross-planes. Plane B's angle is randomized per instance via cross_plane_angle_range!
+@export var cross_planes: bool = true
+## Range of relative angles (in degrees) between the two cross-planes (90 = perpendicular X, 45..135 = organic varied angles)
+@export var cross_plane_angle_range: Vector2 = Vector2(55.0, 125.0)
+## Slight random horizontal separation between the two planes so they don't form a harsh center X intersection
+@export_range(0.0, 0.25, 0.01) var cross_plane_offset: float = 0.06
+## Minimum scale at the outer edge of a noise patch (low density)
+@export_range(0.05, 2.0, 0.05) var min_edge_scale: float = 0.35
+## Maximum scale at the dense center of a noise patch (high density = taller grass)
+@export_range(0.1, 4.0, 0.05) var max_core_scale: float = 1.45
+## Controls how strongly density affects height (1.0 = linear, >1.0 = only very dense centers get super tall)
+@export_range(0.25, 3.0, 0.05) var density_height_exponent: float = 1.2
+## Additional random +/- scale jitter on top of the noise-driven scale
+@export_range(0.0, 0.5, 0.01) var random_scale_jitter: float = 0.15
+## Maximum ground slope angle (in degrees) where grass is allowed to grow
+@export_range(0.0, 89.0, 1.0) var max_slope_degrees: float = 35.0
+@export var grass_material: Material
 
 @export_group("Target & Whitelist")
 ## Optional explicit body/mesh to read AABB from. If empty, uses get_parent().
 @export var target_body: Node3D
 ## Whitelist of Node Groups allowed to grow grass. Any object above the floor NOT in these groups blocks grass!
 @export var allowed_groups: Array[StringName] = [&"grass_surface"]
-## If true, the parent/target_body itself is automatically treated as whitelisted even if you forgot to add the group to it.
+## If true, the parent/target_body itself is automatically treated as whitelisted
 @export var allow_target_body_without_group: bool = true
-## Extra vertical height above the AABB top to start downward raycasts (catches tall roofs/trees blocking the floor)
 @export var raycast_top_margin: float = 15.0
-## Extra vertical depth below the AABB bottom for the raycast end
 @export var raycast_bottom_margin: float = 2.0
-## Fallback area and height if no parent AABB can be found
 @export var fallback_aabb: AABB = AABB(Vector3(-20.0, -2.0, -20.0), Vector3(40.0, 10.0, 40.0))
-
-@export_group("Clump Mesh & Scale")
-## Width (X) and Height (Y) of each grass plane in meters
-@export var blade_base_size: Vector2 = Vector2(0.55, 0.5)
-## Generates intersecting X cross-planes so grass has volume from all camera angles
-@export var cross_planes: bool = true
-@export var scale_randomness: Vector2 = Vector2(0.75, 1.35)
-## Maximum slope angle (in degrees) where grass is allowed to grow
-@export_range(0.0, 89.0, 1.0) var max_slope_degrees: float = 35.0
-## Optional noise to group grass into natural lush patches and bare spots
-@export var density_noise: Noise
-@export_range(0.0, 1.0, 0.01) var noise_threshold: float = 0.25
-@export var grass_material: Material
-
-@export_group("Performance & Culling")
-## Distance in meters where grass finishes fading out (0 = never fade)
-@export var visibility_max_distance: float = 60.0
-@export var visibility_fade_margin: float = 10.0
 
 @export_group("Baked Data")
 @export var baked_multimesh: MultiMesh:
@@ -56,7 +65,8 @@ class_name ProceduralGrass extends MultiMeshInstance3D
 
 
 func _ready() -> void:
-	_apply_visibility_settings()
+	# Disable MultiMesh-origin distance fade; distance culling is now handled per-blade in the shader!
+	visibility_range_end = 0.0
 	if baked_multimesh:
 		multimesh = baked_multimesh
 
@@ -76,13 +86,20 @@ func bake_grass() -> void:
 	if not is_inside_tree():
 		return
 
-	_apply_visibility_settings()
+	visibility_range_end = 0.0
 
 	var host: Node3D = _get_target_host()
 	var world_aabb: AABB = _compute_target_world_aabb(host)
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
+
+	# 1. Build 3 distinct FastNoiseLite generators from seed_value
+	var noises: Array[FastNoiseLite] = _create_three_seeded_noises(seed_value)
+
+	# 2. Calculate candidate count from AABB surface area (m^2) * grass_density
+	var area_m2: float = maxf(world_aabb.size.x * world_aabb.size.z, 0.1)
+	var candidate_count: int = clampi(int(roundf(area_m2 * grass_density)), 1, 250000)
 
 	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
 	var max_slope_cos: float = cos(deg_to_rad(max_slope_degrees))
@@ -95,23 +112,37 @@ func bake_grass() -> void:
 	var ray_start_y: float = world_aabb.end.y + raycast_top_margin
 	var ray_end_y: float = world_aabb.position.y - raycast_bottom_margin
 
+	var edge0: float = clampf(noise_threshold - noise_transition_margin, 0.0, 1.0)
+	var edge1: float = clampf(noise_threshold + noise_transition_margin, 0.001, 1.0)
+
+	var min_cp_rad: float = deg_to_rad(minf(cross_plane_angle_range.x, cross_plane_angle_range.y))
+	var max_cp_rad: float = deg_to_rad(maxf(cross_plane_angle_range.x, cross_plane_angle_range.y))
+
 	var valid_transforms: Array[Transform3D] = []
 	var valid_custom_data: Array[Color] = []
 
-	for i: int in range(grass_count):
+	for i: int in range(candidate_count):
 		var world_x: float = rng.randf_range(min_x, max_x)
 		var world_z: float = rng.randf_range(min_z, max_z)
 
-		# 1. Optional Noise Patchiness Filter
-		if density_noise:
-			var n_val: float = (density_noise.get_noise_2d(world_x, world_z) + 1.0) * 0.5
-			if n_val < noise_threshold:
-				continue
+		# 3. Sample the 3 averaged noise textures (mapped from -1..1 to 0..1)
+		var n0: float = (noises[0].get_noise_2d(world_x, world_z) + 1.0) * 0.5
+		var n1: float = (noises[1].get_noise_2d(world_x, world_z) + 1.0) * 0.5
+		var n2: float = (noises[2].get_noise_2d(world_x, world_z) + 1.0) * 0.5
+		var n_avg: float = (n0 + n1 + n2) / 3.0
+
+		# Smooth transition weight (0.0 below margin, 0.0->1.0 across margin, 1.0 in dense core)
+		var density_weight: float = smoothstep(edge0, edge1, n_avg)
+		if density_weight <= 0.001:
+			continue
+
+		# Probabilistic feathering in the smooth transition zone so edges thin out naturally
+		if rng.randf() > density_weight:
+			continue
 
 		var ray_start := Vector3(world_x, ray_start_y, world_z)
 		var ray_end := Vector3(world_x, ray_end_y, world_z)
 
-		# Raycast against all physics layers so any house, road, or prop above the floor intercepts the ray first
 		var query := PhysicsRayQueryParameters3D.create(ray_start, ray_end)
 		query.collide_with_bodies = true
 		query.collide_with_areas = false
@@ -124,37 +155,42 @@ func bake_grass() -> void:
 		if not (collider is Node):
 			continue
 
-		# 2. Whitelist Check: Only spawn if the top-most hit collider is whitelisted
 		if not _is_collider_whitelisted(collider as Node, host):
 			continue
 
 		var hit_pos: Vector3 = hit["position"]
 		var hit_normal: Vector3 = (hit["normal"] as Vector3).normalized()
 
-		# 3. Slope Check: Reject steep cliffs/walls
 		if hit_normal.dot(Vector3.UP) < max_slope_cos:
 			continue
 
-		# Convert hit position & normal into this MultiMeshInstance3D's local space
 		var local_pos: Vector3 = to_local(hit_pos)
 		var local_normal: Vector3 = (global_basis.inverse() * hit_normal).normalized()
 
-		var yaw: float = rng.randf_range(0.0, TAU)
-		var rand_scale: float = rng.randf_range(scale_randomness.x, scale_randomness.y)
+		# 4. Size variation driven by density_weight (Denser areas = Taller/Larger grass)
+		var height_curve_factor: float = pow(density_weight, density_height_exponent)
+		var density_scale: float = lerpf(min_edge_scale, max_core_scale, height_curve_factor)
+		var jitter: float = 1.0 + rng.randf_range(-random_scale_jitter, random_scale_jitter)
+		var final_scale_xz: float = maxf(density_scale * jitter, 0.05)
+		var final_scale_y: float = maxf(density_scale * (1.0 + (jitter - 1.0) * 1.25), 0.05)
 
+		var yaw: float = rng.randf_range(0.0, TAU)
 		var up_vec: Vector3 = Vector3.UP.lerp(local_normal, 0.65).normalized()
 		var forward_vec := Vector3(sin(yaw), 0.0, cos(yaw))
 		var right_vec: Vector3 = up_vec.cross(forward_vec).normalized()
 		forward_vec = right_vec.cross(up_vec).normalized()
 
-		var blade_basis := Basis(right_vec, up_vec, forward_vec).scaled(Vector3.ONE * rand_scale)
+		var blade_basis := Basis(right_vec, up_vec, forward_vec).scaled(Vector3(final_scale_xz, final_scale_y, final_scale_xz))
 		valid_transforms.append(Transform3D(blade_basis, local_pos))
 
+		# Random relative rotation angle (in radians) for the second cross-plane
+		var cross_angle_rad: float = rng.randf_range(min_cp_rad, max_cp_rad)
+
 		valid_custom_data.append(Color(
-			rng.randf(), # R: Random color variation (0..1)
-			rng.randf(), # G: Random wind phase offset
-			rand_scale,  # B: Scale factor
-			1.0
+			rng.randf(),      # R: Random color variation (0..1)
+			rng.randf(),      # G: Random wind phase offset (0..1)
+			density_weight,   # B: Smooth density factor (0..1)
+			cross_angle_rad   # A: Relative angle (radians) for Plane B of the cross-plane
 		))
 
 	var mm := MultiMesh.new()
@@ -171,6 +207,33 @@ func bake_grass() -> void:
 	notify_property_list_changed()
 
 
+#region Three Seeded Noises
+func _create_three_seeded_noises(base_seed: int) -> Array[FastNoiseLite]:
+	# Noise 1: Large macro meadows & clearings (Simplex Smooth)
+	var n1 := FastNoiseLite.new()
+	n1.seed = base_seed
+	n1.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	n1.frequency = noise_base_frequency
+	n1.fractal_octaves = 2
+
+	# Noise 2: Medium organic clusters (Perlin)
+	var n2 := FastNoiseLite.new()
+	n2.seed = base_seed + 1013
+	n2.noise_type = FastNoiseLite.TYPE_PERLIN
+	n2.frequency = noise_base_frequency * 2.15
+	n2.fractal_octaves = 2
+
+	# Noise 3: Fine local tufts & variation (Cellular / Simplex)
+	var n3 := FastNoiseLite.new()
+	n3.seed = base_seed + 2027
+	n3.noise_type = FastNoiseLite.TYPE_SIMPLEX
+	n3.frequency = noise_base_frequency * 4.3
+	n3.fractal_octaves = 1
+
+	return [n1, n2, n3]
+#endregion
+
+
 #region AABB & Whitelist Helpers
 func _get_target_host() -> Node3D:
 	if is_instance_valid(target_body):
@@ -183,7 +246,6 @@ func _is_collider_whitelisted(collider_node: Node, host: Node3D) -> bool:
 		if collider_node == host or host.is_ancestor_of(collider_node):
 			return true
 
-	# Check the collider node itself, its parent, and its scene owner for any allowed group
 	var check_nodes: Array[Node] = [collider_node]
 	if collider_node.get_parent():
 		check_nodes.append(collider_node.get_parent())
@@ -204,7 +266,6 @@ func _compute_target_world_aabb(host: Node3D) -> AABB:
 	var found_any: bool = false
 	var combined_aabb := AABB()
 
-	# Gather AABBs from VisualInstance3D (MeshInstance3D, CSGShape3D) and CollisionShape3D on the host
 	var candidates: Array[Node] = [host]
 	for child: Node in host.get_children():
 		if child != self:
@@ -235,32 +296,36 @@ func _compute_target_world_aabb(host: Node3D) -> AABB:
 
 
 #region Clump Mesh Generation
-func _apply_visibility_settings() -> void:
-	if visibility_max_distance > 0.0:
-		visibility_range_end = visibility_max_distance
-		visibility_range_end_margin = visibility_fade_margin
-		visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
-	else:
-		visibility_range_end = 0.0
-
-
 func _build_clump_mesh() -> ArrayMesh:
 	var vertices := PackedVector3Array()
 	var normals := PackedVector3Array()
 	var uvs := PackedVector2Array()
+	var colors := PackedColorArray()
 	var indices := PackedInt32Array()
 
+	# Plane 0: Base plane (COLOR.r = 0.0 means fixed at 0 deg)
+	_append_vertical_quad(
+		vertices, normals, uvs, colors, indices,
+		Vector3(0.0, 0.0, -cross_plane_offset * 0.5),
+		blade_base_size,
+		0.0
+	)
+
 	if cross_planes:
-		_append_vertical_quad(vertices, normals, uvs, indices, Basis(Vector3.UP, deg_to_rad(45.0)), blade_base_size)
-		_append_vertical_quad(vertices, normals, uvs, indices, Basis(Vector3.UP, deg_to_rad(-45.0)), blade_base_size)
-	else:
-		_append_vertical_quad(vertices, normals, uvs, indices, Basis.IDENTITY, blade_base_size)
+		# Plane 1: Second plane (COLOR.r = 1.0 tells the vertex shader to rotate it by INSTANCE_CUSTOM.a!)
+		_append_vertical_quad(
+			vertices, normals, uvs, colors, indices,
+			Vector3(0.0, 0.0, cross_plane_offset * 0.5),
+			blade_base_size,
+			1.0
+		)
 
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = vertices
 	arrays[Mesh.ARRAY_NORMAL] = normals
 	arrays[Mesh.ARRAY_TEX_UV] = uvs
+	arrays[Mesh.ARRAY_COLOR] = colors
 	arrays[Mesh.ARRAY_INDEX] = indices
 
 	var arr_mesh := ArrayMesh.new()
@@ -274,18 +339,23 @@ func _append_vertical_quad(
 	vertices: PackedVector3Array,
 	normals: PackedVector3Array,
 	uvs: PackedVector2Array,
+	colors: PackedColorArray,
 	indices: PackedInt32Array,
-	basis: Basis,
-	size: Vector2
+	offset: Vector3,
+	size: Vector2,
+	plane_id: float
 ) -> void:
 	var half_w: float = size.x * 0.5
 	var h: float = size.y
 	var base_idx: int = vertices.size()
 
-	var v0: Vector3 = basis * Vector3(-half_w, 0.0, 0.0)
-	var v1: Vector3 = basis * Vector3(half_w, 0.0, 0.0)
-	var v2: Vector3 = basis * Vector3(half_w, h, 0.0)
-	var v3: Vector3 = basis * Vector3(-half_w, h, 0.0)
+	# Slight upward curve/tilt (0.08 * h on Z) so planes don't look dead-vertical from directly above!
+	var top_tilt_z: float = h * 0.12 * (1.0 if plane_id < 0.5 else -1.0)
+
+	var v0: Vector3 = offset + Vector3(-half_w, 0.0, 0.0)
+	var v1: Vector3 = offset + Vector3(half_w, 0.0, 0.0)
+	var v2: Vector3 = offset + Vector3(half_w, h, top_tilt_z)
+	var v3: Vector3 = offset + Vector3(-half_w, h, top_tilt_z)
 
 	vertices.append_array([v0, v1, v2, v3])
 	normals.append_array([Vector3.UP, Vector3.UP, Vector3.UP, Vector3.UP])
@@ -295,6 +365,8 @@ func _append_vertical_quad(
 		Vector2(1.0, 0.0),
 		Vector2(0.0, 0.0)
 	])
+	var col := Color(plane_id, 0.0, 0.0, 1.0)
+	colors.append_array([col, col, col, col])
 
 	indices.append_array([
 		base_idx + 0, base_idx + 1, base_idx + 2,

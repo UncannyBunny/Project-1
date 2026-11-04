@@ -213,8 +213,10 @@ void sky() {
 			float puff_gradient = smoothstep(threshold, threshold + cloud_softness * 2.2, n);
 			float light_factor = clamp(mix(puff_gradient, self_shade, 0.5), 0.0, 1.0);
 			
-			float day_weight = smoothstep(-0.08, 0.22, zenith_angle);
-			float sunset_weight = smoothstep(-0.16, 0.02, zenith_angle) * (1.0 - smoothstep(0.02, 0.28, zenith_angle));
+			float sun_active = clamp(LIGHT0_ENERGY, 0.0, 1.0);
+			float day_weight = smoothstep(-0.02, 0.18, zenith_angle) * sun_active;
+			
+			float sunset_weight = smoothstep(-0.025, 0.02, zenith_angle) * (1.0 - smoothstep(0.03, 0.18, zenith_angle)) * sun_active;
 			
 			vec3 day_cloud = mix(cloud_shadow_color, cloud_day_color, light_factor);
 			vec3 sunset_tint = mix(vec3(0.22, 0.14, 0.25), vec3(1.0, 0.42, 0.18) * LIGHT0_COLOR, light_factor);

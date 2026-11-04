@@ -6,7 +6,7 @@ signal note_saved(line_index: int, text: String)
 
 @export_group("Scene References")
 ## File path to the Main Menu scene (Pause menu will not open if this is the active scene)
-@export_file("*.tscn") var main_menu_scene_path: String = ""
+@export_file("*.tscn", "*scn") var main_menu_scene_path: String = ""
 @export var pause_menu_container: Control
 @export var dialogue_ui: DialogueUI
 
@@ -49,6 +49,8 @@ func _ready() -> void:
 	_setup_notebook_ui()
 	_load_saved_notebook()
 	_update_clock_display()
+	if not main_menu_scene_path.is_empty() and get_tree().current_scene.scene_file_path != main_menu_scene_path:
+		ResourceLoader.load_threaded_request(main_menu_scene_path)
 
 func _process(_delta: float) -> void:
 	_update_mouse_mode()
@@ -102,9 +104,11 @@ func _on_save_and_exit_pressed() -> void:
 	set_pause_menu_open(false)
 	get_tree().paused = false
 	if not main_menu_scene_path.is_empty():
-		get_tree().change_scene_to_file(main_menu_scene_path)
-	else:
-		get_tree().quit()
+		var packed_menu := ResourceLoader.load_threaded_get(main_menu_scene_path) as PackedScene
+		if packed_menu:
+			get_tree().change_scene_to_packed(packed_menu)
+		else:
+			get_tree().change_scene_to_file(main_menu_scene_path)
 
 func _is_in_main_menu() -> bool:
 	if main_menu_scene_path.is_empty() or not get_tree().current_scene:

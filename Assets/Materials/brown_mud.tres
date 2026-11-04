@@ -1,0 +1,13 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://dwktak22vv47y"]
+
+[ext_resource type="Texture2D" uid="uid://bk3wwbx11i25q" path="res://Assets/objects_brown_mud_leaves_01_diff.jpg" id="1_y2pb2"]
+
+[resource]
+resource_name = "brown_mud_leaves_01"
+cull_mode = 2
+albedo_texture = ExtResource("1_y2pb2")
+metallic_texture_channel = 2
+roughness_texture_channel = 1
+normal_enabled = true
+uv1_scale = Vector3(20, 20, 20)
+metadata/_gltf_primary_texture_coord = 0
