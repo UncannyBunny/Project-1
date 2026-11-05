@@ -27,7 +27,7 @@ signal note_saved(line_index: int, text: String)
 @export var button_prev_page: Button
 @export var button_next_page: Button
 @export var page_number_label: Label
-@export var max_characters_per_line: int = 40
+@export var max_characters_per_line: int = 64
 @export var max_pages: int = 10
 
 var _is_editing_alarm: bool = false
@@ -128,9 +128,13 @@ func _setup_clock_ui() -> void:
 		button_hour.pressed.connect(_on_hour_pressed)
 	if button_minute:
 		button_minute.pressed.connect(_on_minute_pressed)
+	button_hour.visible = _is_editing_alarm
+	button_minute.visible = _is_editing_alarm
 
 func _on_toggle_alarm_mode() -> void:
 	_is_editing_alarm = not _is_editing_alarm
+	button_hour.visible = _is_editing_alarm
+	button_minute.visible = _is_editing_alarm
 	if not _is_editing_alarm:
 		TimeManager.set_day_start(_target_alarm_time)
 	_update_clock_display()
@@ -190,7 +194,7 @@ func _setup_notebook_ui() -> void:
 		button_prev_page.pressed.connect(func() -> void: _change_notebook_page(-1))
 	if button_next_page:
 		button_next_page.pressed.connect(func() -> void: _change_notebook_page(1))
-		
+	
 	_refresh_notebook_page()
 
 func _change_notebook_page(delta_page: int) -> void:

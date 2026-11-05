@@ -1,5 +1,5 @@
 @tool
-## Unified non-blocking terrain generator that normalizes any Texture2D into a HeightMapShape3D collider and culled visual chunks.
+## Unified non-blocking terrain generator with Vector3 meter dimensions, Vector2i detail, and noise-scrambled height material blending.
 class_name TerrainGenerator extends Node3D
 
 enum SourceChannel {
@@ -36,21 +36,29 @@ enum SourceChannel {
 ## Number of 3x3 smoothing passes applied to the height grid to remove pixel stair-stepping
 @export_range(0, 10, 1) var smoothing_passes: int = 1
 
-@export_group("Dimensions & Chunking")
-## Total vertex count along the X axis
-@export_range(4, 2049, 1) var width: int = 128
-## Total vertex count along the Z axis
-@export_range(4, 2049, 1) var depth: int = 128
-## Distance in meters between adjacent vertices on X and Z
-@export_range(0.1, 20.0, 0.05) var spacing: float = 1.0
-## Maximum vertical height in meters (at normalized height 1.0)
-@export var height_scale: float = 10.0
+@export_group("Dimensions & Detail")
+## Total size of the terrain in meters: X = Width, Y = Max Height, Z = Depth
+@export var terrain_size: Vector3 = Vector3(128.0, 15.0, 128.0)
+## Vertex resolution along the X and Z axes
+@export var detail: Vector2i = Vector2i(128, 128)
 ## Number of visual chunks along X and Z (e.g. 4x4 = 16 culled MeshInstance3D chunks)
 @export var chunk_grid: Vector2i = Vector2i(4, 4)
-## Material applied to all generated terrain chunks
-@export var terrain_material: Material
 ## UV tiling multiplier across the entire terrain
-@export var uv_scale: Vector2 = Vector2(1.0, 1.0)
+@export var uv_scale: Vector2 = Vector2(16.0, 16.0)
+
+@export_group("Height Materials & Border Noise")
+## Dictionary mapping start height in meters (float) -> Material (StandardMaterial3D/BaseMaterial3D). Up to 8 layers.
+@export var height_materials: Dictionary[float, Material] = {}
+## Fallback single material used if height_materials is empty
+@export var fallback_material: Material
+## Vertical distance (in meters) over which adjacent height materials smoothly blend into each other
+@export_range(0.05, 20.0, 0.05) var material_blend_range: float = 2.0
+## FastNoiseLite used to scramble the height borders between materials
+@export var border_noise: FastNoiseLite
+## How many meters up/down the border_noise warps the material transition height
+@export_range(0.0, 15.0, 0.1) var border_noise_amplitude: float = 1.5
+## World-space scale multiplier for sampling border_noise
+@export_range(0.01, 10.0, 0.01) var border_noise_scale: float = 1.0
 
 @export_group("Performance & Culling")
 ## Maximum milliseconds spent generating per frame before yielding to keep the Editor responsive
@@ -58,21 +66,19 @@ enum SourceChannel {
 ## Distance in meters where individual chunks fade out (0 = never fade)
 @export var chunk_visibility_max_distance: float = 0.0
 @export var chunk_visibility_fade_margin: float = 15.0
-## Shadow casting mode for terrain chunks
 @export var cast_shadow: GeometryInstance3D.ShadowCastingSetting = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 
 @export_group("Collision & Groups")
 ## Optional external CollisionShape3D. If left empty, a StaticBody3D + CollisionShape3D is created automatically.
 @export var height_map_body_collider: CollisionShape3D
-## Groups automatically assigned to the generated StaticBody3D (compatible with ProceduralGrass whitelist!)
+## Groups automatically assigned to the generated StaticBody3D (compatible with ProceduralGrass/MultiMeshPopulator!)
 @export var body_groups: Array[StringName] = [&"grass_surface"]
 @export_flags_3d_physics var collision_layer: int = 1
 @export_flags_3d_physics var collision_mask: int = 1
 
 @export_group("Storage")
-## Automatically saves generated chunk meshes and HeightMapShape3D as compressed binary .res files to prevent large .tscn warnings
+## Automatically saves generated chunk meshes and HeightMapShape3D as compressed binary .res files
 @export var auto_save_to_disk: bool = true
-## Subfolder name created next to the current .tscn file
 @export var save_subfolder_name: String = "GeneratedTerrain"
 
 var _is_generating: bool = false
@@ -112,7 +118,6 @@ func generate_terrain() -> void:
 		_is_generating = false
 		return
 
-	# Work on a duplicate so we never mutate the original imported resource in memory
 	img = img.duplicate() as Image
 	if img.is_compressed():
 		img.decompress()
@@ -120,7 +125,7 @@ func generate_terrain() -> void:
 	var img_w: int = img.get_width()
 	var img_h: int = img.get_height()
 
-	# 2. Extract Channel & Find Min/Max for Color Normalization
+	# 2. Extract Channel & Normalize Colors (0.0 .. 1.0)
 	var raw_pixels := PackedFloat32Array()
 	raw_pixels.resize(img_w * img_h)
 
@@ -153,9 +158,13 @@ func generate_terrain() -> void:
 	elif normalize_colors:
 		raw_pixels.fill(0.0)
 
-	# 3. Sample Bilinear Height Grid (width x depth)
-	var grid_w: int = maxi(width, 2)
-	var grid_d: int = maxi(depth, 2)
+	# 3. Compute Grid Resolution & Spacing from terrain_size and detail
+	var grid_w: int = maxi(detail.x, 2)
+	var grid_d: int = maxi(detail.y, 2)
+	var spacing_x: float = maxf(terrain_size.x, 0.1) / float(grid_w - 1)
+	var spacing_z: float = maxf(terrain_size.z, 0.1) / float(grid_d - 1)
+	var max_height: float = terrain_size.y
+
 	var physics_heights := PackedFloat32Array()
 	physics_heights.resize(grid_w * grid_d)
 
@@ -172,7 +181,7 @@ func generate_terrain() -> void:
 			if height_curve:
 				norm_h = height_curve.sample_baked(clampf(norm_h, 0.0, 1.0))
 
-			physics_heights[x + z * grid_w] = norm_h * height_scale
+			physics_heights[x + z * grid_w] = norm_h * max_height
 
 		if Time.get_ticks_msec() - frame_start >= frame_budget_ms:
 			var pct: float = 17.0 + (float(z) / float(grid_d)) * 18.0
@@ -183,7 +192,7 @@ func generate_terrain() -> void:
 				_abort_generation(popup_data)
 				return
 
-	# 4. Optional Smoothing Passes (Prevents blocky stair-steps on low-res textures)
+	# 4. Optional Smoothing Passes
 	for pass_idx: int in range(smoothing_passes):
 		physics_heights = _smooth_height_grid(physics_heights, grid_w, grid_d)
 		if Time.get_ticks_msec() - frame_start >= frame_budget_ms:
@@ -194,19 +203,19 @@ func generate_terrain() -> void:
 				_abort_generation(popup_data)
 				return
 
-	# 5. Precalculate Global Smooth Normals & Tangents (Prevents seams between chunks!)
+	# 5. Precalculate Global Smooth Normals
 	var global_normals := PackedVector3Array()
 	global_normals.resize(grid_w * grid_d)
 
 	for z: int in range(grid_d):
 		var z_up: int = maxi(z - 1, 0)
 		var z_down: int = mini(z + 1, grid_d - 1)
-		var dz: float = float(z_down - z_up) * spacing
+		var dz: float = float(z_down - z_up) * spacing_z
 
 		for x: int in range(grid_w):
 			var x_left: int = maxi(x - 1, 0)
 			var x_right: int = mini(x + 1, grid_w - 1)
-			var dx: float = float(x_right - x_left) * spacing
+			var dx: float = float(x_right - x_left) * spacing_x
 
 			var h_left: float = physics_heights[x_left + z * grid_w]
 			var h_right: float = physics_heights[x_right + z * grid_w]
@@ -226,7 +235,13 @@ func generate_terrain() -> void:
 				_abort_generation(popup_data)
 				return
 
-	# 6. Clear Old Chunks & Prepare Containers
+	# 6. Build Shared Height-Blending ShaderMaterial (if height_materials is populated)
+	_update_progress(popup_data, 55.0, "Building height-blended material...")
+	await get_tree().process_frame
+	var active_material: Material = await _build_blended_terrain_material()
+	frame_start = Time.get_ticks_msec()
+
+	# 7. Clear Old Chunks & Prepare Containers
 	_clear_chunks_internal()
 	var chunks_root := Node3D.new()
 	chunks_root.name = "TerrainChunks"
@@ -235,14 +250,14 @@ func generate_terrain() -> void:
 	if scene_owner:
 		chunks_root.owner = scene_owner
 
-	# 7. Slice & Build Chunks Directly from the Grid
+	# 8. Slice & Build Chunks Directly from the Grid
 	var chunks_x: int = maxi(chunk_grid.x, 1)
 	var chunks_z: int = maxi(chunk_grid.y, 1)
 	var total_chunks: int = chunks_x * chunks_z
 	var quads_x: int = grid_w - 1
 	var quads_z: int = grid_d - 1
-	var offset_x: float = (float(quads_x) * spacing) * 0.5
-	var offset_z: float = (float(quads_z) * spacing) * 0.5
+	var offset_x: float = terrain_size.x * 0.5
+	var offset_z: float = terrain_size.z * 0.5
 
 	var built_chunks: int = 0
 	for cz: int in range(chunks_z):
@@ -262,9 +277,11 @@ func generate_terrain() -> void:
 				q_start_x, q_end_x,
 				q_start_z, q_end_z,
 				grid_w, grid_d,
+				spacing_x, spacing_z,
 				offset_x, offset_z,
 				physics_heights,
-				global_normals
+				global_normals,
+				active_material
 			)
 			chunks_root.add_child(chunk_inst)
 			if scene_owner:
@@ -272,7 +289,7 @@ func generate_terrain() -> void:
 
 			built_chunks += 1
 			if Time.get_ticks_msec() - frame_start >= frame_budget_ms:
-				var pct: float = 55.0 + (float(built_chunks) / float(total_chunks)) * 35.0
+				var pct: float = 57.0 + (float(built_chunks) / float(total_chunks)) * 33.0
 				_update_progress(popup_data, pct, "Building chunk %d / %d..." % [built_chunks, total_chunks])
 				await get_tree().process_frame
 				frame_start = Time.get_ticks_msec()
@@ -280,12 +297,12 @@ func generate_terrain() -> void:
 					_abort_generation(popup_data)
 					return
 
-	# 8. Build & Assign HeightMapShape3D Collider
+	# 9. Build & Assign HeightMapShape3D Collider
 	_update_progress(popup_data, 92.0, "Building HeightMapShape3D collider...")
 	await get_tree().process_frame
-	_apply_collision_shape(grid_w, grid_d, physics_heights, scene_owner)
+	_apply_collision_shape(grid_w, grid_d, spacing_x, spacing_z, physics_heights, scene_owner)
 
-	# 9. Auto-Save Compressed Binary .res Files to Keep .tscn Small
+	# 10. Auto-Save Compressed Binary .res Files
 	if auto_save_to_disk and Engine.is_editor_hint():
 		_update_progress(popup_data, 96.0, "Saving compressed binary .res files...")
 		await get_tree().process_frame
@@ -296,9 +313,170 @@ func generate_terrain() -> void:
 	_close_progress_popup(popup_data)
 	_is_generating = false
 
-	print("TerrainGenerator: Generated %d chunks (%dx%d vertices, %.1fx%.1fm)." % [
-		built_chunks, grid_w, grid_d, float(quads_x) * spacing, float(quads_z) * spacing
+	print("TerrainGenerator: Generated %d chunks (%dx%d detail, %.1fx%.1fx%.1fm)." % [
+		built_chunks, grid_w, grid_d, terrain_size.x, terrain_size.y, terrain_size.z
 	])
+#endregion
+
+
+#region Height-Blended Material & Shader Builder
+func _build_blended_terrain_material() -> Material:
+	if height_materials.is_empty():
+		return fallback_material
+
+	# Collect valid float height keys and sort ascending
+	var sorted_heights: Array[float] = []
+	for h_key: float in height_materials.keys():
+		if height_materials[h_key] != null:
+			sorted_heights.append(h_key)
+	sorted_heights.sort()
+
+	if sorted_heights.is_empty():
+		return fallback_material
+
+	# If only 1 material is provided and it's already a ShaderMaterial, return it directly
+	if sorted_heights.size() == 1 and height_materials[sorted_heights[0]] is ShaderMaterial:
+		return height_materials[sorted_heights[0]]
+
+	var layer_count: int = mini(sorted_heights.size(), 8)
+	var shader_mat := ShaderMaterial.new()
+	shader_mat.shader = _get_or_create_height_blend_shader()
+
+	# 1x1 white fallback texture for materials that only use albedo_color
+	var white_img := Image.create(2, 2, false, Image.FORMAT_RGBA8)
+	white_img.fill(Color.WHITE)
+	var white_tex := ImageTexture.create_from_image(white_img)
+
+	var heights_arr := PackedFloat32Array()
+	var colors_arr := PackedColorArray()
+	var roughness_arr := PackedFloat32Array()
+	var uv_scales_arr := PackedVector2Array()
+	heights_arr.resize(8)
+	colors_arr.resize(8)
+	roughness_arr.resize(8)
+	uv_scales_arr.resize(8)
+
+	for i: int in range(8):
+		var src_idx: int = mini(i, layer_count - 1)
+		var h_val: float = sorted_heights[src_idx]
+		var mat: Material = height_materials[h_val]
+
+		heights_arr[i] = h_val
+		colors_arr[i] = Color.WHITE
+		roughness_arr[i] = 0.85
+		uv_scales_arr[i] = Vector2.ONE
+
+		var albedo_tex: Texture2D = white_tex
+		if mat is BaseMaterial3D:
+			var bmat := mat as BaseMaterial3D
+			colors_arr[i] = bmat.albedo_color
+			roughness_arr[i] = bmat.roughness
+			uv_scales_arr[i] = Vector2(bmat.uv1_scale.x, bmat.uv1_scale.y)
+			if bmat.albedo_texture:
+				albedo_tex = bmat.albedo_texture
+
+		shader_mat.set_shader_parameter("layer_tex_%d" % i, albedo_tex)
+
+	shader_mat.set_shader_parameter("layer_count", layer_count)
+	shader_mat.set_shader_parameter("layer_heights", heights_arr)
+	shader_mat.set_shader_parameter("layer_colors", colors_arr)
+	shader_mat.set_shader_parameter("layer_roughness", roughness_arr)
+	shader_mat.set_shader_parameter("layer_uv_scales", uv_scales_arr)
+	shader_mat.set_shader_parameter("blend_range", maxf(material_blend_range, 0.05))
+
+	# Configure FastNoiseLite border scrambling texture
+	if border_noise:
+		var noise_tex := NoiseTexture2D.new()
+		noise_tex.width = 256
+		noise_tex.height = 256
+		noise_tex.seamless = true
+		noise_tex.noise = border_noise
+		await noise_tex.changed
+		shader_mat.set_shader_parameter("border_noise_tex", noise_tex)
+		shader_mat.set_shader_parameter("border_noise_amplitude", border_noise_amplitude)
+		shader_mat.set_shader_parameter("border_noise_scale", border_noise_scale * 0.05)
+	else:
+		shader_mat.set_shader_parameter("border_noise_tex", white_tex)
+		shader_mat.set_shader_parameter("border_noise_amplitude", 0.0)
+
+	return shader_mat
+
+
+func _get_or_create_height_blend_shader() -> Shader:
+	var shader := Shader.new()
+	shader.code = """
+shader_type spatial;
+render_mode cull_back, diffuse_burley, specular_schlick_ggx;
+
+uniform int layer_count = 1;
+uniform float layer_heights[8];
+uniform vec4 layer_colors[8];
+uniform float layer_roughness[8];
+uniform vec2 layer_uv_scales[8];
+
+uniform sampler2D layer_tex_0 : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D layer_tex_1 : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D layer_tex_2 : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D layer_tex_3 : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D layer_tex_4 : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D layer_tex_5 : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D layer_tex_6 : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D layer_tex_7 : source_color, filter_linear_mipmap, repeat_enable;
+
+uniform float blend_range = 2.0;
+uniform sampler2D border_noise_tex : filter_linear_mipmap, repeat_enable;
+uniform float border_noise_amplitude = 1.5;
+uniform float border_noise_scale = 0.05;
+
+varying float v_local_height;
+varying vec2 v_world_xz;
+
+vec3 sample_layer_albedo(int idx, vec2 uv) {
+	vec2 scaled_uv = uv * layer_uv_scales[idx];
+	vec4 tex = vec4(1.0);
+	if (idx == 0) tex = texture(layer_tex_0, scaled_uv);
+	else if (idx == 1) tex = texture(layer_tex_1, scaled_uv);
+	else if (idx == 2) tex = texture(layer_tex_2, scaled_uv);
+	else if (idx == 3) tex = texture(layer_tex_3, scaled_uv);
+	else if (idx == 4) tex = texture(layer_tex_4, scaled_uv);
+	else if (idx == 5) tex = texture(layer_tex_5, scaled_uv);
+	else if (idx == 6) tex = texture(layer_tex_6, scaled_uv);
+	else if (idx == 7) tex = texture(layer_tex_7, scaled_uv);
+	return tex.rgb * layer_colors[idx].rgb;
+}
+
+void vertex() {
+	v_local_height = VERTEX.y;
+	v_world_xz = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xz;
+}
+
+void fragment() {
+	float n1 = texture(border_noise_tex, v_world_xz * border_noise_scale).r * 2.0 - 1.0;
+	float n2 = texture(border_noise_tex, v_world_xz * border_noise_scale * 2.37 + vec2(0.31, 0.73)).r * 2.0 - 1.0;
+	float scrambled_h = v_local_height + (n1 * 0.65 + n2 * 0.35) * border_noise_amplitude;
+
+	vec3 accum_albedo = sample_layer_albedo(0, UV);
+	float accum_rough = layer_roughness[0];
+	float half_blend = max(blend_range * 0.5, 0.02);
+
+	for (int i = 1; i < 8; i++) {
+		if (i >= layer_count) {
+			break;
+		}
+		float h_thresh = layer_heights[i];
+		float w = smoothstep(h_thresh - half_blend, h_thresh + half_blend, scrambled_h);
+		if (w > 0.001) {
+			vec3 next_albedo = sample_layer_albedo(i, UV);
+			accum_albedo = mix(accum_albedo, next_albedo, w);
+			accum_rough = mix(accum_rough, layer_roughness[i], w);
+		}
+	}
+
+	ALBEDO = accum_albedo;
+	ROUGHNESS = accum_rough;
+}
+"""
+	return shader
 #endregion
 
 
@@ -308,20 +486,21 @@ func _build_single_chunk(
 	q_start_x: int, q_end_x: int,
 	q_start_z: int, q_end_z: int,
 	grid_w: int, grid_d: int,
+	spacing_x: float, spacing_z: float,
 	offset_x: float, offset_z: float,
 	physics_heights: PackedFloat32Array,
-	global_normals: PackedVector3Array
+	global_normals: PackedVector3Array,
+	active_material: Material
 ) -> MeshInstance3D:
 	var c_verts_x: int = (q_end_x - q_start_x) + 1
 	var c_verts_z: int = (q_end_z - q_start_z) + 1
 	var c_quads_x: int = q_end_x - q_start_x
 	var c_quads_z: int = q_end_z - q_start_z
 
-	# Center this chunk's local origin at its geometric XZ midpoint for accurate culling
-	var min_world_x: float = (float(q_start_x) * spacing) - offset_x
-	var max_world_x: float = (float(q_end_x) * spacing) - offset_x
-	var min_world_z: float = (float(q_start_z) * spacing) - offset_z
-	var max_world_z: float = (float(q_end_z) * spacing) - offset_z
+	var min_world_x: float = (float(q_start_x) * spacing_x) - offset_x
+	var max_world_x: float = (float(q_end_x) * spacing_x) - offset_x
+	var min_world_z: float = (float(q_start_z) * spacing_z) - offset_z
+	var max_world_z: float = (float(q_end_z) * spacing_z) - offset_z
 	var chunk_center := Vector3((min_world_x + max_world_x) * 0.5, 0.0, (min_world_z + max_world_z) * 0.5)
 
 	var total_verts: int = c_verts_x * c_verts_z
@@ -338,12 +517,12 @@ func _build_single_chunk(
 	for lz: int in range(c_verts_z):
 		var gz: int = q_start_z + lz
 		var v_coord: float = (float(gz) / float(grid_d - 1)) * uv_scale.y
-		var world_z: float = (float(gz) * spacing) - offset_z - chunk_center.z
+		var world_z: float = (float(gz) * spacing_z) - offset_z - chunk_center.z
 
 		for lx: int in range(c_verts_x):
 			var gx: int = q_start_x + lx
 			var u_coord: float = (float(gx) / float(grid_w - 1)) * uv_scale.x
-			var world_x: float = (float(gx) * spacing) - offset_x - chunk_center.x
+			var world_x: float = (float(gx) * spacing_x) - offset_x - chunk_center.x
 
 			var g_idx: int = gx + gz * grid_w
 			var h: float = physics_heights[g_idx]
@@ -353,7 +532,6 @@ func _build_single_chunk(
 			normals[v_idx] = n
 			uvs[v_idx] = Vector2(u_coord, v_coord)
 
-			# Orthonormal tangent along +X
 			var t: Vector3 = n.cross(Vector3.BACK).normalized()
 			var t_base: int = v_idx * 4
 			tangents[t_base + 0] = t.x
@@ -394,8 +572,8 @@ func _build_single_chunk(
 
 	var arr_mesh := ArrayMesh.new()
 	arr_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	if terrain_material:
-		arr_mesh.surface_set_material(0, terrain_material)
+	if active_material:
+		arr_mesh.surface_set_material(0, active_material)
 
 	var chunk_inst := MeshInstance3D.new()
 	chunk_inst.name = "Chunk_%d_%d" % [cx, cz]
@@ -411,7 +589,14 @@ func _build_single_chunk(
 	return chunk_inst
 
 
-func _apply_collision_shape(grid_w: int, grid_d: int, physics_heights: PackedFloat32Array, scene_owner: Node) -> void:
+func _apply_collision_shape(
+	grid_w: int,
+	grid_d: int,
+	spacing_x: float,
+	spacing_z: float,
+	physics_heights: PackedFloat32Array,
+	scene_owner: Node
+) -> void:
 	var target_collider: CollisionShape3D = height_map_body_collider
 	if not is_instance_valid(target_collider):
 		var static_body := get_node_or_null("TerrainStaticBody3D") as StaticBody3D
@@ -443,7 +628,7 @@ func _apply_collision_shape(grid_w: int, grid_d: int, physics_heights: PackedFlo
 
 	target_collider.shape = shape
 	target_collider.position = Vector3.ZERO
-	target_collider.scale = Vector3(spacing, 1.0, spacing)
+	target_collider.scale = Vector3(spacing_x, 1.0, spacing_z)
 #endregion
 
 
