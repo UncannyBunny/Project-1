@@ -1,0 +1,17 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://mgs2jftes6oa"]
+
+[ext_resource type="Texture2D" uid="uid://u5jwyvmosn3n" path="res://Assets/textures/rough_concrete_diff_1k.jpg" id="1_0tj4e"]
+[ext_resource type="Texture2D" uid="uid://23w83ywyeafu" path="res://Assets/textures/rough_concrete_arm_1k.jpg" id="2_sp2fx"]
+[ext_resource type="Texture2D" uid="uid://cvaeevvgh50yp" path="res://Assets/textures/rough_concrete_nor_gl_1k.jpg" id="3_r0oyk"]
+
+[resource]
+resource_name = "rough_concrete"
+cull_mode = 2
+albedo_texture = ExtResource("1_0tj4e")
+metallic_texture = ExtResource("2_sp2fx")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("2_sp2fx")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("3_r0oyk")
+metadata/_gltf_primary_texture_coord = 0

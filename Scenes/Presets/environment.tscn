@@ -41,11 +41,16 @@ background_mode = 2
 sky = SubResource("Sky_riqys")
 tonemap_mode = 2
 glow_bloom = 0.2
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.3391186, 0.36918375, 0.4159603, 1)
+fog_light_energy = 0.5
+fog_density = 1.0
+fog_sky_affect = 0.0
 volumetric_fog_enabled = true
-volumetric_fog_density = 0.15
-volumetric_fog_albedo = Color(0.24115619, 0.24115601, 0.24115601, 1)
+volumetric_fog_density = 0.01
+volumetric_fog_albedo = Color(0.48570347, 0.48570353, 0.4857034, 1)
 volumetric_fog_emission = Color(0.12591085, 0.12591085, 0.12591082, 1)
-volumetric_fog_ambient_inject = 1.0
 volumetric_fog_sky_affect = 0.25
 
 [sub_resource type="Gradient" id="Gradient_aees8"]

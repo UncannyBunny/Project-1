@@ -62,7 +62,7 @@ func _ready() -> void:
 	if npc_detection_area:
 		npc_detection_area.body_entered.connect(_on_npc_area_entered)
 		npc_detection_area.body_exited.connect(_on_npc_area_exited)
-		
+
 	KeyManager.keys_changed.connect(_on_keys_changed)
 	_on_keys_changed()
 

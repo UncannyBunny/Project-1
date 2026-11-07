@@ -1,14 +1,17 @@
-## First-person Player Controller consolidating movement input, mouse look, crouching, leaning, and raycast interaction.
+## First-person Player Controller consolidating movement input, mouse look, crouching, leaning, flashlight, and raycast interaction.
 class_name PlayerController extends CharacterController3D
 
 signal interaction_target_changed(interactable: Node)
 signal crouch_changed(is_crouching: bool)
 signal lean_changed(lean_direction: float)
+signal flashlight_toggled(is_on: bool)
 
 @export_group("Nodes")
 @export var camera: Camera3D
 @export var collision_shape: CollisionShape3D
 @export var animation_tree: AnimationTree
+## Lantern / Flashlight 3D node whose visibility is toggled when pressing F
+@export var lantern_node: Node3D
 
 @export_group("Mouse Look")
 @export var mouse_sensitivity: float = 0.002
@@ -23,17 +26,24 @@ var _is_in_transition: bool = false
 @export var interact_with_bodies: bool = true
 @export_flags_3d_physics var interaction_collision_mask: int = 0xFFFFFFFF
 
-@export_group("Crouch & Lean")
+@export_group("Crouch, Lean & Arms")
 @export var speed_crouching: float = 0.5
 @export var anim_blend_speed: float = 2.0
+@export var arm_blend_speed: float = 6.0
+## AnimationTree parameter path for the Right-Arm Flashlight Blend2 node
+@export var flashlight_blend_param: StringName = &"parameters/flashlight_blend/blend_amount"
+## AnimationTree parameter path for the Interact Arm OneShot node
+@export var interact_oneshot_param: StringName = &"parameters/interact_shot/request"
 
 var _is_crouching: bool = false
 var _lean_direction: float = 0.0
+var _is_flashlight_on: bool = false
 var _current_hovered_interactable: Node = null
 
 var _crouch_blend: float = 0.0
 var _lean_blend: float = 0.0
 var _move_blend: float = 0.0
+var _flashlight_blend: float = 0.0
 
 func _ready() -> void:
 	super._ready()
@@ -44,6 +54,8 @@ func _ready() -> void:
 		collision_shape = get_node_or_null("CollisionShape3D") as CollisionShape3D
 	if animation_tree:
 		animation_tree.active = true
+	if lantern_node:
+		lantern_node.visible = _is_flashlight_on
 
 func _input(event: InputEvent) -> void:
 	if _is_in_transition:
@@ -72,6 +84,8 @@ func _input(event: InputEvent) -> void:
 	elif event.is_action_pressed(&"move_crouch"):
 		if not _movement_run:
 			_set_crouching(not _is_crouching)
+	elif (InputMap.has_action(&"flashlight") and event.is_action_pressed(&"flashlight")) or (event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_F):
+		toggle_flashlight()
 
 func _physics_process(delta: float) -> void:
 	_process_movement_and_posture_input()
@@ -90,8 +104,7 @@ func _process_movement_and_posture_input() -> void:
 	set_direction(world_dir)
 	
 	var is_trying_to_move: bool = input_vec != Vector2.ZERO
-	var wants_to_run: bool = false
-	wants_to_run = Input.is_action_pressed(&"move_sprint") and is_trying_to_move
+	var wants_to_run: bool = Input.is_action_pressed(&"move_sprint") and is_trying_to_move
 		
 	if wants_to_run:
 		set_running(true)
@@ -124,6 +137,23 @@ func _set_leaning(lean_dir: float) -> void:
 	_lean_direction = lean_dir
 	lean_changed.emit(_lean_direction)
 
+## Toggles the player's lantern visibility and right-arm holding animation
+func toggle_flashlight() -> void:
+	set_flashlight_enabled(not _is_flashlight_on)
+
+func set_flashlight_enabled(enabled: bool) -> void:
+	if _is_flashlight_on == enabled:
+		return
+	_is_flashlight_on = enabled
+	if lantern_node:
+		lantern_node.visible = _is_flashlight_on
+	flashlight_toggled.emit(_is_flashlight_on)
+
+## Triggers the player's arm interaction animation on the AnimationTree
+func play_interact_arm_animation() -> void:
+	if animation_tree and not interact_oneshot_param.is_empty():
+		animation_tree.set(interact_oneshot_param, AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
+
 ## Smoothly rotates the player body (Y) and camera pitch (X) to center target (Vector3 or Node3D) in view over duration
 func look_at_target(target: Variant, duration: float = 0.5) -> Tween:
 	_is_in_transition = true
@@ -152,13 +182,11 @@ func look_at_target(target: Variant, duration: float = 0.5) -> Tween:
 		var cam_to_target: Vector3 = target_pos - camera.global_position
 		var current_forward: Vector3 = -camera.global_transform.basis.z
 		
-		# 1. Exact Yaw correction based on where the Camera is actually pointing right now
 		var current_cam_yaw: float = atan2(current_forward.x, current_forward.z)
 		var desired_cam_yaw: float = atan2(cam_to_target.x, cam_to_target.z)
 		var yaw_error: float = angle_difference(current_cam_yaw, desired_cam_yaw)
 		rotation.y += yaw_error * step_fraction
 		
-		# 2. Exact Pitch correction based on the Camera's live vertical angle
 		var horiz_dist: float = Vector2(cam_to_target.x, cam_to_target.z).length()
 		var desired_world_pitch: float = atan2(cam_to_target.y, horiz_dist)
 		var current_world_pitch: float = asin(clampf(current_forward.y, -1.0, 1.0))
@@ -183,19 +211,24 @@ func _update_animation_tree(delta: float) -> void:
 	_move_blend = move_toward(_move_blend, target_move, anim_blend_speed * delta)
 	_crouch_blend = move_toward(_crouch_blend, 1.0 if _is_crouching else 0.0, anim_blend_speed * delta)
 	_lean_blend = move_toward(_lean_blend, _lean_direction, anim_blend_speed * delta)
+	_flashlight_blend = move_toward(_flashlight_blend, 1.0 if _is_flashlight_on else 0.0, arm_blend_speed * delta)
 	
 	animation_tree.set(&"parameters/locomotion_stand/blend_position", _move_blend)
 	animation_tree.set(&"parameters/locomotion_stand/BlendSpace1D/blend_position", _lean_blend)
 	animation_tree.set(&"parameters/locomotion_crouch/blend_position", clampf(_move_blend, 0.0, 1.0))
 	animation_tree.set(&"parameters/crouch_blend/blend_amount", _crouch_blend)
 	animation_tree.set(&"parameters/in_air/transition_request", "air" if not is_on_floor() else "grounded")
+	if not flashlight_blend_param.is_empty():
+		animation_tree.set(flashlight_blend_param, _flashlight_blend)
 #endregion
 
 #region Raycast Interaction
 func try_interaction() -> void:
 	var target: Node = _cast_interaction_ray()
 	if target and target.has_method(&"trigger_interaction"):
-		target.trigger_interaction()
+		var did_succeed: Variant = target.trigger_interaction()
+		if did_succeed == null or bool(did_succeed):
+			play_interact_arm_animation()
 
 func _update_interaction_hover() -> void:
 	var target: Node = _cast_interaction_ray()
@@ -217,7 +250,6 @@ func _cast_interaction_ray() -> Node:
 	var exclude_list: Array[RID] = [get_rid()]
 	query.exclude = exclude_list
 	
-	# Max 8 pierces to safely skip non-interactable triggers in the way
 	for _i: int in range(8):
 		var result: Dictionary = space_state.intersect_ray(query)
 		if result.is_empty():

@@ -1,7 +1,13 @@
-## Filters ReadableEntry resources by active keys and priority, sending the highest priority entry to DialogueUI.
+## Filters ReadableEntry resources by active keys and priority, sending the highest priority entry and custom title name to DialogueUI.
 class_name ReadableComponent extends Node3D
 
 signal readable_triggered(entry: ReadableEntry)
+
+const _DEFAULT_NODE_PREFIXES: Array[String] = [
+	"ReadableComponent",
+	"Node3D",
+	"Node"
+]
 
 @export var entries: Array[ReadableEntry] = []
 @export var look_turn_duration: float = 0.5
@@ -14,18 +20,32 @@ var _dialogue_ui: DialogueUI = null
 func _ready() -> void:
 	_find_dialogue_ui.call_deferred()
 
-## Evaluates available entries and opens the dialogue UI
-func trigger() -> void:
+## Returns this ReadableComponent's node name ONLY if it is different from the default node name; otherwise returns "".
+func get_custom_readable_name() -> String:
+	var clean: String = String(name).strip_edges()
+	for prefix: String in _DEFAULT_NODE_PREFIXES:
+		if clean.begins_with(prefix):
+			var suffix: String = clean.substr(prefix.length())
+			if suffix.is_empty() or suffix.is_valid_int():
+				return ""
+	return clean
+
+## Evaluates available entries and opens the dialogue UI. Returns true if an entry was triggered.
+func trigger() -> bool:
 	if _is_transitioning:
-		return
+		return false
 	var readable_current: ReadableEntry = filter_entries()
 	if not readable_current:
-		return
+		return false
 	if not is_instance_valid(_dialogue_ui):
 		_find_dialogue_ui()
 	if not is_instance_valid(_dialogue_ui):
-		return
+		return false
 		
+	_start_dialogue_sequence(readable_current)
+	return true
+
+func _start_dialogue_sequence(readable_current: ReadableEntry) -> void:
 	_is_transitioning = true
 	var player := get_tree().get_first_node_in_group(&"player") as PlayerController
 	var npc := _get_npc_controller()
@@ -35,17 +55,9 @@ func trigger() -> void:
 	if player:
 		player_tween = player.look_at_target(self, look_turn_duration)
 	
-	var look_target_pos: Vector3 = global_position
 	var npc_tween: Tween = null
 	if npc and player:
 		var to_player: Vector3 = player.global_position - npc.global_position
-		if Vector2(to_player.x, to_player.z).length_squared() > 0.0001:
-			var start_yaw: float = npc.rotation.y
-			var target_yaw: float = atan2(to_player.x, to_player.z)
-			var yaw_delta: float = angle_difference(start_yaw, target_yaw)
-			var offset_from_npc: Vector3 = global_position - npc.global_position
-			look_target_pos = npc.global_position + offset_from_npc.rotated(Vector3.UP, yaw_delta)
-		
 		_saved_npc_rotation_y = npc.rotation.y
 		if npc_pathfinder:
 			_was_npc_nav_paused = npc_pathfinder.nav_paused
@@ -70,7 +82,7 @@ func trigger() -> void:
 	if is_instance_valid(_dialogue_ui):
 		if npc and not _dialogue_ui.dialogue_closed.is_connected(_on_dialogue_closed):
 			_dialogue_ui.dialogue_closed.connect(_on_dialogue_closed.bind(npc, npc_pathfinder), CONNECT_ONE_SHOT)
-		_dialogue_ui.display_dialogue(readable_current)
+		_dialogue_ui.display_dialogue(readable_current, get_custom_readable_name())
 		readable_triggered.emit(readable_current)
 
 func _on_dialogue_closed(npc: CharacterController3D, npc_pathfinder: PathfindingComponent) -> void:

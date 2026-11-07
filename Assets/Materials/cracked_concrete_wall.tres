@@ -1,0 +1,17 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://b7stpaxdjsyko"]
+
+[ext_resource type="Texture2D" uid="uid://b7jx51yub3rhr" path="res://Assets/textures/cracked_concrete_wall_diff_1k.jpg" id="1_v4ytx"]
+[ext_resource type="Texture2D" uid="uid://dorlakxwjq4j3" path="res://Assets/textures/cracked_concrete_wall_rough_1k.jpg" id="2_jodk1"]
+[ext_resource type="Texture2D" uid="uid://cm4jucbpm4d67" path="res://Assets/textures/cracked_concrete_wall_nor_gl_1k.jpg" id="3_747ki"]
+
+[resource]
+resource_name = "cracked_concrete_wall"
+cull_mode = 2
+albedo_texture = ExtResource("1_v4ytx")
+metallic_texture = ExtResource("2_jodk1")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("2_jodk1")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("3_747ki")
+metadata/_gltf_primary_texture_coord = 0

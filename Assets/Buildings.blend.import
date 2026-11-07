@@ -3,7 +3,7 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://di17ghbi2fubl"
+uid="uid://db35vww3xwhqf"
 path="res://.godot/imported/Buildings.blend-735b3717c960497919f3c77ed807168e.scn"
 
 [deps]
@@ -38,7 +38,7 @@ animation/import_rest_as_RESET=false
 import_script/path=""
 materials/extract=0
 materials/extract_format=0
-materials/extract_path="res://Assets/Materials"
+materials/extract_path=""
 _subresources={}
 blender/nodes/visible=0
 blender/nodes/active_collection_only=false

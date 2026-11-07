@@ -1,6 +1,6 @@
 [gd_resource type="StandardMaterial3D" format=3 uid="uid://byilv6o3hsb35"]
 
-[ext_resource type="Texture2D" uid="uid://crp43c1lotl2f" path="res://Assets/objects_bark_willow_02_diff.png.jpg" id="1_yt358"]
+[ext_resource type="Texture2D" uid="uid://crp43c1lotl2f" path="res://Assets/textures/objects_bark_willow_02_diff.png.jpg" id="1_yt358"]
 
 [resource]
 resource_name = "bark_willow_02.002"

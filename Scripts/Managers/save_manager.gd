@@ -35,10 +35,10 @@ func load_data(file_name: String = save_path_name) -> bool:
 	file.close()
 	
 	if data is Dictionary:
-		var save_data: Dictionary = (data as Dictionary).duplicate(true)
+		var saved_data: Dictionary = (data as Dictionary).duplicate(true)
 		for key: String in save_contents:
-			if save_data.has(key):
-				save_contents[key] = save_data[key]
+			if saved_data.has(key):
+				save_contents[key] = saved_data[key]
 		_apply_state_to_managers()
 		return true
 	return false

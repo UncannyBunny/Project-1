@@ -1,5 +1,5 @@
 @tool
-## Component that populates a parent or target surface AABB with weighted PackedScene instances and MultiMesh meshes.
+## Component that populates a parent or target surface AABB with weighted PackedScene instances and MultiMesh meshes, automatically batching per chunk when targeting a TerrainGenerator.
 class_name MultiMeshPopulator extends Node3D
 
 enum SpawnCountMode {
@@ -33,8 +33,13 @@ enum ColliderType {
 @export var seed_value: int = 1337
 @export_range(2, 30, 1) var frame_budget_ms: int = 8
 
-@export_group("Target & Whitelist")
+@export_group("Target & Chunk Batching")
 @export var target_body: Node3D
+## When targeting a TerrainGenerator, splits MultiMeshes per terrain chunk for frustum culling, distance culling, and lag-free baking
+@export var batch_by_terrain_chunks: bool = true
+## Hardware distance culling for chunked MultiMeshes (0 = disabled; e.g. 65.0 culls entire distant grass chunks on the CPU!)
+@export_range(0.0, 500.0, 1.0) var chunk_visibility_max_distance: float = 65.0
+@export_range(0.0, 50.0, 1.0) var chunk_visibility_fade_margin: float = 10.0
 @export var allowed_groups: Array[StringName] = [&"grass_surface"]
 @export var allow_target_body_without_group: bool = true
 @export var raycast_top_margin: float = 20.0
@@ -42,16 +47,14 @@ enum ColliderType {
 @export var fallback_aabb: AABB = AABB(Vector3(-25.0, -5.0, -25.0), Vector3(50.0, 20.0, 50.0))
 
 @export_group("Weighted Scenes & Meshes")
-## Dictionary mapping PackedScene -> spawn weight (float)
 @export var object_scenes: Dictionary[PackedScene, float] = {}
 @export var randomize_procedural_trees: bool = true
 @export_range(0, 100, 1) var max_unique_variants_per_scene: int = 12
-## Dictionary mapping Mesh -> spawn weight (float)
 @export var object_meshes: Dictionary[Mesh, float] = {}
 
 @export_group("Count & Spacing")
 @export var count_mode: SpawnCountMode = SpawnCountMode.DENSITY_PER_M2
-@export_range(1, 100000, 1) var fixed_object_amount: int = 200
+@export_range(1, 500000, 1) var fixed_object_amount: int = 200
 @export_range(0.001, 50.0, 0.01) var density_per_m2: float = 0.15
 @export_range(0.0, 50.0, 0.1) var spacing: float = 2.5
 
@@ -171,7 +174,7 @@ func _pick_weighted_entry(rng: RandomNumberGenerator, entries: Array[Dictionary]
 	return entries.back()
 
 
-#region Main Population Coroutine
+#region Main Population Coroutine (With Automatic Terrain Chunk Batching)
 func populate_surface() -> void:
 	if _is_populating or not is_inside_tree():
 		return
@@ -190,7 +193,7 @@ func populate_surface() -> void:
 	_cancel_requested = false
 
 	var popup_data: Dictionary = _create_progress_popup()
-	_update_progress(popup_data, 2.0, "Clearing previous objects...")
+	_update_progress(popup_data, 2.0, "Stage 1/4: Preparing surface...", 50.0, "Clearing previous objects...")
 
 	_clear_children_internal()
 	await get_tree().physics_frame
@@ -198,35 +201,17 @@ func populate_surface() -> void:
 		_abort_population(popup_data)
 		return
 
-	var frame_start: int = Time.get_ticks_msec()
-
 	var host: Node3D = _get_target_host()
-	var world_aabb: AABB = _compute_target_world_aabb(host)
+	var chunk_boxes: Array[Dictionary] = _collect_terrain_chunk_aabbs(host)
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
-
 	var noises: Array[FastNoiseLite] = _create_three_seeded_noises(seed_value)
-
-	var area_m2: float = maxf(world_aabb.size.x * world_aabb.size.z, 0.1)
-	var target_count: int = fixed_object_amount
-	if count_mode == SpawnCountMode.DENSITY_PER_M2:
-		target_count = clampi(int(roundf(area_m2 * density_per_m2)), 1, 250000)
-
-	var max_attempts: int = target_count * 6 if spacing > 0.001 else target_count
 
 	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
 	var max_slope_cos: float = cos(deg_to_rad(max_slope_degrees))
 	var min_h: float = minf(height_range.x, height_range.y)
 	var max_h: float = maxf(height_range.x, height_range.y)
-
-	var min_x: float = world_aabb.position.x
-	var max_x: float = world_aabb.end.x
-	var min_z: float = world_aabb.position.z
-	var max_z: float = world_aabb.end.z
-	var ray_start_y: float = world_aabb.end.y + raycast_top_margin
-	var ray_end_y: float = world_aabb.position.y - raycast_bottom_margin
-
 	var edge0: float = clampf(noise_threshold - noise_transition_margin, 0.0, 1.0)
 	var edge1: float = clampf(noise_threshold + noise_transition_margin, 0.001, 1.0)
 
@@ -237,118 +222,183 @@ func populate_surface() -> void:
 	for s_idx: int in range(scenes.size()):
 		scene_transforms[s_idx] = []
 
-	var mesh_transforms: Dictionary = {}
-	var mesh_custom_data: Dictionary = {}
-	for m_idx: int in range(meshes.size()):
-		mesh_transforms[m_idx] = []
-		mesh_custom_data[m_idx] = []
+	var total_chunks: int = chunk_boxes.size()
+	var total_area_m2: float = 0.0
+	for c_info: Dictionary in chunk_boxes:
+		var box: AABB = c_info["aabb"]
+		total_area_m2 += maxf(box.size.x * box.size.z, 0.01)
 
-	var successful_spawns: int = 0
-	for attempt: int in range(max_attempts):
-		if successful_spawns >= target_count:
-			break
+	var scene_owner: Node = get_tree().edited_scene_root if Engine.is_editor_hint() else owner
+	var chunks_mm_root: Node3D = null
+	if total_chunks > 1 and not meshes.is_empty():
+		chunks_mm_root = Node3D.new()
+		chunks_mm_root.name = "ChunkMultiMeshes"
+		add_child(chunks_mm_root)
+		if scene_owner:
+			chunks_mm_root.owner = scene_owner
 
-		var world_x: float = rng.randf_range(min_x, max_x)
-		var world_z: float = rng.randf_range(min_z, max_z)
+	var frame_start: int = Time.get_ticks_msec()
 
-		var density_weight: float = 1.0
-		if use_density_noise:
-			var n0: float = (noises[0].get_noise_2d(world_x, world_z) + 1.0) * 0.5
-			var n1: float = (noises[1].get_noise_2d(world_x, world_z) + 1.0) * 0.5
-			var n2: float = (noises[2].get_noise_2d(world_x, world_z) + 1.0) * 0.5
-			var n_avg: float = (n0 + n1 + n2) / 3.0
-			density_weight = smoothstep(edge0, edge1, n_avg)
-			if density_weight <= 0.001 or rng.randf() > density_weight:
-				continue
+	for c_idx: int in range(total_chunks):
+		var c_info: Dictionary = chunk_boxes[c_idx]
+		var c_name: String = c_info["name"]
+		var c_aabb: AABB = c_info["aabb"]
+		var c_area: float = maxf(c_aabb.size.x * c_aabb.size.z, 0.01)
 
-		var ray_start := Vector3(world_x, ray_start_y, world_z)
-		var ray_end := Vector3(world_x, ray_end_y, world_z)
-
-		var query := PhysicsRayQueryParameters3D.create(ray_start, ray_end)
-		query.collide_with_bodies = true
-		query.collide_with_areas = false
-
-		var hit: Dictionary = space_state.intersect_ray(query)
-		if hit.is_empty():
-			continue
-
-		var collider: Object = hit.get("collider")
-		if not (collider is Node) or not _is_collider_whitelisted(collider as Node, host):
-			continue
-
-		var hit_pos: Vector3 = hit["position"]
-		if hit_pos.y < min_h or hit_pos.y > max_h:
-			continue
-
-		var hit_normal: Vector3 = (hit["normal"] as Vector3).normalized()
-		if hit_normal.dot(Vector3.UP) < max_slope_cos:
-			continue
-
-		if spacing > 0.001:
-			if _is_too_close_in_grid(hit_pos, spacing, cell_size, spatial_grid):
-				continue
-			_register_in_grid(hit_pos, cell_size, spatial_grid)
-
-		var local_pos: Vector3 = to_local(hit_pos)
-		var local_normal: Vector3 = (global_basis.inverse() * hit_normal).normalized()
-
-		var up_vec: Vector3 = Vector3.UP.lerp(local_normal, align_to_normal_factor).normalized()
-		var rand_yaw: float = deg_to_rad(rng.randf_range(-random_offset_degrees.y, random_offset_degrees.y))
-		var rand_pitch: float = deg_to_rad(rng.randf_range(-random_offset_degrees.x, random_offset_degrees.x))
-		var rand_roll: float = deg_to_rad(rng.randf_range(-random_offset_degrees.z, random_offset_degrees.z))
-
-		var forward_vec := Vector3(sin(rand_yaw), 0.0, cos(rand_yaw))
-		var right_vec: Vector3 = up_vec.cross(forward_vec).normalized()
-		if right_vec.length_squared() < 0.001:
-			right_vec = Vector3.RIGHT
-		forward_vec = right_vec.cross(up_vec).normalized()
-
-		var inst_basis := Basis(right_vec, up_vec, forward_vec)
-		if absf(rand_pitch) > 0.0001 or absf(rand_roll) > 0.0001:
-			inst_basis = inst_basis * Basis.from_euler(Vector3(rand_pitch, 0.0, rand_roll))
-
-		var base_scale_factor: float = 1.0
-		if use_density_noise and density_affects_scale:
-			base_scale_factor = lerpf(min_edge_scale, max_core_scale, pow(density_weight, density_height_exponent))
-
-		var scale_jitter := Vector3(
-			1.0 + rng.randf_range(-random_offset_scale.x, random_offset_scale.x),
-			1.0 + rng.randf_range(-random_offset_scale.y, random_offset_scale.y),
-			1.0 + rng.randf_range(-random_offset_scale.z, random_offset_scale.z)
-		)
-		var final_scale: Vector3 = (scale_jitter * base_scale_factor).max(Vector3.ONE * 0.05)
-		inst_basis = inst_basis.scaled(final_scale)
-
-		var rand_pos_jitter := Vector3(
-			rng.randf_range(-random_offset_position.x, random_offset_position.x),
-			rng.randf_range(-random_offset_position.y, random_offset_position.y),
-			rng.randf_range(-random_offset_position.z, random_offset_position.z)
-		)
-		var final_origin: Vector3 = local_pos + (inst_basis * (offset_position + rand_pos_jitter))
-		var final_transform := Transform3D(inst_basis, final_origin)
-
-		var chosen_entry: Dictionary = _pick_weighted_entry(rng, pool_entries, total_weight)
-		var item_idx: int = int(chosen_entry["index"])
-		if bool(chosen_entry["is_scene"]):
-			(scene_transforms[item_idx] as Array).append(final_transform)
+		var chunk_target_count: int = 0
+		if count_mode == SpawnCountMode.DENSITY_PER_M2:
+			chunk_target_count = clampi(int(roundf(c_area * density_per_m2)), 0, 250000)
 		else:
-			(mesh_transforms[item_idx] as Array).append(final_transform)
-			(mesh_custom_data[item_idx] as Array).append(_build_instance_custom_data(rng, density_weight))
+			chunk_target_count = int(roundf(float(fixed_object_amount) * (c_area / maxf(total_area_m2, 0.01))))
 
-		successful_spawns += 1
+		if chunk_target_count <= 0:
+			continue
 
-		if Time.get_ticks_msec() - frame_start >= frame_budget_ms:
-			var progress_ratio: float = maxf(
-				float(successful_spawns) / float(maxi(target_count, 1)),
-				float(attempt) / float(maxi(max_attempts, 1))
+		var max_attempts: int = chunk_target_count * 5 if spacing > 0.001 else chunk_target_count
+
+		var min_x: float = c_aabb.position.x
+		var max_x: float = c_aabb.end.x
+		var min_z: float = c_aabb.position.z
+		var max_z: float = c_aabb.end.z
+		var ray_start_y: float = c_aabb.end.y + raycast_top_margin
+		var ray_end_y: float = c_aabb.position.y - raycast_bottom_margin
+
+		# Center this chunk's MultiMeshInstance3D at the chunk's geometric center for accurate frustum & distance culling!
+		var chunk_world_center := Vector3((min_x + max_x) * 0.5, c_aabb.position.y, (min_z + max_z) * 0.5)
+		var chunk_local_center: Vector3 = to_local(chunk_world_center) if chunks_mm_root != null else Vector3.ZERO
+
+		var mesh_transforms: Dictionary = {}
+		var mesh_custom_data: Dictionary = {}
+		for m_idx: int in range(meshes.size()):
+			mesh_transforms[m_idx] = []
+			mesh_custom_data[m_idx] = []
+
+		var successful_spawns: int = 0
+		for attempt: int in range(max_attempts):
+			if successful_spawns >= chunk_target_count:
+				break
+
+			var world_x: float = rng.randf_range(min_x, max_x)
+			var world_z: float = rng.randf_range(min_z, max_z)
+
+			var density_weight: float = 1.0
+			if use_density_noise:
+				var n0: float = (noises[0].get_noise_2d(world_x, world_z) + 1.0) * 0.5
+				var n1: float = (noises[1].get_noise_2d(world_x, world_z) + 1.0) * 0.5
+				var n2: float = (noises[2].get_noise_2d(world_x, world_z) + 1.0) * 0.5
+				var n_avg: float = (n0 + n1 + n2) / 3.0
+				density_weight = smoothstep(edge0, edge1, n_avg)
+				if density_weight <= 0.001 or rng.randf() > density_weight:
+					continue
+
+			var ray_start := Vector3(world_x, ray_start_y, world_z)
+			var ray_end := Vector3(world_x, ray_end_y, world_z)
+
+			var query := PhysicsRayQueryParameters3D.create(ray_start, ray_end)
+			query.collide_with_bodies = true
+			query.collide_with_areas = false
+
+			var hit: Dictionary = space_state.intersect_ray(query)
+			if hit.is_empty():
+				continue
+
+			var collider: Object = hit.get("collider")
+			if not (collider is Node) or not _is_collider_whitelisted(collider as Node, host):
+				continue
+
+			var hit_pos: Vector3 = hit["position"]
+			if hit_pos.y < min_h or hit_pos.y > max_h:
+				continue
+
+			var hit_normal: Vector3 = (hit["normal"] as Vector3).normalized()
+			if hit_normal.dot(Vector3.UP) < max_slope_cos:
+				continue
+
+			if spacing > 0.001:
+				if _is_too_close_in_grid(hit_pos, spacing, cell_size, spatial_grid):
+					continue
+				_register_in_grid(hit_pos, cell_size, spatial_grid)
+
+			var local_pos: Vector3 = to_local(hit_pos)
+			var local_normal: Vector3 = (global_basis.inverse() * hit_normal).normalized()
+
+			var up_vec: Vector3 = Vector3.UP.lerp(local_normal, align_to_normal_factor).normalized()
+			var rand_yaw: float = deg_to_rad(rng.randf_range(-random_offset_degrees.y, random_offset_degrees.y))
+			var rand_pitch: float = deg_to_rad(rng.randf_range(-random_offset_degrees.x, random_offset_degrees.x))
+			var rand_roll: float = deg_to_rad(rng.randf_range(-random_offset_degrees.z, random_offset_degrees.z))
+
+			var forward_vec := Vector3(sin(rand_yaw), 0.0, cos(rand_yaw))
+			var right_vec: Vector3 = up_vec.cross(forward_vec).normalized()
+			if right_vec.length_squared() < 0.001:
+				right_vec = Vector3.RIGHT
+			forward_vec = right_vec.cross(up_vec).normalized()
+
+			var inst_basis := Basis(right_vec, up_vec, forward_vec)
+			if absf(rand_pitch) > 0.0001 or absf(rand_roll) > 0.0001:
+				inst_basis = inst_basis * Basis.from_euler(Vector3(rand_pitch, 0.0, rand_roll))
+
+			var base_scale_factor: float = 1.0
+			if use_density_noise and density_affects_scale:
+				base_scale_factor = lerpf(min_edge_scale, max_core_scale, pow(density_weight, density_height_exponent))
+
+			var scale_jitter := Vector3(
+				1.0 + rng.randf_range(-random_offset_scale.x, random_offset_scale.x),
+				1.0 + rng.randf_range(-random_offset_scale.y, random_offset_scale.y),
+				1.0 + rng.randf_range(-random_offset_scale.z, random_offset_scale.z)
 			)
-			var pct: float = 5.0 + progress_ratio * 55.0
-			_update_progress(popup_data, pct, "Sampling surface positions (%d / %d)..." % [successful_spawns, target_count])
-			await get_tree().process_frame
-			frame_start = Time.get_ticks_msec()
-			if _cancel_requested:
-				_abort_population(popup_data)
-				return
+			var final_scale: Vector3 = (scale_jitter * base_scale_factor).max(Vector3.ONE * 0.05)
+			inst_basis = inst_basis.scaled(final_scale)
+
+			var rand_pos_jitter := Vector3(
+				rng.randf_range(-random_offset_position.x, random_offset_position.x),
+				rng.randf_range(-random_offset_position.y, random_offset_position.y),
+				rng.randf_range(-random_offset_position.z, random_offset_position.z)
+			)
+			var final_origin: Vector3 = local_pos + (inst_basis * (offset_position + rand_pos_jitter))
+
+			var chosen_entry: Dictionary = _pick_weighted_entry(rng, pool_entries, total_weight)
+			var item_idx: int = int(chosen_entry["index"])
+			if bool(chosen_entry["is_scene"]):
+				(scene_transforms[item_idx] as Array).append(Transform3D(inst_basis, final_origin))
+			else:
+				# Offset origin relative to the chunk's center if chunk batching is active
+				var mm_origin: Vector3 = final_origin - chunk_local_center
+				(mesh_transforms[item_idx] as Array).append(Transform3D(inst_basis, mm_origin))
+				(mesh_custom_data[item_idx] as Array).append(_build_instance_custom_data(rng, density_weight))
+
+			successful_spawns += 1
+
+			if Time.get_ticks_msec() - frame_start >= frame_budget_ms:
+				var task_pct: float = maxf(
+					float(successful_spawns) / float(maxi(chunk_target_count, 1)),
+					float(attempt) / float(maxi(max_attempts, 1))
+				) * 100.0
+				var overall_pct: float = 5.0 + ((float(c_idx) + (task_pct / 100.0)) / float(maxi(total_chunks, 1))) * 60.0
+				_update_progress(
+					popup_data,
+					overall_pct,
+					"Stage 2/4: Populating chunk %d / %d (%s)..." % [c_idx + 1, total_chunks, c_name],
+					task_pct,
+					"Raycasting %s (%d / %d)..." % [c_name, successful_spawns, chunk_target_count]
+				)
+				await get_tree().process_frame
+				frame_start = Time.get_ticks_msec()
+				if _cancel_requested:
+					_abort_population(popup_data)
+					return
+
+		# Commit this chunk's MultiMeshes immediately so RAM stays flat even on huge 500x500m terrains!
+		if not meshes.is_empty():
+			var parent_container: Node3D = chunks_mm_root if chunks_mm_root != null else self
+			_apply_chunk_multimeshes(
+				parent_container,
+				c_name,
+				chunk_local_center,
+				meshes,
+				mesh_transforms,
+				mesh_custom_data,
+				scene_owner
+			)
 
 	if not scenes.is_empty():
 		var completed_scenes: bool = await _apply_scene_instances(scenes, scene_transforms, rng, popup_data)
@@ -356,20 +406,18 @@ func populate_surface() -> void:
 			_abort_population(popup_data)
 			return
 
-	if not meshes.is_empty():
-		_update_progress(popup_data, 92.0, "Building MultiMeshes & colliders...")
-		await get_tree().process_frame
-		if _cancel_requested:
-			_abort_population(popup_data)
-			return
-		_apply_multimeshes(meshes, mesh_transforms, mesh_custom_data)
-
 	if auto_save_to_disk and Engine.is_editor_hint():
-		_update_progress(popup_data, 96.0, "Saving binary resources to disk...")
+		_update_progress(
+			popup_data,
+			95.0,
+			"Stage 4/4: Saving binary resources to disk...",
+			50.0,
+			"Writing compressed .res files..."
+		)
 		await get_tree().process_frame
 		save_resources_to_disk()
 
-	_update_progress(popup_data, 100.0, "Done!")
+	_update_progress(popup_data, 100.0, "Complete!", 100.0, "Done!")
 	await get_tree().process_frame
 	_close_progress_popup(popup_data)
 	_is_populating = false
@@ -387,16 +435,13 @@ func _apply_scene_instances(
 	var scene_owner: Node = get_tree().edited_scene_root if Engine.is_editor_hint() else owner
 	var scenes_root := Node3D.new()
 	scenes_root.name = "SpawnedScenes"
-	add_child(scenes_root)
-	if scene_owner:
-		scenes_root.owner = scene_owner
+	var frame_start: int = Time.get_ticks_msec()
 
 	var total_to_spawn: int = 0
 	for s_idx: int in scene_transforms.keys():
 		total_to_spawn += (scene_transforms[s_idx] as Array).size()
 
 	var spawned_so_far: int = 0
-	var frame_start: int = Time.get_ticks_msec()
 
 	for s_idx: int in scene_transforms.keys():
 		var transforms: Array = scene_transforms[s_idx]
@@ -440,26 +485,44 @@ func _apply_scene_instances(
 			else:
 				scenes_root.add_child(inst_3d)
 
-			if scene_owner:
-				inst_3d.owner = scene_owner
-
 			spawned_so_far += 1
 			if Time.get_ticks_msec() - frame_start >= frame_budget_ms:
-				var pct: float = 60.0 + (float(spawned_so_far) / float(maxi(total_to_spawn, 1))) * 30.0
-				_update_progress(popup_data, pct, "Instantiating scenes (%d / %d)..." % [spawned_so_far, total_to_spawn])
+				var task_pct: float = (float(spawned_so_far) / float(maxi(total_to_spawn, 1))) * 100.0
+				var overall_pct: float = 65.0 + (task_pct / 100.0) * 28.0
+				_update_progress(
+					popup_data,
+					overall_pct,
+					"Stage 3/4: Instantiating scenes...",
+					task_pct,
+					"Spawning scene %d / %d..." % [spawned_so_far, total_to_spawn]
+				)
 				await get_tree().process_frame
 				frame_start = Time.get_ticks_msec()
 				if _cancel_requested:
+					scenes_root.free()
 					return false
+
+	# Attach populated subtree to SceneTree in one shot to avoid O(N^2) Editor SceneTree dock slowdown!
+	add_child(scenes_root)
+	if scene_owner:
+		scenes_root.owner = scene_owner
+		for child: Node in scenes_root.get_children():
+			child.owner = scene_owner
 
 	return true
 #endregion
 
 
-#region MultiMesh Spawning
-func _apply_multimeshes(meshes: Array[Mesh], grouped_transforms: Dictionary, grouped_custom_data: Dictionary) -> void:
-	var scene_owner: Node = get_tree().edited_scene_root if Engine.is_editor_hint() else owner
-
+#region Chunked MultiMesh Spawning
+func _apply_chunk_multimeshes(
+	parent_container: Node3D,
+	chunk_prefix: String,
+	chunk_local_center: Vector3,
+	meshes: Array[Mesh],
+	grouped_transforms: Dictionary,
+	grouped_custom_data: Dictionary,
+	scene_owner: Node
+) -> void:
 	for mesh_idx: int in grouped_transforms.keys():
 		var transforms: Array = grouped_transforms[mesh_idx]
 		var custom_data: Array = grouped_custom_data[mesh_idx]
@@ -467,11 +530,15 @@ func _apply_multimeshes(meshes: Array[Mesh], grouped_transforms: Dictionary, gro
 			continue
 
 		var mm_inst := MultiMeshInstance3D.new()
-		mm_inst.name = "MultiMesh_%d" % mesh_idx
-		mm_inst.visibility_range_end = 0.0
-		add_child(mm_inst)
-		if scene_owner:
-			mm_inst.owner = scene_owner
+		mm_inst.name = "%s_MM_%d" % [chunk_prefix, mesh_idx]
+		mm_inst.position = chunk_local_center
+
+		if chunk_visibility_max_distance > 0.0:
+			mm_inst.visibility_range_end = chunk_visibility_max_distance
+			mm_inst.visibility_range_end_margin = chunk_visibility_fade_margin
+			mm_inst.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+		else:
+			mm_inst.visibility_range_end = 0.0
 
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -484,6 +551,10 @@ func _apply_multimeshes(meshes: Array[Mesh], grouped_transforms: Dictionary, gro
 			mm.set_instance_custom_data(i, custom_data[i])
 
 		mm_inst.multimesh = mm
+		parent_container.add_child(mm_inst)
+		if scene_owner:
+			mm_inst.owner = scene_owner
+
 		_create_colliders(transforms, mm_inst, mm.mesh, scene_owner)
 
 
@@ -546,7 +617,52 @@ func _create_colliders(transforms: Array, mm_inst: MultiMeshInstance3D, ref_mesh
 #endregion
 
 
-#region Spatial Grid, Noise & AABB Helpers
+#region Terrain Chunk Discovery, Spatial Grid, Noise & AABB Helpers
+## Returns an Array of {"name": String, "aabb": AABB} for each terrain chunk if host is a TerrainGenerator
+func _collect_terrain_chunk_aabbs(host: Node3D) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if batch_by_terrain_chunks and is_instance_valid(host):
+		var chunks_root := host.get_node_or_null("TerrainChunks")
+		if chunks_root and chunks_root.get_child_count() > 0:
+			for child: Node in chunks_root.get_children():
+				if child is MeshInstance3D and child.mesh:
+					var mi := child as MeshInstance3D
+					var world_box: AABB = mi.global_transform * mi.get_aabb()
+					result.append({
+						"name": mi.name,
+						"aabb": world_box
+					})
+			if not result.is_empty():
+				return result
+
+		if host is TerrainGenerator:
+			var tgen := host as TerrainGenerator
+			var cx_count: int = maxi(tgen.chunk_grid.x, 1)
+			var cz_count: int = maxi(tgen.chunk_grid.y, 1)
+			var step_x: float = tgen.terrain_size.x / float(cx_count)
+			var step_z: float = tgen.terrain_size.z / float(cz_count)
+			var start_x: float = -tgen.terrain_size.x * 0.5
+			var start_z: float = -tgen.terrain_size.z * 0.5
+
+			for cz: int in range(cz_count):
+				for cx: int in range(cx_count):
+					var local_box := AABB(
+						Vector3(start_x + float(cx) * step_x, -2.0, start_z + float(cz) * step_z),
+						Vector3(step_x, tgen.terrain_size.y + 4.0, step_z)
+					)
+					result.append({
+						"name": "Chunk_%d_%d" % [cx, cz],
+						"aabb": tgen.global_transform * local_box
+					})
+			return result
+
+	result.append({
+		"name": "Surface",
+		"aabb": _compute_target_world_aabb(host)
+	})
+	return result
+
+
 func _is_too_close_in_grid(pos: Vector3, min_dist: float, cell_size: float, grid: Dictionary) -> bool:
 	var cx: int = int(floorf(pos.x / cell_size))
 	var cz: int = int(floorf(pos.z / cell_size))
@@ -675,14 +791,14 @@ func save_resources_to_disk() -> void:
 
 	var saved_count: int = 0
 
-	for child: Node in get_children():
+	var mm_nodes: Array[Node] = find_children("*", "MultiMeshInstance3D", true, false)
+	for child: Node in mm_nodes:
 		if child is MultiMeshInstance3D and child.multimesh:
 			var mm_inst := child as MultiMeshInstance3D
 			var res_path: String = "%s/%s_%s.res" % [save_dir, name, mm_inst.name]
 			var err: Error = ResourceSaver.save(mm_inst.multimesh, res_path, ResourceSaver.FLAG_COMPRESS)
 			if err == OK:
 				mm_inst.multimesh.take_over_path(res_path)
-				mm_inst.multimesh = ResourceLoader.load(res_path, "", ResourceLoader.CACHE_MODE_REPLACE)
 				saved_count += 1
 
 	var scenes_root := get_node_or_null("SpawnedScenes")
@@ -699,7 +815,7 @@ func save_resources_to_disk() -> void:
 						var m_path: String = "%s/%s_TreeMesh_%d.res" % [save_dir, name, ptree.seed_value]
 						if ResourceSaver.save(ptree.baked_tree_mesh, m_path, ResourceSaver.FLAG_COMPRESS) == OK:
 							ptree.baked_tree_mesh.take_over_path(m_path)
-							saved_meshes[m_id] = ResourceLoader.load(m_path, "", ResourceLoader.CACHE_MODE_REPLACE)
+							saved_meshes[m_id] = ptree.baked_tree_mesh
 							saved_count += 1
 					if saved_meshes.has(m_id):
 						ptree.baked_tree_mesh = saved_meshes[m_id]
@@ -710,7 +826,7 @@ func save_resources_to_disk() -> void:
 						var s_path: String = "%s/%s_TreeShape_%d.res" % [save_dir, name, ptree.seed_value]
 						if ResourceSaver.save(ptree.baked_trunk_collision, s_path, ResourceSaver.FLAG_COMPRESS) == OK:
 							ptree.baked_trunk_collision.take_over_path(s_path)
-							saved_shapes[s_id] = ResourceLoader.load(s_path, "", ResourceLoader.CACHE_MODE_REPLACE)
+							saved_shapes[s_id] = ptree.baked_trunk_collision
 							saved_count += 1
 					if saved_shapes.has(s_id):
 						ptree.baked_trunk_collision = saved_shapes[s_id]
@@ -719,29 +835,48 @@ func save_resources_to_disk() -> void:
 #endregion
 
 
-#region Editor Progress Popup
+#region Dual-Bar Editor Progress Popup (With "time elapsed: mm:ss")
 func _create_progress_popup() -> Dictionary:
 	var dialog := AcceptDialog.new()
 	dialog.title = "Populating Surface (%s)..." % name
 	dialog.dialog_hide_on_ok = false
 	dialog.get_ok_button().text = "Cancel"
 	dialog.unresizable = true
-	dialog.size = Vector2i(420, 120)
+	dialog.size = Vector2i(450, 210)
 
 	var vbox := VBoxContainer.new()
-	vbox.custom_minimum_size = Vector2(390.0, 65.0)
-	vbox.add_theme_constant_override("separation", 10)
+	vbox.custom_minimum_size = Vector2(420.0, 150.0)
+	vbox.add_theme_constant_override("separation", 6)
 
-	var label := Label.new()
-	label.text = "Initializing surface population..."
-	vbox.add_child(label)
+	var overall_label := Label.new()
+	overall_label.text = "Overall Progress:"
+	vbox.add_child(overall_label)
 
-	var bar := ProgressBar.new()
-	bar.min_value = 0.0
-	bar.max_value = 100.0
-	bar.value = 0.0
-	bar.custom_minimum_size = Vector2(380.0, 24.0)
-	vbox.add_child(bar)
+	var overall_bar := ProgressBar.new()
+	overall_bar.min_value = 0.0
+	overall_bar.max_value = 100.0
+	overall_bar.value = 0.0
+	overall_bar.custom_minimum_size = Vector2(410.0, 22.0)
+	vbox.add_child(overall_bar)
+
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0.0, 4.0)
+	vbox.add_child(spacer)
+
+	var task_label := Label.new()
+	task_label.text = "Current Task: Initializing..."
+	vbox.add_child(task_label)
+
+	var task_bar := ProgressBar.new()
+	task_bar.min_value = 0.0
+	task_bar.max_value = 100.0
+	task_bar.value = 0.0
+	task_bar.custom_minimum_size = Vector2(410.0, 22.0)
+	vbox.add_child(task_bar)
+
+	var elapsed_label := Label.new()
+	elapsed_label.text = "Time elapsed: 00:00"
+	vbox.add_child(elapsed_label)
 
 	dialog.add_child(vbox)
 	dialog.confirmed.connect(func() -> void: _cancel_requested = true)
@@ -752,18 +887,43 @@ func _create_progress_popup() -> Dictionary:
 
 	return {
 		"dialog": dialog,
-		"label": label,
-		"bar": bar
+		"overall_label": overall_label,
+		"overall_bar": overall_bar,
+		"task_label": task_label,
+		"task_bar": task_bar,
+		"elapsed_label": elapsed_label,
+		"start_msec": Time.get_ticks_msec()
 	}
 
 
-func _update_progress(popup_data: Dictionary, percent: float, status_text: String) -> void:
-	var bar := popup_data.get("bar") as ProgressBar
-	var label := popup_data.get("label") as Label
-	if is_instance_valid(bar):
-		bar.value = percent
-	if is_instance_valid(label):
-		label.text = status_text
+func _update_progress(
+	popup_data: Dictionary,
+	overall_pct: float,
+	overall_text: String,
+	task_pct: float,
+	task_text: String
+) -> void:
+	var overall_bar := popup_data.get("overall_bar") as ProgressBar
+	var overall_label := popup_data.get("overall_label") as Label
+	var task_bar := popup_data.get("task_bar") as ProgressBar
+	var task_label := popup_data.get("task_label") as Label
+	var elapsed_label := popup_data.get("elapsed_label") as Label
+	var start_msec: int = int(popup_data.get("start_msec", Time.get_ticks_msec()))
+
+	if is_instance_valid(overall_bar):
+		overall_bar.value = overall_pct
+	if is_instance_valid(overall_label):
+		overall_label.text = overall_text
+	if is_instance_valid(task_bar):
+		task_bar.value = task_pct
+	if is_instance_valid(task_label):
+		task_label.text = task_text
+	if is_instance_valid(elapsed_label):
+		var total_secs: int = maxi(int((Time.get_ticks_msec() - start_msec) / 1000), 0)
+		@warning_ignore("integer_division")
+		var mins: int = total_secs / 60
+		var secs: int = total_secs % 60
+		elapsed_label.text = "Time elapsed: %02d:%02d" % [mins, secs]
 
 
 func _close_progress_popup(popup_data: Dictionary) -> void:

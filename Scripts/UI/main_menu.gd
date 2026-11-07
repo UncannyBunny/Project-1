@@ -14,6 +14,7 @@ enum SlotMode {
 @export var main_screen_container: Control
 @export var save_slots_container: Control
 @export var credits_container: Control
+@export var loading_container: Control
 
 @export_group("Main Screen Buttons")
 @export var button_new_game: Button
@@ -31,6 +32,8 @@ var slot_buttons: Array[Button] = []
 @export var button_back_from_credits: Button
 
 var _current_slot_mode: SlotMode = SlotMode.NEW_GAME
+var scene_loaded: bool = false
+var scene_loading: bool = false
 
 func _ready() -> void:
 	get_tree().paused = false
@@ -44,6 +47,12 @@ func _ready() -> void:
 	if not game_scene_path.is_empty():
 		ResourceLoader.load_threaded_request(game_scene_path)
 
+func _process(delta: float) -> void:
+	if ResourceLoader.load_threaded_get_status(game_scene_path) == 3:
+		scene_loaded = true
+	if scene_loading == true and scene_loaded:
+		_change_to_game_scene()
+
 #region Screen Switching
 func show_main_screen() -> void:
 	if main_screen_container:
@@ -52,6 +61,8 @@ func show_main_screen() -> void:
 		save_slots_container.visible = false
 	if credits_container:
 		credits_container.visible = false
+	if loading_container:
+		loading_container.visible = false
 
 func show_save_slots_screen(mode: SlotMode) -> void:
 	_current_slot_mode = mode
@@ -63,6 +74,8 @@ func show_save_slots_screen(mode: SlotMode) -> void:
 		save_slots_container.visible = true
 	if credits_container:
 		credits_container.visible = false
+	if loading_container:
+		loading_container.visible = false
 
 func show_credits_screen() -> void:
 	if main_screen_container:
@@ -71,6 +84,18 @@ func show_credits_screen() -> void:
 		save_slots_container.visible = false
 	if credits_container:
 		credits_container.visible = true
+	if loading_container:
+		loading_container.visible = false
+
+func show_loading_screen() -> void:
+	if main_screen_container:
+		main_screen_container.visible = false
+	if save_slots_container:
+		save_slots_container.visible = false
+	if credits_container:
+		credits_container.visible = false
+	if loading_container:
+		loading_container.visible = true
 #endregion
 
 #region Setup & Signals
@@ -120,23 +145,25 @@ func _refresh_slot_buttons() -> void:
 			btn.disabled = not exists
 
 func _on_slot_button_pressed(slot_number: int) -> void:
-	if not game_scene_path:
+	if game_scene_path.is_empty():
 		return
-		
 	var slot_name: String = "slot_%d" % slot_number
 	SaveManager.save_path_name = slot_name
-	
 	if _current_slot_mode == SlotMode.NEW_GAME:
 		SaveManager.delete_save(slot_name)
 		SaveManager.save_data(slot_name)
-		_change_to_game_scene()
+		_change_to_game_scene.call_deferred()
 	elif _current_slot_mode == SlotMode.LOAD_GAME:
 		if not SaveManager.load_data(slot_name):
 			return
-		_change_to_game_scene()
+		_change_to_game_scene.call_deferred()
 
 func _change_to_game_scene() -> void:
 	if game_scene_path.is_empty():
+		return
+	if not scene_loaded:
+		show_loading_screen()
+		scene_loading = true
 		return
 	var packed_scene := ResourceLoader.load_threaded_get(game_scene_path) as PackedScene
 	if packed_scene:

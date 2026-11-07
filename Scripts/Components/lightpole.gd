@@ -9,7 +9,8 @@ class_name LightPoleController extends CableConnectorComponent
 @export var on_time: Vector2i = Vector2i(18, 0)
 
 @export_group("Flicker")
-@export var flicker: bool = false
+@export var flicker: bool = true
+@export_range(0.0, 0.05, 1.0) var flicker_chance: float = 0.2
 @export var flicker_min: int = 10
 @export var flicker_avg: int = 20
 
@@ -29,6 +30,9 @@ func _ready() -> void:
 		
 	TimeManager.time_changed.connect(_time_changed)
 	_time_changed.call_deferred(TimeManager.get_current_time())
+	
+	if flicker:
+		flicker = true if randf_range(0.0, 1.0) <= flicker_chance else false
 
 func _time_changed(time: int) -> void:
 	if not is_instance_valid(spot_light):

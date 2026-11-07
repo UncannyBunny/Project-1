@@ -1,4 +1,4 @@
-## Master UI Controller managing the Pause Menu, integrated Clock/Alarm, Notebook, and cursor state.
+## Master UI Controller managing the HUD Crosshair, Interaction Prompt, Pause Menu, Clock/Alarm, Notebook, and cursor state.
 class_name UIController extends Control
 
 signal game_paused(is_paused: bool)
@@ -9,6 +9,12 @@ signal note_saved(line_index: int, text: String)
 @export_file("*.tscn", "*scn") var main_menu_scene_path: String = ""
 @export var pause_menu_container: Control
 @export var dialogue_ui: DialogueUI
+
+@export_group("HUD & Interaction UI")
+## Crosshair Control node (only visible when the game is unpaused and no menus are open)
+@export var crosshair: Control
+## Label or RichTextLabel that displays "<Name>: Click to <action>" when aiming at a named InteractionComponent
+@export var interaction_prompt_label: Control
 
 @export_group("Pause Buttons")
 @export var button_continue: Button
@@ -37,11 +43,16 @@ var _saved_notes: Array[String] = []
 var _current_page: int = 0
 var _line_edits: Array[LineEdit] = []
 
+var _bound_player: PlayerController = null
+var _current_hover_text: String = ""
+
 func _ready() -> void:
 	add_to_group(&"ui_controller")
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	if pause_menu_container:
 		pause_menu_container.visible = false
+	if interaction_prompt_label:
+		interaction_prompt_label.visible = false
 		
 	_target_alarm_time = TimeManager.get_day_start_current()
 	_setup_pause_buttons()
@@ -49,11 +60,14 @@ func _ready() -> void:
 	_setup_notebook_ui()
 	_load_saved_notebook()
 	_update_clock_display()
-	if not main_menu_scene_path.is_empty() and get_tree().current_scene.scene_file_path != main_menu_scene_path:
+	_bind_player_signals.call_deferred()
+	if not main_menu_scene_path.is_empty() and get_tree().current_scene and get_tree().current_scene.scene_file_path != main_menu_scene_path:
 		ResourceLoader.load_threaded_request(main_menu_scene_path)
 
 func _process(_delta: float) -> void:
-	_update_mouse_mode()
+	if not is_instance_valid(_bound_player):
+		_bind_player_signals()
+	_update_mouse_and_hud_state()
 	if pause_menu_container and pause_menu_container.visible and not _is_editing_alarm:
 		_update_clock_display()
 
@@ -61,8 +75,27 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"menu_pause"):
 		if _is_in_main_menu():
 			return
-		# If DialogueUI is open and pausing the tree, ignore or let pause toggle cleanly
 		toggle_pause_menu()
+
+#region HUD Crosshair & Interaction Prompt
+func _bind_player_signals() -> void:
+	var player := get_tree().get_first_node_in_group(&"player") as PlayerController
+	if player and player != _bound_player:
+		_bound_player = player
+		if not _bound_player.interaction_target_changed.is_connected(_on_player_interaction_target_changed):
+			_bound_player.interaction_target_changed.connect(_on_player_interaction_target_changed)
+		_on_player_interaction_target_changed(_bound_player._current_hovered_interactable)
+
+func _on_player_interaction_target_changed(interactable: Node) -> void:
+	_current_hover_text = ""
+	if is_instance_valid(interactable):
+		if interactable.has_method(&"get_hover_display_text"):
+			_current_hover_text = String(interactable.call(&"get_hover_display_text"))
+			
+	if interaction_prompt_label and ("text" in interaction_prompt_label):
+		interaction_prompt_label.set("text", _current_hover_text)
+	_update_mouse_and_hud_state()
+#endregion
 
 #region Pause Menu & Mouse State
 func toggle_pause_menu() -> void:
@@ -82,7 +115,6 @@ func set_pause_menu_open(open: bool) -> void:
 		_refresh_notebook_page()
 		get_tree().paused = true
 	else:
-		# Save alarm time if changed, reset clock mode to current time, and discard uncommitted note edits
 		TimeManager.set_day_start(_target_alarm_time)
 		_is_editing_alarm = false
 		_update_clock_display()
@@ -91,7 +123,7 @@ func set_pause_menu_open(open: bool) -> void:
 			get_tree().paused = false
 			
 	game_paused.emit(open)
-	_update_mouse_mode()
+	_update_mouse_and_hud_state()
 
 func _setup_pause_buttons() -> void:
 	if button_continue:
@@ -115,9 +147,15 @@ func _is_in_main_menu() -> bool:
 		return false
 	return get_tree().current_scene.scene_file_path == main_menu_scene_path
 
-func _update_mouse_mode() -> void:
+func _update_mouse_and_hud_state() -> void:
 	var any_menu_open: bool = (pause_menu_container and pause_menu_container.visible) or (dialogue_ui and dialogue_ui.visible)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if any_menu_open else Input.MOUSE_MODE_CAPTURED
+	
+	var is_gameplay_unpaused: bool = not get_tree().paused and not any_menu_open and not _is_in_main_menu()
+	if crosshair:
+		crosshair.visible = is_gameplay_unpaused
+	if interaction_prompt_label:
+		interaction_prompt_label.visible = is_gameplay_unpaused and not _current_hover_text.is_empty()
 #endregion
 
 #region Clock & Alarm Logic
@@ -128,13 +166,17 @@ func _setup_clock_ui() -> void:
 		button_hour.pressed.connect(_on_hour_pressed)
 	if button_minute:
 		button_minute.pressed.connect(_on_minute_pressed)
-	button_hour.visible = _is_editing_alarm
-	button_minute.visible = _is_editing_alarm
+	if button_hour:
+		button_hour.visible = _is_editing_alarm
+	if button_minute:
+		button_minute.visible = _is_editing_alarm
 
 func _on_toggle_alarm_mode() -> void:
 	_is_editing_alarm = not _is_editing_alarm
-	button_hour.visible = _is_editing_alarm
-	button_minute.visible = _is_editing_alarm
+	if button_hour:
+		button_hour.visible = _is_editing_alarm
+	if button_minute:
+		button_minute.visible = _is_editing_alarm
 	if not _is_editing_alarm:
 		TimeManager.set_day_start(_target_alarm_time)
 	_update_clock_display()
@@ -186,7 +228,7 @@ func _setup_notebook_ui() -> void:
 			line_edit.text_submitted.connect(_on_note_line_submitted.bind(local_idx))
 			_line_edits.append(line_edit)
 			
-	var total_lines: int = _line_edits.size() * maxf(max_pages, 1)
+	var total_lines: int = _line_edits.size() * maxi(max_pages, 1)
 	_saved_notes.resize(total_lines)
 	_saved_notes.fill("")
 	
@@ -201,7 +243,6 @@ func _change_notebook_page(delta_page: int) -> void:
 	if _line_edits.is_empty():
 		return
 	_current_page = clampi(_current_page + delta_page, 0, max_pages - 1)
-	# Uncommitted edits on the previous page are automatically discarded when refreshing
 	_refresh_notebook_page()
 
 func _refresh_notebook_page() -> void:
@@ -215,7 +256,6 @@ func _refresh_notebook_page() -> void:
 		var saved_text: String = _saved_notes[global_index] if global_index < _saved_notes.size() else ""
 		var line_edit: LineEdit = _line_edits[i]
 		line_edit.text = saved_text
-		# Once committed (non-empty in _saved_notes), the line is locked from further editing
 		line_edit.editable = saved_text.is_empty()
 		
 	if page_number_label:
@@ -239,19 +279,16 @@ func _on_note_line_submitted(submitted_text: String, local_line_index: int) -> v
 	line_edit.release_focus()
 	note_saved.emit(global_index, submitted_text)
 
-## Overwrites the entire saved notebook array with a new array of strings
 func set_notebook_lines(new_lines: Array[String]) -> void:
-	var total_capacity: int = _line_edits.size() * maxf(max_pages, 1)
+	var total_capacity: int = _line_edits.size() * maxi(max_pages, 1)
 	_saved_notes = new_lines.duplicate()
 	if _saved_notes.size() < total_capacity:
 		_saved_notes.resize(total_capacity)
 	_refresh_notebook_page()
 
-## Returns a copy of the saved notebook lines array
 func get_notebook_lines() -> Array[String]:
 	return _saved_notes.duplicate()
 
-## Clears all saved notebook lines and unlocks all text boxes
 func clear_notebook_lines() -> void:
 	_saved_notes.fill("")
 	_refresh_notebook_page()
@@ -267,3 +304,4 @@ func _load_saved_notebook() -> void:
 		for line: Variant in saved_lines:
 			typed_lines.append(str(line))
 		set_notebook_lines(typed_lines)
+#endregion

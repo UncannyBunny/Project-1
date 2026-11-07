@@ -10,7 +10,9 @@
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_d0u6y"]
 
-[node name="MainMenu" type="Control" unique_id=16515360 node_paths=PackedStringArray("main_screen_container", "save_slots_container", "credits_container", "button_new_game", "button_load_game", "button_credits", "button_exit", "slot_buttons_container", "button_back_from_slots", "button_back_from_credits")]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_28flt"]
+
+[node name="MainMenu" type="Control" unique_id=16515360 node_paths=PackedStringArray("main_screen_container", "save_slots_container", "credits_container", "loading_container", "button_new_game", "button_load_game", "button_credits", "button_exit", "slot_buttons_container", "button_back_from_slots", "button_back_from_credits")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -18,10 +20,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_48xlc")
-game_scene_path = "uid://c3crrvllcs1ox"
+game_scene_path = "uid://bcbmc5fxqf3fv"
 main_screen_container = NodePath("MarginContainer/Main")
 save_slots_container = NodePath("MarginContainer/Saves")
 credits_container = NodePath("MarginContainer/Credits")
+loading_container = NodePath("MarginContainer/Loading")
 button_new_game = NodePath("MarginContainer/Main/HBoxContainer/VBoxContainer/NewGame")
 button_load_game = NodePath("MarginContainer/Main/HBoxContainer/VBoxContainer/LoadGame")
 button_credits = NodePath("MarginContainer/Main/HBoxContainer/VBoxContainer/Credits")
@@ -332,3 +335,56 @@ theme_override_styles/panel = SubResource("StyleBoxEmpty_d0u6y")
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxEmpty_57qmd")
+
+[node name="Loading" type="Control" parent="MarginContainer" unique_id=707099426]
+visible = false
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/Loading" unique_id=356886298]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel2" type="Panel" parent="MarginContainer/Loading/HBoxContainer" unique_id=2087912253]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_28flt")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/Loading/HBoxContainer" unique_id=947595820]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Panel2" type="Panel" parent="MarginContainer/Loading/HBoxContainer/VBoxContainer" unique_id=1537368659]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 4.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_28flt")
+
+[node name="ClockPanel" type="MarginContainer" parent="MarginContainer/Loading/HBoxContainer/VBoxContainer" unique_id=428423633]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="MarginContainer/Loading/HBoxContainer/VBoxContainer/ClockPanel" unique_id=333375265]
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 64
+text = "Loading..."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Panel3" type="Panel" parent="MarginContainer/Loading/HBoxContainer/VBoxContainer" unique_id=958181697]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 4.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_28flt")
+
+[node name="Panel" type="Panel" parent="MarginContainer/Loading/HBoxContainer" unique_id=452891413]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_28flt")

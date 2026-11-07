@@ -1,4 +1,4 @@
-## Manages branching dialogue display, text input, and the 4-digit keypad interface.
+## Manages branching dialogue display, speaker/readable name label, text input, and the 4-digit keypad interface.
 class_name DialogueUI extends Control
 
 signal dialogue_opened(entry: ReadableEntry)
@@ -9,6 +9,8 @@ const KEYPAD_MAX_DIGITS: int = 4
 @export_group("Dialogue Containers")
 ## Root container for standard text/button dialogue (hidden when Keypad is active)
 @export var text_container: Control
+## Label or RichTextLabel that displays the ReadableComponent's name (hidden if the component uses the default node name)
+@export var title_label: Control
 @export var text_label: RichTextLabel
 @export var button_container: HBoxContainer
 @export var input_field: LineEdit
@@ -26,6 +28,7 @@ const KEYPAD_MAX_DIGITS: int = 4
 @export var keypad_error_duration: float = 0.6
 
 var current_entry: ReadableEntry = null
+var _current_speaker_title: String = ""
 var text_tween: Tween
 var _keypad_input: String = ""
 var _keypad_locked: bool = false
@@ -33,14 +36,20 @@ var _keypad_locked: bool = false
 func _ready() -> void:
 	add_to_group(&"dialogue_ui")
 	visible = false
+	if title_label:
+		title_label.visible = false
 	if input_field:
 		input_field.text_submitted.connect(_on_response_entered)
 	_setup_keypad_buttons()
 
-func display_dialogue(dialogue: ReadableEntry) -> void:
+func display_dialogue(dialogue: ReadableEntry, speaker_title: String = "") -> void:
 	if not dialogue:
 		return
 	current_entry = dialogue
+	if speaker_title != "":
+		_current_speaker_title = speaker_title
+		
+	_update_title_label(dialogue)
 	KeyManager.add_keys([&"dialogue_open"])
 	
 	if pause_on_dialogue:
@@ -68,6 +77,14 @@ func display_dialogue(dialogue: ReadableEntry) -> void:
 		
 	_configure_input_mode(dialogue)
 	dialogue_opened.emit(dialogue)
+
+func _update_title_label(dialogue: ReadableEntry) -> void:
+	if not title_label:
+		return
+	var show_title: bool = not _current_speaker_title.is_empty() and dialogue.input_type != ReadableEntry.InputType.KEYPAD
+	title_label.visible = show_title
+	if show_title and ("text" in title_label):
+		title_label.set("text", _current_speaker_title)
 
 func _configure_input_mode(dialogue: ReadableEntry) -> void:
 	var is_keypad: bool = (dialogue.input_type == ReadableEntry.InputType.KEYPAD)
@@ -174,7 +191,6 @@ func _on_keypad_digit_pressed(digit: String) -> void:
 	_keypad_input += digit
 	_update_keypad_display()
 	
-	# If 4 digits are reached and it doesn't match a valid entry, flash XXXX and reset
 	if _keypad_input.length() == KEYPAD_MAX_DIGITS:
 		if not _is_keypad_code_valid(_keypad_input):
 			_flash_keypad_error()
@@ -184,7 +200,6 @@ func _on_keypad_enter_pressed() -> void:
 		return
 	if _is_keypad_code_valid(_keypad_input):
 		var next_entry: ReadableEntry = current_entry.readable_chain[_keypad_input]
-		# If the unlocked target entry has no text (e.g., just unlocks a door key), apply keys and close!
 		if next_entry.input_type != ReadableEntry.InputType.KEYPAD and next_entry.readable_text.is_empty():
 			if not next_entry.keys_unlocked.is_empty():
 				KeyManager.add_keys(next_entry.keys_unlocked)
@@ -223,6 +238,9 @@ func _close_ui(force_immediate: bool = false) -> void:
 		return
 	KeyManager.remove_keys([&"dialogue_open"])
 	visible = false
+	_current_speaker_title = ""
+	if title_label:
+		title_label.visible = false
 	if text_label:
 		text_label.text = ""
 	if input_field:

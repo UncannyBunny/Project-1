@@ -1,10 +1,10 @@
 @tool
-## Projects a Path3D onto terrain, stretches/tiles a custom 3D model along the curve, and spawns non-overlapping decorations.
+## Projects a Path3D onto terrain, stretches/tiles a custom 3D model into distance-culled road chunks, and spawns non-overlapping decorations.
 class_name ToolPathProjector extends Path3D
 
 enum MeshForwardAxis {
-	AXIS_Z, ## Model length runs along its local Z axis (standard Godot/Blender forward)
-	AXIS_X  ## Model length runs along its local X axis
+	AXIS_Z,
+	AXIS_X
 }
 
 @export_group("Projector Actions")
@@ -24,10 +24,8 @@ enum MeshForwardAxis {
 @export var seed_value: int = 1337
 
 @export_group("Target Surface & Projection")
-## Optional explicit terrain node (TerrainGenerator, StaticBody3D, MeshInstance3D). Uses allowed_groups if empty.
 @export var target_terrain: Node3D
 @export var allowed_groups: Array[StringName] = [&"grass_surface"]
-## Vertical offset above the terrain when projecting curve points
 @export var height_offset: float = 0.05
 @export_range(0.0, 1.0, 0.01) var smoothing_factor: float = 0.28
 @export var raycast_top_height: float = 150.0
@@ -35,36 +33,35 @@ enum MeshForwardAxis {
 
 @export_group("Road / Path Model Stretching")
 @export var deform_model_along_path: bool = true
-## The 3D Mesh to tile and stretch along the Path3D (preserves all surfaces and materials!)
 @export var source_road_mesh: Mesh
-## Optional MeshInstance3D node in the scene to copy the mesh and materials from (if source_road_mesh is empty)
 @export var source_mesh_instance: MeshInstance3D
-## Which local axis of your model represents its forward length along the road
 @export var model_forward_axis: MeshForwardAxis = MeshForwardAxis.AXIS_Z
-## Scale multiplier applied to the model's cross-section (Width, Height) and segment Length (Z)
 @export var model_scale: Vector3 = Vector3.ONE
-## If true, stretches the tiled segments slightly so an exact whole number of segments fits the path end-to-end
 @export var stretch_to_fit_exact_length: bool = true
-## Raycasts down along the curve at each vertex's position so the deformed model hugs terrain hills between curve points
 @export var snap_deformed_vertices_to_terrain: bool = true
-## If true, raycasts at each vertex's lateral X offset so wide roads tilt with cross-slopes; if false, keeps road cross-section level
 @export var conform_cross_slope_to_terrain: bool = false
-## Optional material override applied to Surface 0 if your Mesh doesn't already have materials assigned
 @export var fallback_material_override: Material
+
+@export_group("Road Chunking & Distance Culling (FPS Optimization)")
+## Target length in meters of each individual RoadChunk MeshInstance3D along the path
+@export_range(5.0, 200.0, 1.0) var road_chunk_length: float = 25.0
+## Distance from camera where road chunks fade out and stop rendering (0 = never cull)
+@export_range(0.0, 1000.0, 5.0) var road_chunk_max_distance: float = 160.0
+@export_range(0.0, 100.0, 1.0) var road_chunk_fade_margin: float = 20.0
+@export var road_cast_shadow: GeometryInstance3D.ShadowCastingSetting = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 @export_group("Road Collision")
 @export var generate_road_collider: bool = true
-## Groups added to RoadStaticBody3D (blocks ProceduralGrass / MultiMeshPopulator from spawning on the road)
 @export var road_body_groups: Array[StringName] = [&"road", &"no_grass"]
 @export_flags_3d_physics var road_collision_layer: int = 1
 @export_flags_3d_physics var road_collision_mask: int = 1
 
 @export_group("Roadside Decorations")
 @export var spawn_decorations: bool = true
-## Array of PathDecorationEntry resources. Earlier entries have higher priority when claiming space!
 @export var decorations: Array[PathDecorationEntry] = []
-## Extra minimum buffer distance (in meters) added between any two different decorations
 @export_range(0.0, 10.0, 0.1) var global_extra_clearance: float = 0.25
+## Distance from camera where spawned roadside decoration meshes stop rendering (0 = never cull)
+@export_range(0.0, 1000.0, 5.0) var decoration_max_distance: float = 140.0
 
 @export_group("Storage")
 @export var auto_save_to_disk: bool = true
@@ -89,15 +86,10 @@ func build_complete_path() -> void:
 
 
 func clear_generated_nodes() -> void:
-	var road_mesh := get_node_or_null("RoadMeshInstance3D")
-	if road_mesh:
-		road_mesh.free()
-	var road_body := get_node_or_null("RoadStaticBody3D")
-	if road_body:
-		road_body.free()
-	var decos := get_node_or_null("RoadDecorations")
-	if decos:
-		decos.free()
+	for child_name: String in ["RoadMeshInstance3D", "RoadChunks", "RoadStaticBody3D", "RoadDecorations"]:
+		var node := get_node_or_null(child_name)
+		if node:
+			node.free()
 
 
 #region Step 1: Curve Projection & Handle Smoothing
@@ -143,7 +135,7 @@ func project_and_smooth_path() -> void:
 #endregion
 
 
-#region Step 2: Custom 3D Model Tiling & Spline Deformation
+#region Step 2: Chunked 3D Model Tiling & Spline Deformation
 func _get_active_source_mesh() -> Mesh:
 	if source_road_mesh:
 		return source_road_mesh
@@ -178,165 +170,225 @@ func _deform_and_tile_mesh_along_curve() -> void:
 		tile_count = maxi(int(ceilf(total_curve_len / raw_mesh_len)), 1)
 
 	var tile_curve_len: float = (total_curve_len / float(tile_count)) if stretch_to_fit_exact_length else raw_mesh_len
+	var tiles_per_chunk: int = maxi(int(roundf(maxf(road_chunk_length, tile_curve_len) / tile_curve_len)), 1)
+	var chunk_count: int = int(ceilf(float(tile_count) / float(tiles_per_chunk)))
+
 	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
-
-	var final_mesh := ArrayMesh.new()
-	var surface_count: int = src_mesh.get_surface_count()
-
-	for surf_idx: int in range(surface_count):
-		var src_arrays: Array = src_mesh.surface_get_arrays(surf_idx)
-		if src_arrays.is_empty():
-			continue
-
-		var src_verts: PackedVector3Array = src_arrays[Mesh.ARRAY_VERTEX]
-		if src_verts.is_empty():
-			continue
-
-		var src_normals: PackedVector3Array = src_arrays[Mesh.ARRAY_NORMAL]
-		var src_tangents: PackedFloat32Array = src_arrays[Mesh.ARRAY_TANGENT]
-		var src_uvs: PackedVector2Array = src_arrays[Mesh.ARRAY_TEX_UV]
-		var src_colors_raw = src_arrays[Mesh.ARRAY_COLOR]
-		var src_colors: PackedColorArray = src_colors_raw if src_colors_raw != null else PackedColorArray()
-		var src_indices: PackedInt32Array = src_arrays[Mesh.ARRAY_INDEX]
-
-		var has_normals: bool = (src_normals.size() == src_verts.size())
-		var has_tangents: bool = (src_tangents.size() == src_verts.size() * 4)
-		var has_uvs: bool = (src_uvs.size() == src_verts.size())
-		var has_colors: bool = (src_colors.size() == src_verts.size())
-
-		# If the source mesh is unindexed, build a sequential index array
-		if src_indices.is_empty():
-			src_indices.resize(src_verts.size())
-			for k: int in range(src_verts.size()):
-				src_indices[k] = k
-
-		var v_count: int = src_verts.size()
-		var i_count: int = src_indices.size()
-
-		var out_verts := PackedVector3Array()
-		var out_normals := PackedVector3Array()
-		var out_tangents := PackedFloat32Array()
-		var out_uvs := PackedVector2Array()
-		var out_colors := PackedColorArray()
-		var out_indices := PackedInt32Array()
-
-		out_verts.resize(v_count * tile_count)
-		if has_normals:
-			out_normals.resize(v_count * tile_count)
-		if has_tangents:
-			out_tangents.resize(v_count * 4 * tile_count)
-		if has_uvs:
-			out_uvs.resize(v_count * tile_count)
-		if has_colors:
-			out_colors.resize(v_count * tile_count)
-		out_indices.resize(i_count * tile_count)
-
-		for t_idx: int in range(tile_count):
-			var v_offset: int = t_idx * v_count
-			var i_offset: int = t_idx * i_count
-			var tile_start_dist: float = float(t_idx) * tile_curve_len
-
-			for v_i: int in range(v_count):
-				var sv: Vector3 = src_verts[v_i]
-
-				# Map model's forward coordinate to normalized [0..1] progress along this tile
-				# In Godot, -Z is forward, so max_fwd -> min_fwd advances forward along the path
-				var fwd_coord: float = sv.z if use_z_forward else sv.x
-				var lat_coord: float = (sv.x * model_scale.x) if use_z_forward else (-sv.z * model_scale.z)
-				var vert_y: float = sv.y * model_scale.y
-
-				var t_progress: float = clampf((max_fwd - fwd_coord) / maxf(max_fwd - min_fwd, 0.0001), 0.0, 1.0)
-				var dist_on_curve: float = clampf(tile_start_dist + t_progress * tile_curve_len, 0.0, total_curve_len)
-
-				var frame: Dictionary = _sample_curve_frame_world(space_state, dist_on_curve, total_curve_len, lat_coord)
-				var frame_origin: Vector3 = frame["position"]
-				var frame_basis: Basis = frame["basis"]
-
-				# Deform vertex using the right-handed curve Basis(right, up, back)
-				var world_deformed: Vector3 = frame_origin + frame_basis.x * lat_coord + frame_basis.y * vert_y
-				var out_v_idx: int = v_offset + v_i
-				out_verts[out_v_idx] = to_local(world_deformed)
-
-				if has_normals:
-					var sn: Vector3 = src_normals[v_i]
-					var mapped_n: Vector3 = sn if use_z_forward else Vector3(-sn.z, sn.y, sn.x)
-					var world_n: Vector3 = (frame_basis * mapped_n).normalized()
-					out_normals[out_v_idx] = (global_basis.inverse() * world_n).normalized()
-
-				if has_tangents:
-					var st_base: int = v_i * 4
-					var ot_base: int = out_v_idx * 4
-					var st_vec := Vector3(src_tangents[st_base], src_tangents[st_base + 1], src_tangents[st_base + 2])
-					var mapped_t: Vector3 = st_vec if use_z_forward else Vector3(-st_vec.z, st_vec.y, st_vec.x)
-					var local_t: Vector3 = (global_basis.inverse() * (frame_basis * mapped_t)).normalized()
-					out_tangents[ot_base + 0] = local_t.x
-					out_tangents[ot_base + 1] = local_t.y
-					out_tangents[ot_base + 2] = local_t.z
-					out_tangents[ot_base + 3] = src_tangents[st_base + 3]
-
-				if has_uvs:
-					out_uvs[out_v_idx] = src_uvs[v_i]
-				if has_colors:
-					out_colors[out_v_idx] = src_colors[v_i]
-
-			for idx_i: int in range(i_count):
-				out_indices[i_offset + idx_i] = src_indices[idx_i] + v_offset
-
-		var out_arrays := []
-		out_arrays.resize(Mesh.ARRAY_MAX)
-		out_arrays[Mesh.ARRAY_VERTEX] = out_verts
-		if has_normals:
-			out_arrays[Mesh.ARRAY_NORMAL] = out_normals
-		if has_tangents:
-			out_arrays[Mesh.ARRAY_TANGENT] = out_tangents
-		if has_uvs:
-			out_arrays[Mesh.ARRAY_TEX_UV] = out_uvs
-		if has_colors:
-			out_arrays[Mesh.ARRAY_COLOR] = out_colors
-		out_arrays[Mesh.ARRAY_INDEX] = out_indices
-
-		final_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, out_arrays)
-		var new_surf_idx: int = final_mesh.get_surface_count() - 1
-
-		var surf_mat: Material = _resolve_surface_material(src_mesh, surf_idx)
-		if surf_mat:
-			final_mesh.surface_set_material(new_surf_idx, surf_mat)
-
 	var scene_owner: Node = get_tree().edited_scene_root if Engine.is_editor_hint() else owner
 
-	var mesh_inst := get_node_or_null("RoadMeshInstance3D") as MeshInstance3D
-	if not is_instance_valid(mesh_inst):
-		mesh_inst = MeshInstance3D.new()
-		mesh_inst.name = "RoadMeshInstance3D"
-		add_child(mesh_inst)
-		if scene_owner:
-			mesh_inst.owner = scene_owner
-	mesh_inst.mesh = final_mesh
+	# Clear old single mesh or old chunks
+	var old_single := get_node_or_null("RoadMeshInstance3D")
+	if old_single:
+		old_single.free()
+	var old_chunks := get_node_or_null("RoadChunks")
+	if old_chunks:
+		old_chunks.free()
+	var old_body := get_node_or_null("RoadStaticBody3D")
+	if old_body:
+		old_body.free()
 
-	if generate_road_collider and final_mesh.get_surface_count() > 0:
-		var road_body := get_node_or_null("RoadStaticBody3D") as StaticBody3D
-		if not is_instance_valid(road_body):
-			road_body = StaticBody3D.new()
-			road_body.name = "RoadStaticBody3D"
-			add_child(road_body)
-			if scene_owner:
-				road_body.owner = scene_owner
+	var chunks_root := Node3D.new()
+	chunks_root.name = "RoadChunks"
 
+	var road_body: StaticBody3D = null
+	if generate_road_collider:
+		road_body = StaticBody3D.new()
+		road_body.name = "RoadStaticBody3D"
 		road_body.collision_layer = road_collision_layer
 		road_body.collision_mask = road_collision_mask
 		for grp: StringName in road_body_groups:
 			if grp != &"" and not road_body.is_in_group(grp):
 				road_body.add_to_group(grp, true)
 
-		var col_shape := road_body.get_node_or_null("CollisionShape3D") as CollisionShape3D
-		if not is_instance_valid(col_shape):
-			col_shape = CollisionShape3D.new()
-			col_shape.name = "CollisionShape3D"
-			road_body.add_child(col_shape)
-			if scene_owner:
-				col_shape.owner = scene_owner
+	# Pre-extract source surface data once outside the chunk loop
+	var surface_count: int = src_mesh.get_surface_count()
+	var pre_surfaces: Array[Dictionary] = []
 
-		col_shape.shape = final_mesh.create_trimesh_shape()
+	for surf_idx: int in range(surface_count):
+		var src_arrays: Array = src_mesh.surface_get_arrays(surf_idx)
+		if src_arrays.is_empty():
+			continue
+		var src_verts: PackedVector3Array = src_arrays[Mesh.ARRAY_VERTEX] if src_arrays[Mesh.ARRAY_VERTEX] != null else PackedVector3Array()
+		if src_verts.is_empty():
+			continue
+
+		var src_normals: PackedVector3Array = src_arrays[Mesh.ARRAY_NORMAL] if src_arrays[Mesh.ARRAY_NORMAL] != null else PackedVector3Array()
+		var src_tangents: PackedFloat32Array = src_arrays[Mesh.ARRAY_TANGENT] if src_arrays[Mesh.ARRAY_TANGENT] != null else PackedFloat32Array()
+		var src_uvs: PackedVector2Array = src_arrays[Mesh.ARRAY_TEX_UV] if src_arrays[Mesh.ARRAY_TEX_UV] != null else PackedVector2Array()
+		var src_colors: PackedColorArray = src_arrays[Mesh.ARRAY_COLOR] if src_arrays[Mesh.ARRAY_COLOR] != null else PackedColorArray()
+		var src_indices: PackedInt32Array = src_arrays[Mesh.ARRAY_INDEX] if src_arrays[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+
+		if src_indices.is_empty():
+			src_indices.resize(src_verts.size())
+			for k: int in range(src_verts.size()):
+				src_indices[k] = k
+
+		pre_surfaces.append({
+			"surf_idx": surf_idx,
+			"verts": src_verts,
+			"normals": src_normals,
+			"tangents": src_tangents,
+			"uvs": src_uvs,
+			"colors": src_colors,
+			"indices": src_indices,
+			"has_normals": src_normals.size() == src_verts.size(),
+			"has_tangents": src_tangents.size() == src_verts.size() * 4,
+			"has_uvs": src_uvs.size() == src_verts.size(),
+			"has_colors": src_colors.size() == src_verts.size(),
+			"material": _resolve_surface_material(src_mesh, surf_idx)
+		})
+
+	# Build each road chunk with its own localized origin so frustum and distance culling work per chunk!
+	for c_idx: int in range(chunk_count):
+		var start_tile: int = c_idx * tiles_per_chunk
+		var end_tile: int = mini(start_tile + tiles_per_chunk, tile_count)
+		var c_tile_count: int = end_tile - start_tile
+		if c_tile_count <= 0:
+			continue
+
+		var chunk_start_dist: float = float(start_tile) * tile_curve_len
+		var chunk_end_dist: float = minf(float(end_tile) * tile_curve_len, total_curve_len)
+		var chunk_mid_dist: float = (chunk_start_dist + chunk_end_dist) * 0.5
+		var chunk_local_center: Vector3 = curve.sample_baked(chunk_mid_dist, true)
+
+		var chunk_mesh := ArrayMesh.new()
+
+		for s_data: Dictionary in pre_surfaces:
+			var src_verts: PackedVector3Array = s_data["verts"]
+			var src_normals: PackedVector3Array = s_data["normals"]
+			var src_tangents: PackedFloat32Array = s_data["tangents"]
+			var src_uvs: PackedVector2Array = s_data["uvs"]
+			var src_colors: PackedColorArray = s_data["colors"]
+			var src_indices: PackedInt32Array = s_data["indices"]
+
+			var has_normals: bool = s_data["has_normals"]
+			var has_tangents: bool = s_data["has_tangents"]
+			var has_uvs: bool = s_data["has_uvs"]
+			var has_colors: bool = s_data["has_colors"]
+
+			var v_count: int = src_verts.size()
+			var i_count: int = src_indices.size()
+
+			var out_verts := PackedVector3Array()
+			var out_normals := PackedVector3Array()
+			var out_tangents := PackedFloat32Array()
+			var out_uvs := PackedVector2Array()
+			var out_colors := PackedColorArray()
+			var out_indices := PackedInt32Array()
+
+			out_verts.resize(v_count * c_tile_count)
+			if has_normals:
+				out_normals.resize(v_count * c_tile_count)
+			if has_tangents:
+				out_tangents.resize(v_count * 4 * c_tile_count)
+			if has_uvs:
+				out_uvs.resize(v_count * c_tile_count)
+			if has_colors:
+				out_colors.resize(v_count * c_tile_count)
+			out_indices.resize(i_count * c_tile_count)
+
+			for local_t: int in range(c_tile_count):
+				var global_t: int = start_tile + local_t
+				var v_offset: int = local_t * v_count
+				var i_offset: int = local_t * i_count
+				var tile_start_dist: float = float(global_t) * tile_curve_len
+
+				for v_i: int in range(v_count):
+					var sv: Vector3 = src_verts[v_i]
+
+					var fwd_coord: float = sv.z if use_z_forward else sv.x
+					var lat_coord: float = (sv.x * model_scale.x) if use_z_forward else (-sv.z * model_scale.z)
+					var vert_y: float = sv.y * model_scale.y
+
+					var t_progress: float = clampf((max_fwd - fwd_coord) / maxf(max_fwd - min_fwd, 0.0001), 0.0, 1.0)
+					var dist_on_curve: float = clampf(tile_start_dist + t_progress * tile_curve_len, 0.0, total_curve_len)
+
+					var frame: Dictionary = _sample_curve_frame_world(space_state, dist_on_curve, total_curve_len, lat_coord)
+					var frame_origin: Vector3 = frame["position"]
+					var frame_basis: Basis = frame["basis"]
+
+					var world_deformed: Vector3 = frame_origin + frame_basis.x * lat_coord + frame_basis.y * vert_y
+					var out_v_idx: int = v_offset + v_i
+					# Store vertex relative to chunk_local_center so the chunk's AABB is tight and centered!
+					out_verts[out_v_idx] = to_local(world_deformed) - chunk_local_center
+
+					if has_normals:
+						var sn: Vector3 = src_normals[v_i]
+						var mapped_n: Vector3 = sn if use_z_forward else Vector3(-sn.z, sn.y, sn.x)
+						var world_n: Vector3 = (frame_basis * mapped_n).normalized()
+						out_normals[out_v_idx] = (global_basis.inverse() * world_n).normalized()
+
+					if has_tangents:
+						var st_base: int = v_i * 4
+						var ot_base: int = out_v_idx * 4
+						var st_vec := Vector3(src_tangents[st_base], src_tangents[st_base + 1], src_tangents[st_base + 2])
+						var mapped_t: Vector3 = st_vec if use_z_forward else Vector3(-st_vec.z, st_vec.y, st_vec.x)
+						var local_tang: Vector3 = (global_basis.inverse() * (frame_basis * mapped_t)).normalized()
+						out_tangents[ot_base + 0] = local_tang.x
+						out_tangents[ot_base + 1] = local_tang.y
+						out_tangents[ot_base + 2] = local_tang.z
+						out_tangents[ot_base + 3] = src_tangents[st_base + 3]
+
+					if has_uvs:
+						out_uvs[out_v_idx] = src_uvs[v_i]
+					if has_colors:
+						out_colors[out_v_idx] = src_colors[v_i]
+
+				for idx_i: int in range(i_count):
+					out_indices[i_offset + idx_i] = src_indices[idx_i] + v_offset
+
+			var out_arrays := []
+			out_arrays.resize(Mesh.ARRAY_MAX)
+			out_arrays[Mesh.ARRAY_VERTEX] = out_verts
+			if has_normals:
+				out_arrays[Mesh.ARRAY_NORMAL] = out_normals
+			if has_tangents:
+				out_arrays[Mesh.ARRAY_TANGENT] = out_tangents
+			if has_uvs:
+				out_arrays[Mesh.ARRAY_TEX_UV] = out_uvs
+			if has_colors:
+				out_arrays[Mesh.ARRAY_COLOR] = out_colors
+			out_arrays[Mesh.ARRAY_INDEX] = out_indices
+
+			chunk_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, out_arrays)
+			var new_surf_idx: int = chunk_mesh.get_surface_count() - 1
+			var surf_mat: Material = s_data["material"]
+			if surf_mat:
+				chunk_mesh.surface_set_material(new_surf_idx, surf_mat)
+
+		var chunk_inst := MeshInstance3D.new()
+		chunk_inst.name = "RoadChunk_%d" % c_idx
+		chunk_inst.position = chunk_local_center
+		chunk_inst.mesh = chunk_mesh
+		chunk_inst.cast_shadow = road_cast_shadow
+
+		if road_chunk_max_distance > 0.0:
+			chunk_inst.visibility_range_end = road_chunk_max_distance
+			chunk_inst.visibility_range_end_margin = road_chunk_fade_margin
+			chunk_inst.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+
+		chunks_root.add_child(chunk_inst)
+
+		if road_body and chunk_mesh.get_surface_count() > 0:
+			var col_shape := CollisionShape3D.new()
+			col_shape.name = "RoadCol_%d" % c_idx
+			col_shape.position = chunk_local_center
+			col_shape.shape = chunk_mesh.create_trimesh_shape()
+			road_body.add_child(col_shape)
+
+	# Attach populated containers to SceneTree in one shot
+	add_child(chunks_root)
+	if scene_owner:
+		chunks_root.owner = scene_owner
+		for child: Node in chunks_root.get_children():
+			child.owner = scene_owner
+
+	if road_body:
+		add_child(road_body)
+		if scene_owner:
+			road_body.owner = scene_owner
+			for child: Node in road_body.get_children():
+				child.owner = scene_owner
 
 
 func _resolve_surface_material(src_mesh: Mesh, surf_idx: int) -> Material:
@@ -386,7 +438,6 @@ func _sample_curve_frame_world(
 				right = forward.cross(ground_n).normalized()
 				up_vec = right.cross(forward).normalized()
 
-	# Right-handed Basis: X = right, Y = up, Z = -forward (back), so determinant is strictly +1.0!
 	var rh_basis := Basis(right, up_vec, -forward)
 	return {
 		"position": world_center,
@@ -398,7 +449,7 @@ func _sample_curve_frame_world(
 #endregion
 
 
-#region Step 3: Multi-Decoration Spawner with Overlap Prevention
+#region Step 3: Multi-Decoration Spawner with Overlap Prevention & Distance Culling
 func _spawn_all_decorations() -> void:
 	var existing := get_node_or_null("RoadDecorations")
 	if existing:
@@ -419,8 +470,6 @@ func _spawn_all_decorations() -> void:
 	rng.seed = seed_value
 
 	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
-
-	# Stores {"pos": Vector3, "radius": float} for every placed decoration to prevent overlaps
 	var placed_records: Array[Dictionary] = []
 
 	for entry_idx: int in range(decorations.size()):
@@ -430,7 +479,6 @@ func _spawn_all_decorations() -> void:
 
 		var min_step: float = maxf(entry.frequency_distance.x, 0.25)
 		var avg_step: float = maxf(entry.frequency_distance.y, min_step)
-		# For a uniform range [min_step, max_step] to have an exact mean of avg_step:
 		var max_step: float = min_step + 2.0 * (avg_step - min_step)
 
 		var dist: float = entry.start_offset
@@ -502,7 +550,6 @@ func _find_non_overlapping_distance(
 	if max_nudge <= 0.05:
 		return -1.0
 
-	# Try nudging forward/backward along the curve in 0.5m steps up to max_nudge
 	var nudge_step: float = 0.5
 	var offset: float = nudge_step
 	while offset <= max_nudge + 0.01:
@@ -522,7 +569,6 @@ func _overlaps_any_placed(pos: Vector3, my_radius: float, placed_records: Array[
 	for rec: Dictionary in placed_records:
 		var other_pos: Vector3 = rec["pos"]
 		var min_allowed: float = my_radius + float(rec["radius"]) + global_extra_clearance
-		# Check 2D XZ distance so height differences on hills don't bypass clearance
 		var dist_xz: float = Vector2(pos.x - other_pos.x, pos.z - other_pos.z).length()
 		if dist_xz < min_allowed:
 			return true
@@ -604,6 +650,13 @@ func _instantiate_decoration_at(
 	if not inst_3d:
 		return
 
+	if decoration_max_distance > 0.0:
+		if inst_3d is GeometryInstance3D:
+			(inst_3d as GeometryInstance3D).visibility_range_end = decoration_max_distance
+		for sub_vis: Node in inst_3d.find_children("*", "GeometryInstance3D", true, false):
+			if sub_vis is GeometryInstance3D:
+				(sub_vis as GeometryInstance3D).visibility_range_end = decoration_max_distance
+
 	inst_3d.name = "Deco_%d_%d" % [entry_idx, placed_records.size()]
 	decos_root.add_child(inst_3d)
 	if scene_owner:
@@ -683,17 +736,21 @@ func save_resources_to_disk() -> void:
 	if not DirAccess.dir_exists_absolute(save_dir):
 		DirAccess.make_dir_recursive_absolute(save_dir)
 
-	var mesh_inst := get_node_or_null("RoadMeshInstance3D") as MeshInstance3D
-	if is_instance_valid(mesh_inst) and mesh_inst.mesh:
-		var mesh_path: String = "%s/%s_RoadMesh.res" % [save_dir, name]
-		if ResourceSaver.save(mesh_inst.mesh, mesh_path, ResourceSaver.FLAG_COMPRESS) == OK:
-			mesh_inst.mesh.take_over_path(mesh_path)
-			mesh_inst.mesh = ResourceLoader.load(mesh_path, "", ResourceLoader.CACHE_MODE_REPLACE)
+	var chunks_root := get_node_or_null("RoadChunks")
+	if chunks_root:
+		for child: Node in chunks_root.get_children():
+			if child is MeshInstance3D and child.mesh:
+				var mi := child as MeshInstance3D
+				var m_path: String = "%s/%s_%s.res" % [save_dir, name, mi.name]
+				if ResourceSaver.save(mi.mesh, m_path, ResourceSaver.FLAG_COMPRESS) == OK:
+					mi.mesh.take_over_path(m_path)
 
-	var col_shape := get_node_or_null("RoadStaticBody3D/CollisionShape3D") as CollisionShape3D
-	if is_instance_valid(col_shape) and col_shape.shape:
-		var shape_path: String = "%s/%s_RoadShape.res" % [save_dir, name]
-		if ResourceSaver.save(col_shape.shape, shape_path, ResourceSaver.FLAG_COMPRESS) == OK:
-			col_shape.shape.take_over_path(shape_path)
-			col_shape.shape = ResourceLoader.load(shape_path, "", ResourceLoader.CACHE_MODE_REPLACE)
+	var road_body := get_node_or_null("RoadStaticBody3D")
+	if road_body:
+		for child: Node in road_body.get_children():
+			if child is CollisionShape3D and child.shape:
+				var cs := child as CollisionShape3D
+				var s_path: String = "%s/%s_%s.res" % [save_dir, name, cs.name]
+				if ResourceSaver.save(cs.shape, s_path, ResourceSaver.FLAG_COMPRESS) == OK:
+					cs.shape.take_over_path(s_path)
 #endregion

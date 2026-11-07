@@ -10,6 +10,13 @@ height = 1.8
 
 [sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_5awlv"]
 
+[sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_41qjy"]
+filter_enabled = true
+filters = ["Skeleton3D:collar.r", "Skeleton3D:hand1.r", "Skeleton3D:hand2.r", "Skeleton3D:lowerarm.r", "Skeleton3D:palm.r", "Skeleton3D:thumb1.r", "Skeleton3D:thumb2.r", "Skeleton3D:upperarm.r"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_3f2mg"]
+animation = &"RESET"
+
 [sub_resource type="AnimationNodeTransition" id="AnimationNodeTransition_41qjy"]
 xfade_time = 0.5
 input_0/name = "grounded"
@@ -20,6 +27,13 @@ input_1/name = "air"
 input_1/auto_advance = false
 input_1/break_loop_at_end = false
 input_1/reset = true
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_72igq"]
+animation = &"RESET"
+
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_2pnox"]
+filter_enabled = true
+filters = ["Skeleton3D:collar.r", "Skeleton3D:hand1.r", "Skeleton3D:hand2.r", "Skeleton3D:lowerarm.r", "Skeleton3D:palm.r", "Skeleton3D:thumb1.r", "Skeleton3D:thumb2.r", "Skeleton3D:upperarm.r"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ypsv4"]
 animation = &"Jump"
@@ -79,7 +93,7 @@ blend_point_2/pos = 0.0
 blend_point_2/name = &"BlendSpace1D"
 
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_g4v7s"]
-nodes/output/position = Vector2(660, 200)
+nodes/output/position = Vector2(900, 320)
 nodes/locomotion_stand/node = SubResource("AnimationNodeBlendSpace1D_0qhpg")
 nodes/locomotion_stand/position = Vector2(-200, 240)
 nodes/in_air/node = SubResource("AnimationNodeTransition_41qjy")
@@ -90,7 +104,15 @@ nodes/locomotion_crouch/node = SubResource("AnimationNodeBlendSpace1D_ygjap")
 nodes/locomotion_crouch/position = Vector2(-200, 440)
 nodes/crouch_blend/node = SubResource("AnimationNodeBlend2_5awlv")
 nodes/crouch_blend/position = Vector2(20, 320)
-node_connections = [&"output", 0, &"in_air", &"in_air", 0, &"crouch_blend", &"in_air", 1, &"jump_animation", &"crouch_blend", 0, &"locomotion_stand", &"crouch_blend", 1, &"locomotion_crouch"]
+nodes/flashlight_blend/node = SubResource("AnimationNodeBlend2_41qjy")
+nodes/flashlight_blend/position = Vector2(440, 320)
+nodes/hold_lantern/node = SubResource("AnimationNodeAnimation_3f2mg")
+nodes/hold_lantern/position = Vector2(240, 580)
+nodes/interact_shot/node = SubResource("AnimationNodeOneShot_2pnox")
+nodes/interact_shot/position = Vector2(680, 320)
+nodes/interact_arm/node = SubResource("AnimationNodeAnimation_72igq")
+nodes/interact_arm/position = Vector2(440, 580)
+node_connections = [&"output", 0, &"interact_shot", &"in_air", 0, &"crouch_blend", &"in_air", 1, &"jump_animation", &"crouch_blend", 0, &"locomotion_stand", &"crouch_blend", 1, &"locomotion_crouch", &"flashlight_blend", 0, &"in_air", &"flashlight_blend", 1, &"hold_lantern", &"interact_shot", 0, &"flashlight_blend", &"interact_shot", 1, &"interact_arm"]
 
 [node name="PlayerController" type="CharacterBody3D" unique_id=155462187 node_paths=PackedStringArray("camera", "collision_shape", "animation_tree", "step_player")]
 script = ExtResource("1_5awlv")
@@ -135,6 +157,10 @@ parameters/in_air/transition_request = ""
 parameters/in_air/current_index = 0
 parameters/locomotion_crouch/blend_position = 0.0
 parameters/crouch_blend/blend_amount = 0.0
+parameters/flashlight_blend/blend_amount = 0.0
+parameters/interact_shot/active = false
+parameters/interact_shot/internal_active = false
+parameters/interact_shot/request = 0
 
 [node name="StepPlayer" type="AudioStreamPlayer3D" parent="." unique_id=26077643]
 stream = ExtResource("3_5awlv")

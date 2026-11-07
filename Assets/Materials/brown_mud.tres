@@ -1,6 +1,6 @@
 [gd_resource type="StandardMaterial3D" format=3 uid="uid://dwktak22vv47y"]
 
-[ext_resource type="Texture2D" uid="uid://bk3wwbx11i25q" path="res://Assets/objects_brown_mud_leaves_01_diff.jpg" id="1_y2pb2"]
+[ext_resource type="Texture2D" uid="uid://bk3wwbx11i25q" path="res://Assets/textures/objects_brown_mud_leaves_01_diff.jpg" id="1_y2pb2"]
 
 [resource]
 resource_name = "brown_mud_leaves_01"
