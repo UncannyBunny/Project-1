@@ -1,0 +1,32 @@
+# Guía Definitiva de Diseño de Puzzles Temporales (Project Groundhog)
+
+Esta guía establece las reglas estructurales para crear puzzles en el juego, asegurando que aprovechen la mecánica del bucle temporal, respeten la lógica del mundo (subconsciente) y cumplan con los requisitos técnicos del juego.
+
+---
+
+## 1. Reglas de los NPCs
+Los NPCs deben tener un concepto detras de estos, cumplir un propósito y ser una parte de los puzzles temporales.
+
+*   **Comportamiento Base:** Son personas comunes con rutinas fijas y lógicas (trabajar, barrer, ir a almorzar). Interacciones simples: moverse de A a B, estar de pie, reproducir diálogos predefinidos.
+*   **Hostilidad Justificada:** **NO** se vuelven hostiles porque el jugador se acerque o interactúe pacíficamente. Solo atacan si el jugador rompe severamente la normalidad social (ej. allanamiento de áreas restringidas, robar en su cara, forzar cerraduras repetidamente, destruir objetos de su entorno).
+*   **Ausencia de Respuestas Directas:** Los NPCs nunca le darán la respuesta de un puzzle al jugador por voluntad propia. La información debe ser obtenida por el jugador al espiar sus rutinas cerradas, interactuar con el entorno o usar opciones de diálogo condicionales. De dar alguna pista, lo harán después de que la ventana de tiempo del puzzle pasó.
+
+## 2. Mecánicas del Bucle y Resolución de Puzzles
+El núcleo del juego es la manipulación de la causalidad y el tiempo, no la habilidad mecánica o los reflejos.
+
+*   **Acumulación de Información Obligatoria:** Todo puzzle debe requerir que el jugador experimente un ciclo, aprenda algo (un código, un horario, una reacción) y aplique ese conocimiento en un ciclo nuevo. 
+*   **Prohibición de "Esperar Estáticamente":** Un puzzle nunca debe resolverse obligando al jugador a quedarse parado mirando la pantalla hasta que ocurra un evento. Deben ser dinámicos o, de necesitar una ventana de tiempo entre pasos, que las partes separadas sean independientes para que el jugador pueda llegar a la segunda mitad del puzzle directamente.
+*   **El "Efecto Mariposa" Simple:** Las alteraciones del jugador al entorno para cambiar una rutina deben ser directas y no rebuscadas (ej. mover una caja para que el NPC tarde más en buscarla, esconder un objeto clave). La alteración de estas variables debe generar una "situación conveniente" para el jugador en el futuro de esa línea temporal.
+
+## 3. Prevención de la Fuerza Bruta y las Coincidencias
+El diseño estructural del nivel debe imposibilitar que un jugador avance probando opciones al azar.
+
+*   **Alta Entropía en Bloqueos:** Todo bloqueo por clave (cajas fuertes, paneles numéricos, candados) debe tener combinaciones de 4 digitos.
+*   **Castigo por Ensayo y Error:** Intentar forzar una puerta abierta, introducir varias claves erróneas frente a un NPC o intentar correr a lo bruto a través de un área vigilada debe activar inmediatamente la hostilidad del NPC (identificación de anomalía) y forzar el reinicio del día.
+*   **Imposibilidad Física en el Mismo Bucle:** El momento en que se revela la solución de un puzzle debe coincidir con el momento en que el objetivo se vuelve inaccesible (ej. el NPC muestra la clave, pero inmediatamente se sienta a custodiar la caja fuerte por el resto del día). Esto obliga a usar un nuevo bucle.
+
+## 4. Diseño del Objetivo y Experiencia del Jugador
+El puzzle debe ser intuitivo en su planteamiento inicial.
+
+*   **Objetivo Visualmente Evidente:** El jugador debe saber exactamente qué está buscando y por qué (ej. "La puerta trasera está cerrada, necesito la llave que está en esa caja fuerte", "Necesito ese documento sobre el escritorio para saber qué pasa"). No debe haber ambigüedad narrativa sobre el objetivo a corto plazo.
+*   **Tiempo de Juego Razonable:** El jugador debe poder completar los puzzles dentro de un tiempo razonable, por ejemplo, de 5 a 15 minutos. Estos deben también estar contenidos dentro de un solo día por efecto del bucle, aunque pueden tomar más de un ciclo.
