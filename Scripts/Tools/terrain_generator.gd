@@ -1,5 +1,6 @@
 @tool
-## Unified multi-threaded terrain generator with per-chunk StaticBody3D trimesh colliders, standalone texture baking, dead-pixel healing, and elapsed time popup.
+## Unified multi-threaded terrain generator with per-chunk StaticBody3D trimesh colliders,
+## per-chunk NavigationRegion3D group + AABB baking, standalone texture baking, and user:// caching.
 class_name TerrainGenerator extends Node3D
 
 enum SourceChannel {
@@ -18,10 +19,13 @@ enum SourceChannel {
 @export_tool_button("Bake Materials / Textures Only", "MaterialPreviewCube") var btn_bake_textures: Callable:
 	get:
 		return bake_materials_only
+@export_tool_button("Bake Chunk NavMeshes Only", "NavigationRegion3D") var btn_bake_navmeshes: Callable:
+	get:
+		return bake_chunk_navmeshes_editor
 @export_tool_button("Clear Generated Terrain", "Clear") var btn_clear: Callable:
 	get:
 		return clear_terrain
-@export_tool_button("Save Chunks & Colliders to Disk", "Save") var btn_save: Callable:
+@export_tool_button("Save Chunks & Colliders to user://", "Save") var btn_save: Callable:
 	get:
 		return save_resources_to_disk
 
@@ -62,15 +66,33 @@ enum SourceChannel {
 @export var cast_shadow: GeometryInstance3D.ShadowCastingSetting = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 
 @export_group("Per-Chunk Collision & Groups")
-## Generates a dedicated StaticBody3D + ConcavePolygonShape3D (at 1:1 scale) inside each chunk
 @export var generate_chunk_colliders: bool = true
 @export var body_groups: Array[StringName] = [&"grass_surface"]
 @export_flags_3d_physics var collision_layer: int = 1
 @export_flags_3d_physics var collision_mask: int = 1
 
+@export_group("Per-Chunk Navigation Baking")
+@export var navigation_mesh_template: NavigationMesh
+@export_range(2.0, 200.0, 1.0) var navmesh_vertical_margin: float = 25.0
+@export_range(0.05, 1.0, 0.05) var default_nav_cell_size: float = 0.25
+@export_range(0.05, 1.0, 0.05) var default_nav_cell_height: float = 0.15
+@export_range(0.1, 2.0, 0.05) var default_nav_agent_radius: float = 0.45
+@export_range(0.5, 4.0, 0.1) var default_nav_agent_height: float = 1.8
+@export_range(0.05, 1.5, 0.05) var default_nav_agent_max_climb: float = 0.4
+@export_range(5.0, 60.0, 1.0) var default_nav_agent_max_slope: float = 45.0
+@export_flags_3d_navigation var chunk_navigation_layers: int = 1
+@export_flags_3d_physics var navmesh_collision_mask: int = 1
+
 @export_group("Storage")
-@export var auto_save_to_disk: bool = true
+@export var auto_save_to_disk: bool = false
 @export var save_subfolder_name: String = "GeneratedTerrain"
+
+var width_detail: int:
+	get:
+		return detail.x
+var depth_detail: int:
+	get:
+		return detail.y
 
 var _is_generating: bool = false
 var _cancel_requested: bool = false
@@ -98,24 +120,177 @@ var _global_normals: PackedVector3Array
 var _chunk_specs: Array[Dictionary] = []
 var _chunk_results: Array[Dictionary] = []
 
+
 func _ready() -> void:
-	# Rebuild the dynamic shader at runtime (in-game) to bypass Godot's shader serialization bug
-	# call_deferred() guarantees this won't freeze or block the scene loader!
+	# Always rebuild the dynamic shader material at runtime to bypass Godot's ShaderMaterial .res texture stripping bug
 	if not Engine.is_editor_hint():
 		_refresh_chunk_materials_quietly.call_deferred()
+
 
 func _refresh_chunk_materials_quietly() -> void:
 	var chunks_root := get_node_or_null("TerrainChunks")
 	if not chunks_root or chunks_root.get_child_count() == 0:
 		return
-		
+
 	var active_material: Material = _build_blended_terrain_material()
 	for child: Node in chunks_root.get_children():
 		if child is MeshInstance3D:
-			(child as MeshInstance3D).material_override = active_material
+			var chunk_inst := child as MeshInstance3D
+			chunk_inst.material_override = active_material
+			if chunk_inst.mesh is ArrayMesh and chunk_inst.mesh.get_surface_count() > 0:
+				(chunk_inst.mesh as ArrayMesh).surface_set_material(0, active_material)
+
+
+#region Chunk Lookup Helpers
+func get_chunks_root() -> Node3D:
+	return get_node_or_null("TerrainChunks") as Node3D
+
+
+func get_all_chunk_nodes() -> Array[MeshInstance3D]:
+	var out: Array[MeshInstance3D] = []
+	var chunks_root := get_chunks_root()
+	if not chunks_root:
+		return out
+	for child: Node in chunks_root.get_children():
+		if child is MeshInstance3D:
+			out.append(child as MeshInstance3D)
+	return out
+#endregion
+
+
+#region Orchestrated Runtime Generation & user:// Cache
+func generate_or_load_cached(
+	cache_dir: String,
+	use_existing_cache: bool,
+	is_editor_preview: bool,
+	progress_callback: Callable = Callable()
+) -> void:
+	if _is_generating or not is_inside_tree():
+		return
+
+	var manifest_file: String = "%s/%s_TerrainManifest.res" % [cache_dir, name.validate_filename()]
+
+	if use_existing_cache and not is_editor_preview and FileAccess.file_exists(manifest_file):
+		if await _load_terrain_from_cache(manifest_file, progress_callback):
+			return
+
+	await _generate_terrain_internal(
+		not is_editor_preview and not progress_callback.is_valid(),
+		is_editor_preview,
+		cache_dir if not is_editor_preview else "",
+		progress_callback
+	)
+
+
+func _load_terrain_from_cache(
+	manifest_file: String,
+	progress_callback: Callable
+) -> bool:
+	var manifest: Resource = ResourceLoader.load(manifest_file, "", ResourceLoader.CACHE_MODE_REPLACE)
+	if not manifest or not manifest.has_meta("chunk_entries"):
+		return false
+
+	var chunk_entries: Array = manifest.get_meta("chunk_entries")
+	if chunk_entries.is_empty():
+		return false
+
+	if progress_callback.is_valid():
+		progress_callback.call(5.0, "Generating terrain...")
+	await get_tree().process_frame
+
+	# Build the blended ShaderMaterial fresh in memory from height_materials (never load TerrainMaterial.res from disk!)
+	var active_material: Material = _build_blended_terrain_material()
+
+	_clear_chunks_internal()
+	var chunks_root := Node3D.new()
+	chunks_root.name = "TerrainChunks"
+
+	var total_chunks: int = chunk_entries.size()
+	var frame_start: int = Time.get_ticks_msec()
+
+	for i: int in range(total_chunks):
+		var entry: Dictionary = chunk_entries[i]
+		var c_name: String = str(entry.get("name", "Chunk_%d" % i))
+		var cx: int = int(entry.get("cx", 0))
+		var cz: int = int(entry.get("cz", 0))
+		var c_center: Vector3 = entry.get("center", Vector3.ZERO)
+		var mesh_path: String = str(entry.get("mesh_path", ""))
+		var col_path: String = str(entry.get("col_path", ""))
+
+		if mesh_path.is_empty() or not FileAccess.file_exists(mesh_path):
+			chunks_root.free()
+			return false
+
+		var c_mesh: Mesh = ResourceLoader.load(mesh_path, "", ResourceLoader.CACHE_MODE_REPLACE) as Mesh
+		if not c_mesh:
+			chunks_root.free()
+			return false
+
+		if active_material and c_mesh is ArrayMesh and c_mesh.get_surface_count() > 0:
+			(c_mesh as ArrayMesh).surface_set_material(0, active_material)
+
+		var chunk_inst := MeshInstance3D.new()
+		chunk_inst.name = c_name
+		chunk_inst.mesh = c_mesh
+		chunk_inst.material_override = active_material
+		chunk_inst.position = c_center
+		chunk_inst.scale = Vector3.ONE
+		chunk_inst.cast_shadow = cast_shadow
+
+		if chunk_visibility_max_distance > 0.0:
+			chunk_inst.visibility_range_end = chunk_visibility_max_distance
+			chunk_inst.visibility_range_end_margin = chunk_visibility_fade_margin
+			chunk_inst.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+
+		if generate_chunk_colliders:
+			var c_shape: Shape3D = null
+			if not col_path.is_empty() and FileAccess.file_exists(col_path):
+				c_shape = ResourceLoader.load(col_path, "", ResourceLoader.CACHE_MODE_REPLACE) as Shape3D
+			if not c_shape:
+				c_shape = c_mesh.create_trimesh_shape()
+
+			var chunk_body := _create_chunk_static_body(cx, cz, c_shape)
+			chunk_inst.add_child(chunk_body)
+
+		chunks_root.add_child(chunk_inst)
+
+		if Time.get_ticks_msec() - frame_start >= frame_budget_ms:
+			if progress_callback.is_valid():
+				var pct: float = 10.0 + (float(i + 1) / float(maxi(total_chunks, 1))) * 90.0
+				progress_callback.call(pct, "Generating terrain...")
+			await get_tree().process_frame
+			frame_start = Time.get_ticks_msec()
+
+	add_child(chunks_root)
+	# Ensure materials are freshly bound after entering the SceneTree
+	_refresh_chunk_materials_quietly.call_deferred()
+
+	if progress_callback.is_valid():
+		progress_callback.call(100.0, "Generating terrain...")
+	return true
+
+
+func _create_chunk_static_body(cx: int, cz: int, shape: Shape3D) -> StaticBody3D:
+	var chunk_body := StaticBody3D.new()
+	chunk_body.name = "ChunkBody_%d_%d" % [cx, cz]
+	chunk_body.collision_layer = collision_layer
+	chunk_body.collision_mask = collision_mask
+	chunk_body.add_to_group(&"terrain_chunk_body", true)
+	for grp: StringName in body_groups:
+		if grp != &"" and not chunk_body.is_in_group(grp):
+			chunk_body.add_to_group(grp, true)
+
+	var chunk_col := CollisionShape3D.new()
+	chunk_col.name = "ChunkCol_%d_%d" % [cx, cz]
+	chunk_col.scale = Vector3.ONE
+	chunk_col.shape = shape
+
+	chunk_body.add_child(chunk_col)
+	return chunk_body
+#endregion
+
 
 #region Standalone Material / Texture Baking Action
-## Rebuilds only the height-blended shader material and applies it to all existing chunks without regenerating geometry or colliders.
 func bake_materials_only() -> void:
 	var chunks_root := get_node_or_null("TerrainChunks")
 	if not chunks_root or chunks_root.get_child_count() == 0:
@@ -133,33 +308,23 @@ func bake_materials_only() -> void:
 				(chunk_inst.mesh as ArrayMesh).surface_set_material(0, active_material)
 			updated_count += 1
 
-	if auto_save_to_disk and Engine.is_editor_hint():
-		_save_material_and_chunks_on_bake(active_material, chunks_root)
-
 	print("TerrainGenerator: Baked and applied materials/textures to %d existing chunks." % updated_count)
-
-
-func _save_material_and_chunks_on_bake(active_material: Material, chunks_root: Node) -> void:
-	var save_dir: String = _get_target_save_dir()
-	if save_dir.is_empty():
-		return
-
-	if active_material:
-		var mat_path: String = "%s/%s_TerrainMaterial.res" % [save_dir, name]
-		if ResourceSaver.save(active_material, mat_path, ResourceSaver.FLAG_COMPRESS) == OK:
-			active_material.take_over_path(mat_path)
-
-	for child: Node in chunks_root.get_children():
-		if child is MeshInstance3D and child.mesh:
-			var chunk_inst := child as MeshInstance3D
-			var res_path: String = "%s/%s_%s.res" % [save_dir, name, chunk_inst.name]
-			if ResourceSaver.save(chunk_inst.mesh, res_path, ResourceSaver.FLAG_COMPRESS) == OK:
-				chunk_inst.mesh.take_over_path(res_path)
 #endregion
 
 
 #region Main Generation Coroutine
 func generate_terrain() -> void:
+	var is_ed: bool = Engine.is_editor_hint()
+	var target_cache_dir: String = _get_target_save_dir() if auto_save_to_disk else ""
+	await _generate_terrain_internal(is_ed, is_ed, target_cache_dir, Callable())
+
+
+func _generate_terrain_internal(
+	show_editor_popup: bool,
+	set_editor_owner: bool,
+	cache_dir_to_save: String,
+	progress_callback: Callable
+) -> void:
 	if _is_generating:
 		push_warning("TerrainGenerator: Generation is already in progress.")
 		return
@@ -172,7 +337,8 @@ func generate_terrain() -> void:
 	_is_generating = true
 	_cancel_requested = false
 
-	var popup_data: Dictionary = _create_progress_popup()
+	var popup_data: Dictionary = _create_progress_popup() if show_editor_popup else {}
+	popup_data["external_cb"] = progress_callback
 
 	_update_progress(popup_data, 0.0, "Stage 1/8: Extracting image from Texture2D...", 0.0, "Decompressing texture...")
 	await get_tree().process_frame
@@ -427,7 +593,7 @@ func generate_terrain() -> void:
 	_clear_chunks_internal()
 	var chunks_root := Node3D.new()
 	chunks_root.name = "TerrainChunks"
-	var scene_owner: Node = get_tree().edited_scene_root if Engine.is_editor_hint() else owner
+	var scene_owner: Node = get_tree().edited_scene_root if (Engine.is_editor_hint() and set_editor_owner) else null
 
 	var frame_start: int = Time.get_ticks_msec()
 	for i: int in range(total_chunks):
@@ -453,22 +619,8 @@ func generate_terrain() -> void:
 			chunk_inst.visibility_range_end_margin = chunk_visibility_fade_margin
 			chunk_inst.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 
-		# Build a dedicated StaticBody3D + ConcavePolygonShape3D (1:1 scale) inside each chunk!
 		if generate_chunk_colliders:
-			var chunk_body := StaticBody3D.new()
-			chunk_body.name = "ChunkBody_%d_%d" % [cx, cz]
-			chunk_body.collision_layer = collision_layer
-			chunk_body.collision_mask = collision_mask
-			for grp: StringName in body_groups:
-				if grp != &"" and not chunk_body.is_in_group(grp):
-					chunk_body.add_to_group(grp, true)
-
-			var chunk_col := CollisionShape3D.new()
-			chunk_col.name = "ChunkCol_%d_%d" % [cx, cz]
-			chunk_col.scale = Vector3.ONE
-			chunk_col.shape = arr_mesh.create_trimesh_shape()
-
-			chunk_body.add_child(chunk_col)
+			var chunk_body := _create_chunk_static_body(cx, cz, arr_mesh.create_trimesh_shape())
 			chunk_inst.add_child(chunk_body)
 
 		chunks_root.add_child(chunk_inst)
@@ -490,13 +642,12 @@ func generate_terrain() -> void:
 				_abort_generation(popup_data)
 				return
 
-	# Attach pre-populated chunks_root in one shot and set scene_owner recursively so every ChunkBody and ChunkCol is editable/selectable in the Editor!
 	add_child(chunks_root)
 	if scene_owner:
 		_set_owner_recursive(chunks_root, scene_owner)
 
-	if auto_save_to_disk and Engine.is_editor_hint():
-		await _save_resources_to_disk_async(popup_data, 93.0, 100.0, active_material)
+	if not cache_dir_to_save.is_empty():
+		await _save_resources_to_dir_async(cache_dir_to_save, popup_data, 93.0, 100.0)
 
 	_cleanup_temp_buffers()
 	_update_progress(popup_data, 100.0, "Complete!", 100.0, "Done!")
@@ -513,6 +664,240 @@ func _set_owner_recursive(node: Node, scene_owner: Node) -> void:
 	node.owner = scene_owner
 	for child: Node in node.get_children():
 		_set_owner_recursive(child, scene_owner)
+#endregion
+
+
+#region Per-Chunk NavigationRegion3D Baking (Group + AABB + user:// Cache)
+func bake_chunk_navmeshes_editor() -> void:
+	var save_dir: String = _get_target_save_dir() if auto_save_to_disk else ""
+	var popup_data: Dictionary = _create_progress_popup()
+	if popup_data.has("dialog"):
+		(popup_data["dialog"] as AcceptDialog).title = "Baking Chunk NavMeshes (%s)..." % name
+
+	var editor_cb := func(t_pct: float, t_text: String) -> void:
+		_update_progress(popup_data, t_pct, "Baking Per-Chunk NavigationMeshes...", t_pct, t_text)
+
+	await bake_or_load_chunk_navmeshes(save_dir, false, Engine.is_editor_hint(), editor_cb)
+	_close_progress_popup(popup_data)
+
+
+func bake_or_load_chunk_navmeshes(
+	cache_dir: String,
+	use_existing_cache: bool,
+	is_editor_preview: bool,
+	progress_callback: Callable = Callable()
+) -> void:
+	var chunks: Array[MeshInstance3D] = get_all_chunk_nodes()
+	if chunks.is_empty():
+		push_warning("TerrainGenerator (%s): No TerrainChunks found to bake NavMeshes for." % name)
+		return
+
+	PhysicsServer3D.set_active(true)
+	await get_tree().physics_frame
+
+	var total_chunks: int = chunks.size()
+	var scene_owner: Node = get_tree().edited_scene_root if (Engine.is_editor_hint() and is_editor_preview) else null
+
+	var nav_map: RID = get_world_3d().navigation_map
+	var template_cell_size: float = navigation_mesh_template.cell_size if navigation_mesh_template else default_nav_cell_size
+	if nav_map.is_valid():
+		var current_margin: float = NavigationServer3D.map_get_edge_connection_margin(nav_map)
+		var min_recommended_margin: float = maxf(template_cell_size * 3.0, 0.6)
+		if current_margin < min_recommended_margin:
+			NavigationServer3D.map_set_edge_connection_margin(nav_map, min_recommended_margin)
+
+	var chunk_grid_lookup: Dictionary = {}
+	for chunk_inst: MeshInstance3D in chunks:
+		var parts: PackedStringArray = chunk_inst.name.split("_")
+		if parts.size() >= 3:
+			chunk_grid_lookup[Vector2i(int(parts[1]), int(parts[2]))] = chunk_inst
+
+	var external_static_bodies: Array[Dictionary] = _collect_external_static_bodies_with_aabbs()
+
+	for i: int in range(total_chunks):
+		if _cancel_requested:
+			break
+
+		var chunk_inst: MeshInstance3D = chunks[i]
+		if not is_instance_valid(chunk_inst) or not chunk_inst.mesh:
+			continue
+
+		var c_name: String = chunk_inst.name
+		var pct: float = (float(i) / float(maxi(total_chunks, 1))) * 100.0
+		var nav_cache_path: String = (
+			"%s/%s_%s_nav.res" % [cache_dir, name.validate_filename(), c_name]
+			if not cache_dir.is_empty()
+			else ""
+		)
+
+		var chunk_nav := chunk_inst.get_node_or_null("ChunkNav_%s" % c_name) as NavigationRegion3D
+		if not is_instance_valid(chunk_nav):
+			chunk_nav = NavigationRegion3D.new()
+			chunk_nav.name = "ChunkNav_%s" % c_name
+			chunk_nav.position = Vector3.ZERO
+			chunk_nav.navigation_layers = chunk_navigation_layers
+			chunk_inst.add_child(chunk_nav)
+			if scene_owner:
+				chunk_nav.owner = scene_owner
+
+		if use_existing_cache and not is_editor_preview and not nav_cache_path.is_empty() and FileAccess.file_exists(nav_cache_path):
+			var cached_nav: NavigationMesh = ResourceLoader.load(nav_cache_path, "", ResourceLoader.CACHE_MODE_REPLACE) as NavigationMesh
+			if cached_nav:
+				chunk_nav.navigation_mesh = cached_nav
+				if progress_callback.is_valid() and (i % 4 == 0 or i == total_chunks - 1):
+					progress_callback.call(pct, "Building navigation regions...")
+					await get_tree().process_frame
+				continue
+
+		if progress_callback.is_valid():
+			progress_callback.call(pct, "Building navigation regions...")
+		await get_tree().process_frame
+
+		var nav_mesh: NavigationMesh = _create_chunk_navigation_mesh()
+		var c_size: float = maxf(nav_mesh.cell_size, 0.05)
+
+		var erode_pad: float = ceilf(nav_mesh.agent_radius / c_size) * c_size
+		nav_mesh.border_size = 0.0
+
+		var raw_local_aabb: AABB = chunk_inst.get_aabb()
+		var min_lx: float = raw_local_aabb.position.x - erode_pad
+		var max_lx: float = raw_local_aabb.end.x + erode_pad
+		var min_lz: float = raw_local_aabb.position.z - erode_pad
+		var max_lz: float = raw_local_aabb.end.z + erode_pad
+		var min_ly: float = raw_local_aabb.position.y - navmesh_vertical_margin
+		var max_ly: float = raw_local_aabb.end.y + navmesh_vertical_margin
+
+		var local_bake_aabb := AABB(
+			Vector3(min_lx, min_ly, min_lz),
+			Vector3(max_lx - min_lx, max_ly - min_ly, max_lz - min_lz)
+		)
+		nav_mesh.filter_baking_aabb = local_bake_aabb
+		nav_mesh.filter_baking_aabb_offset = Vector3.ZERO
+
+		var nav_group := StringName("nav_bake_%s_%s" % [name.validate_filename(), c_name])
+		nav_mesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
+		nav_mesh.geometry_source_geometry_mode = NavigationMesh.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
+		nav_mesh.geometry_source_group_name = nav_group
+
+		var temp_grouped_nodes: Array[Node] = []
+
+		var parts: PackedStringArray = c_name.split("_")
+		if parts.size() >= 3:
+			var cx: int = int(parts[1])
+			var cz: int = int(parts[2])
+			for dz: int in range(-1, 2):
+				for dx: int in range(-1, 2):
+					var n_chunk: MeshInstance3D = chunk_grid_lookup.get(Vector2i(cx + dx, cz + dz)) as MeshInstance3D
+					if is_instance_valid(n_chunk) and not n_chunk.is_in_group(nav_group):
+						n_chunk.add_to_group(nav_group)
+						temp_grouped_nodes.append(n_chunk)
+		else:
+			chunk_inst.add_to_group(nav_group)
+			temp_grouped_nodes.append(chunk_inst)
+
+		var world_bake_aabb: AABB = chunk_inst.global_transform * local_bake_aabb
+		var world_query_aabb: AABB = world_bake_aabb.grow(nav_mesh.agent_radius + 0.5)
+		for ext_entry: Dictionary in external_static_bodies:
+			var sb: StaticBody3D = ext_entry["body"] as StaticBody3D
+			if not is_instance_valid(sb):
+				continue
+			var sb_aabb: AABB = ext_entry["aabb"]
+			if world_query_aabb.intersects(sb_aabb) and not sb.is_in_group(nav_group):
+				sb.add_to_group(nav_group)
+				temp_grouped_nodes.append(sb)
+
+		var source_data := NavigationMeshSourceGeometryData3D.new()
+		NavigationServer3D.parse_source_geometry_data(nav_mesh, source_data, chunk_nav)
+
+		for g_node: Node in temp_grouped_nodes:
+			if is_instance_valid(g_node) and g_node.is_in_group(nav_group):
+				g_node.remove_from_group(nav_group)
+
+		var bake_state := {"done": false}
+		NavigationServer3D.bake_from_source_geometry_data_async(
+			nav_mesh,
+			source_data,
+			func() -> void: bake_state["done"] = true
+		)
+
+		while not bool(bake_state["done"]):
+			await get_tree().process_frame
+
+		chunk_nav.navigation_mesh = nav_mesh
+
+		if not is_editor_preview and not nav_cache_path.is_empty():
+			ResourceSaver.save(nav_mesh, nav_cache_path, ResourceSaver.FLAG_COMPRESS)
+
+	if progress_callback.is_valid():
+		progress_callback.call(100.0, "Building navigation regions...")
+
+
+func _collect_external_static_bodies_with_aabbs() -> Array[Dictionary]:
+	var results: Array[Dictionary] = []
+	var root_node: Node = get_tree().edited_scene_root if Engine.is_editor_hint() else get_tree().current_scene
+	if not is_instance_valid(root_node):
+		root_node = get_parent()
+	if not is_instance_valid(root_node):
+		return results
+
+	var chunks_root: Node3D = get_chunks_root()
+	for node: Node in root_node.find_children("*", "StaticBody3D", true, false):
+		if not (node is StaticBody3D):
+			continue
+		var sb := node as StaticBody3D
+		if is_instance_valid(chunks_root) and chunks_root.is_ancestor_of(sb):
+			continue
+		if (sb.collision_layer & navmesh_collision_mask) == 0:
+			continue
+		var sb_aabb: AABB = _compute_static_body_world_aabb(sb)
+		results.append({
+			"body": sb,
+			"aabb": sb_aabb
+		})
+	return results
+
+
+func _compute_static_body_world_aabb(sb: StaticBody3D) -> AABB:
+	var found_any: bool = false
+	var combined := AABB()
+
+	for child: Node in sb.get_children():
+		if child is CollisionShape3D and not (child as CollisionShape3D).disabled:
+			var cs := child as CollisionShape3D
+			if cs.shape:
+				var dbg: ArrayMesh = cs.shape.get_debug_mesh()
+				if dbg:
+					var w_box: AABB = cs.global_transform * dbg.get_aabb()
+					combined = w_box if not found_any else combined.merge(w_box)
+					found_any = true
+
+	if not found_any and sb.get_parent() is VisualInstance3D:
+		var p_vis := sb.get_parent() as VisualInstance3D
+		combined = p_vis.global_transform * p_vis.get_aabb()
+		found_any = true
+
+	if not found_any:
+		combined = AABB(sb.global_position - Vector3(4.0, 4.0, 4.0), Vector3(8.0, 8.0, 8.0))
+	return combined
+
+
+func _create_chunk_navigation_mesh() -> NavigationMesh:
+	var nav_mesh: NavigationMesh
+	if navigation_mesh_template:
+		nav_mesh = navigation_mesh_template.duplicate() as NavigationMesh
+	else:
+		nav_mesh = NavigationMesh.new()
+		nav_mesh.cell_size = default_nav_cell_size
+		nav_mesh.cell_height = default_nav_cell_height
+		nav_mesh.agent_radius = default_nav_agent_radius
+		nav_mesh.agent_height = default_nav_agent_height
+		nav_mesh.agent_max_climb = default_nav_agent_max_climb
+		nav_mesh.agent_max_slope = default_nav_agent_max_slope
+
+	nav_mesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
+	nav_mesh.geometry_collision_mask = navmesh_collision_mask
+	nav_mesh.geometry_source_geometry_mode = NavigationMesh.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
+	return nav_mesh
 #endregion
 
 
@@ -1120,7 +1505,7 @@ func _cubic_hermite_clamped(p0: float, p1: float, p2: float, p3: float, t: float
 #endregion
 
 
-#region Cleanup & Binary Disk Saving
+#region Cleanup & user:// Binary Disk Saving
 func clear_terrain() -> void:
 	if _is_generating:
 		return
@@ -1130,21 +1515,24 @@ func clear_terrain() -> void:
 func _clear_chunks_internal() -> void:
 	var existing := get_node_or_null("TerrainChunks")
 	if existing:
+		if is_inside_tree():
+			remove_child(existing)
 		existing.free()
 	var old_body := get_node_or_null("TerrainStaticBody3D")
 	if old_body:
+		if is_inside_tree():
+			remove_child(old_body)
 		old_body.free()
 
 
 func _get_target_save_dir() -> String:
 	var edited_root: Node = get_tree().edited_scene_root if Engine.is_editor_hint() else get_tree().current_scene
-	if not edited_root or edited_root.scene_file_path.is_empty():
-		push_warning("TerrainGenerator: Save the current scene (.tscn) to disk first so binary resources have a target folder.")
-		return ""
-
-	var base_dir: String = edited_root.scene_file_path.get_base_dir()
-	var scene_name: String = edited_root.scene_file_path.get_file().get_basename()
-	var save_dir: String = "%s/%s_%s" % [base_dir, save_subfolder_name, scene_name]
+	var scene_name: String = (
+		edited_root.scene_file_path.get_file().get_basename()
+		if (edited_root and not edited_root.scene_file_path.is_empty())
+		else "default_level"
+	)
+	var save_dir: String = "user://world_cache/%s" % scene_name
 
 	if not DirAccess.dir_exists_absolute(save_dir):
 		DirAccess.make_dir_recursive_absolute(save_dir)
@@ -1152,21 +1540,28 @@ func _get_target_save_dir() -> String:
 
 
 func save_resources_to_disk() -> void:
-	_save_resources_to_disk_async({}, 0.0, 100.0, null)
-
-
-func _save_resources_to_disk_async(popup_data: Dictionary, overall_start: float, overall_end: float, active_mat: Material = null) -> void:
 	var save_dir: String = _get_target_save_dir()
 	if save_dir.is_empty():
 		return
+	_save_resources_to_dir_async(save_dir, {}, 0.0, 100.0)
 
-	if active_mat:
-		var mat_path: String = "%s/%s_TerrainMaterial.res" % [save_dir, name]
-		if ResourceSaver.save(active_mat, mat_path, ResourceSaver.FLAG_COMPRESS) == OK:
-			active_mat.take_over_path(mat_path)
 
+func _save_resources_to_dir_async(
+	save_dir: String,
+	popup_data: Dictionary,
+	overall_start: float,
+	overall_end: float
+) -> void:
+	if save_dir.is_empty():
+		return
+	if not DirAccess.dir_exists_absolute(save_dir):
+		DirAccess.make_dir_recursive_absolute(save_dir)
+
+	var safe_name: String = name.validate_filename()
 	var saved_chunks: int = 0
 	var saved_colliders: int = 0
+	var chunk_entries: Array[Dictionary] = []
+
 	var chunks_root := get_node_or_null("TerrainChunks")
 	if chunks_root:
 		var children: Array[Node] = chunks_root.get_children()
@@ -1177,38 +1572,55 @@ func _save_resources_to_disk_async(popup_data: Dictionary, overall_start: float,
 			var child: Node = children[idx]
 			if child is MeshInstance3D and child.mesh:
 				var chunk_inst := child as MeshInstance3D
-				var res_path: String = "%s/%s_%s.res" % [save_dir, name, chunk_inst.name]
+				var parts: PackedStringArray = chunk_inst.name.split("_")
+				var cx: int = int(parts[1]) if parts.size() > 1 else 0
+				var cz: int = int(parts[2]) if parts.size() > 2 else 0
+
+				var res_path: String = "%s/%s_%s.res" % [save_dir, safe_name, chunk_inst.name]
 				if ResourceSaver.save(chunk_inst.mesh, res_path, ResourceSaver.FLAG_COMPRESS) == OK:
-					chunk_inst.mesh.take_over_path(res_path)
 					saved_chunks += 1
 
-				# Save each chunk's ConcavePolygonShape3D collider to disk as well
-				for sub: Node in chunk_inst.find_children("*", "CollisionShape3D", true, false):
-					if sub is CollisionShape3D and sub.shape:
+				var col_path: String = ""
+				for sub: Node in chunk_inst.find_children("*", "CollisionShape3D", false, false):
+					if sub is CollisionShape3D and sub.shape and sub.name.begins_with("ChunkCol_"):
 						var col := sub as CollisionShape3D
-						var col_path: String = "%s/%s_%s.res" % [save_dir, name, col.name]
+						col_path = "%s/%s_%s.res" % [save_dir, safe_name, col.name]
 						if ResourceSaver.save(col.shape, col_path, ResourceSaver.FLAG_COMPRESS) == OK:
-							col.shape.take_over_path(col_path)
 							saved_colliders += 1
+						break
 
-			if not popup_data.is_empty() and Time.get_ticks_msec() - frame_start >= frame_budget_ms:
+				chunk_entries.append({
+					"name": chunk_inst.name,
+					"cx": cx,
+					"cz": cz,
+					"center": chunk_inst.position,
+					"mesh_path": res_path,
+					"col_path": col_path
+				})
+
+			if Time.get_ticks_msec() - frame_start >= frame_budget_ms:
 				var task_pct: float = (float(idx + 1) / float(maxi(total_c, 1))) * 100.0
 				var overall_pct: float = lerpf(overall_start, overall_end, task_pct / 100.0)
 				_update_progress(
 					popup_data,
 					overall_pct,
-					"Stage 8/8: Saving compressed binary .res files...",
+					"Stage 8/8: Saving compressed binary .res files to user://...",
 					task_pct,
-					"Saving chunk & collider %d / %d to disk..." % [idx + 1, total_c]
+					"Saving chunk & collider %d / %d..." % [idx + 1, total_c]
 				)
 				await get_tree().process_frame
 				frame_start = Time.get_ticks_msec()
+
+	var manifest := Resource.new()
+	manifest.set_meta("chunk_entries", chunk_entries)
+	var manifest_path: String = "%s/%s_TerrainManifest.res" % [save_dir, safe_name]
+	ResourceSaver.save(manifest, manifest_path, ResourceSaver.FLAG_COMPRESS)
 
 	print("TerrainGenerator: Saved %d chunk meshes and %d chunk trimesh colliders to '%s'." % [saved_chunks, saved_colliders, save_dir])
 #endregion
 
 
-#region Dual-Bar Editor Progress Popup (With "Time elapsed: mm:ss")
+#region Dual-Bar Editor Progress Popup & Callback Bridge
 func _create_progress_popup() -> Dictionary:
 	var dialog := AcceptDialog.new()
 	dialog.title = "Generating Terrain (%s)..." % name
@@ -1247,10 +1659,6 @@ func _create_progress_popup() -> Dictionary:
 	task_bar.custom_minimum_size = Vector2(410.0, 22.0)
 	vbox.add_child(task_bar)
 
-	var elapsed_label := Label.new()
-	elapsed_label.text = "Time elapsed: 00:00"
-	vbox.add_child(elapsed_label)
-
 	dialog.add_child(vbox)
 	dialog.confirmed.connect(func() -> void: _cancel_requested = true)
 	dialog.canceled.connect(func() -> void: _cancel_requested = true)
@@ -1263,9 +1671,7 @@ func _create_progress_popup() -> Dictionary:
 		"overall_label": overall_label,
 		"overall_bar": overall_bar,
 		"task_label": task_label,
-		"task_bar": task_bar,
-		"elapsed_label": elapsed_label,
-		"start_msec": Time.get_ticks_msec()
+		"task_bar": task_bar
 	}
 
 
@@ -1276,12 +1682,15 @@ func _update_progress(
 	task_pct: float,
 	task_text: String
 ) -> void:
+	if popup_data.has("external_cb"):
+		var ext_cb: Callable = popup_data["external_cb"]
+		if ext_cb.is_valid():
+			ext_cb.call(overall_pct, task_text)
+
 	var overall_bar := popup_data.get("overall_bar") as ProgressBar
 	var overall_label := popup_data.get("overall_label") as Label
 	var task_bar := popup_data.get("task_bar") as ProgressBar
 	var task_label := popup_data.get("task_label") as Label
-	var elapsed_label := popup_data.get("elapsed_label") as Label
-	var start_msec: int = int(popup_data.get("start_msec", Time.get_ticks_msec()))
 
 	if is_instance_valid(overall_bar):
 		overall_bar.value = overall_pct
@@ -1291,12 +1700,6 @@ func _update_progress(
 		task_bar.value = task_pct
 	if is_instance_valid(task_label):
 		task_label.text = task_text
-	if is_instance_valid(elapsed_label):
-		var total_secs: int = maxi(int((Time.get_ticks_msec() - start_msec) / 1000), 0)
-		@warning_ignore("integer_division")
-		var mins: int = total_secs / 60
-		var secs: int = total_secs % 60
-		elapsed_label.text = "Time elapsed: %02d:%02d" % [mins, secs]
 
 
 func _close_progress_popup(popup_data: Dictionary) -> void:

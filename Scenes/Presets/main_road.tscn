@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://bomgm7gknnlny"]
+
+[ext_resource type="Script" uid="uid://cxoxhhjaf8lvw" path="res://Scripts/Tools/path_projector.gd" id="1_v1vpd"]
+[ext_resource type="ArrayMesh" uid="uid://wpsig5i6dy3u" path="res://Assets/Meshes/path_trail.res" id="2_26rb6"]
+[ext_resource type="Texture2D" uid="uid://bqoky414u02h2" path="res://Assets/textures/rocky_trail_02_diff_1k.jpg" id="3_mapui"]
+[ext_resource type="Texture2D" uid="uid://bfgy7macuwmdu" path="res://Assets/textures/rocky_trail_02_arm_1k.jpg" id="4_fcyb5"]
+[ext_resource type="Texture2D" uid="uid://dainfyiumx4sd" path="res://Assets/textures/rocky_trail_02_nor_gl_1k.jpg" id="5_bvyhx"]
+[ext_resource type="Script" uid="uid://5w53yrcfqjnk" path="res://Scripts/Resources/path_decoration_entry.gd" id="6_fv5ot"]
+[ext_resource type="PackedScene" uid="uid://cuptcf1kg4pl6" path="res://Scenes/Objects/lightpole_2.tscn" id="7_5caxe"]
+
+[sub_resource type="Curve3D" id="Curve3D_0lvsk"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 1.8825303, -0.19859849, -2.0441854, -254.70642, 14.725815, -14.727139, -5.5033793, 0.36027145, 5.785071, 5.5033793, -0.36027145, -5.785071, -242.15622, 13.401825, -28.355042, -7.483816, 0.29608843, 6.5791717, 7.483816, -0.29608843, -6.5791717, -218.01723, 12.324005, -53.294277, -8.335421, 0.4627945, 5.536658, 8.335421, -0.4627945, -5.536658, -192.26411, 11.427902, -72.21619, -8.128997, 0.12456893, 4.3947864, 8.128997, -0.12456893, -4.3947864, -162.44775, 9.2387085, -90.20533, -7.4481688, -0.25723803, 2.6133935, 7.4481688, 0.25723803, -2.6133935, -138.0708, 10.597443, -101.51476, -7.581046, -0.38006514, 1.700996, 7.581046, 0.38006514, -1.700996, -112.7933, 10.953629, -107.62795, -8.166852, -0.7291191, 1.3066955, 8.166852, 0.7291191, -1.3066955, -87.530495, 13.13121, -112.85474, -9.277544, -0.50091475, 0.26133955, 9.277544, 0.50091475, -0.26133955, -58.34762, 15.814423, -116.33926, -8.732662, -0.18274155, -1.38032, 8.732662, 0.18274155, 1.38032, -25.680199, 16.470642, -114.597, -7.4325204, -0.105141446, -3.1515036, 7.4325204, 0.105141446, 3.1515036, -0.12986755, 17.0327, -107.13712, -6.6233096, 0.332016, -4.8931746, 6.6233096, -0.332016, 4.8931746, 23.869938, 17.171585, -93.586975, -5.268597, 0.3733177, -5.755246, 5.268597, -0.3733177, 5.755246, 44.025528, 14.81926, -74.51596, -2.623094, 0.3365799, -6.6229744, 2.623094, -0.3365799, 6.6229744, 58.99392, 14.6828, -55.218666, 1.2433267, 0.21346664, -7.233446, -1.2433267, -0.21346664, 7.233446, 61.51282, 12.575394, -30.362797, 4.4677887, -0.9588478, -10.284862, -4.4677887, 0.9588478, 10.284862, 50.705074, 13.259689, -6.9956894, 5.114272, -0.9022865, -11.060437, -5.114272, 0.9022865, 11.060437, 31.727562, 18.967712, 38.202946, 5.5139112, 0.0019569397, -9.198666, -5.5139112, -0.0019569397, 9.198666, 16.609928, 19.274933, 66.74056, 5.663655, 0.09277954, -7.662085, -5.663655, -0.09277954, 7.662085, -5.0318465, 18.954666, 99.52738, 7.0053096, -0.035286713, -11.00323, -7.0053096, 0.035286713, 11.00323, -21.147768, 18.656403, 117.82113, 6.74397, -0.4421253, -11.395238, -6.74397, 0.4421253, 11.395238, -51.73391, 19.18991, 172.88225, 4.246763, -0.6564526, -6.8601565, -4.246763, 0.6564526, 6.8601565, -66.10757, 21.603905, 193.78938, 3.6587493, -0.3784481, -6.7948194, -3.6587493, 0.3784481, 6.7948194, -80.04566, 23.566261, 218.61662, 2.4827223, -0.093975455, -5.292119, -2.4827223, 0.093975455, 5.292119, -90.49923, 24.126892, 239.08818, 0.9146874, -0.00988083, -2.2213852, 0, 0, 0, -96.597145, 24.192764, 253.89742),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 25
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qdsvg"]
+resource_name = "rocky_trail_02"
+cull_mode = 2
+albedo_texture = ExtResource("3_mapui")
+metallic_texture = ExtResource("4_fcyb5")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("4_fcyb5")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("5_bvyhx")
+uv1_scale = Vector3(5, 1, 1)
+metadata/_gltf_primary_texture_coord = 0
+
+[sub_resource type="Resource" id="Resource_kb32l"]
+script = ExtResource("6_fv5ot")
+decoration_scene = ExtResource("7_5caxe")
+lateral_offset = 3.0
+vertical_offset = -0.5
+yaw_offset_degrees = -90.0
+metadata/_custom_type_script = "uid://5w53yrcfqjnk"
+
+[node name="MainRoad" type="Path3D" unique_id=2134283352]
+curve = SubResource("Curve3D_0lvsk")
+script = ExtResource("1_v1vpd")
+height_offset = -0.5
+smoothing_factor = 0.15
+source_road_mesh = ExtResource("2_26rb6")
+model_forward_axis = 1
+model_scale = Vector3(5, 1, 1)
+conform_cross_slope_to_terrain = true
+fallback_material_override = SubResource("StandardMaterial3D_qdsvg")
+road_chunk_max_distance = 130.0
+road_chunk_fade_margin = 16.0
+decorations = Array[ExtResource("6_fv5ot")]([SubResource("Resource_kb32l")])
+auto_save_to_disk = true
+metadata/_custom_type_script = "uid://cxoxhhjaf8lvw"

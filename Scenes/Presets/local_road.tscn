@@ -1,0 +1,54 @@
+[gd_scene format=3 uid="uid://cywcu45tkbr40"]
+
+[ext_resource type="Script" uid="uid://cxoxhhjaf8lvw" path="res://Scripts/Tools/path_projector.gd" id="1_5vlbw"]
+[ext_resource type="ArrayMesh" uid="uid://wpsig5i6dy3u" path="res://Assets/Meshes/path_trail.res" id="2_xex5u"]
+[ext_resource type="Texture2D" uid="uid://bqoky414u02h2" path="res://Assets/textures/rocky_trail_02_diff_1k.jpg" id="3_wofxx"]
+[ext_resource type="Texture2D" uid="uid://bfgy7macuwmdu" path="res://Assets/textures/rocky_trail_02_arm_1k.jpg" id="4_lx8n5"]
+[ext_resource type="Texture2D" uid="uid://dainfyiumx4sd" path="res://Assets/textures/rocky_trail_02_nor_gl_1k.jpg" id="5_pmcrx"]
+[ext_resource type="Script" uid="uid://5w53yrcfqjnk" path="res://Scripts/Resources/path_decoration_entry.gd" id="6_gf3cy"]
+[ext_resource type="PackedScene" uid="uid://cuptcf1kg4pl6" path="res://Scenes/Objects/lightpole_2.tscn" id="7_gkpin"]
+
+[sub_resource type="Curve3D" id="Curve3D_3pmx8"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 1.1528709, -0.01276474, -1.6672298, -43.331406, 20.197662, 25.209524, -3.4577231, 0.14591675, 3.000988, 3.4577231, -0.14591675, -3.000988, -35.6456, 20.112564, 14.094659, -5.0318694, 0.33246002, 1.9146075, 5.0318694, -0.33246002, -1.9146075, -20.279919, 19.224884, 5.2029357, -5.5054345, 0.14764023, 2.0010455, 5.5054345, -0.14764023, -2.0010455, -2.0998044, 17.896164, 1.3306084, -5.017407, -0.07811966, 3.8622844, 5.017407, 0.07811966, -3.8622844, 16.422977, 18.240616, -8.137365, -4.6327605, 0.2014206, 4.1612096, 4.6327605, -0.2014206, -4.1612096, 31.349573, 18.416962, -24.417955, -4.468939, 0.75800174, 2.1802697, 4.468939, -0.75800174, -2.1802697, 47.30805, 16.897812, -35.87876, -2.0751674, 0.53012925, 0.46114883, 0, 0, 0, 61.142498, 13.363617, -38.953087),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qdsvg"]
+resource_name = "rocky_trail_02"
+cull_mode = 2
+albedo_texture = ExtResource("3_wofxx")
+metallic_texture = ExtResource("4_lx8n5")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("4_lx8n5")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("5_pmcrx")
+uv1_scale = Vector3(5, 1, 1)
+metadata/_gltf_primary_texture_coord = 0
+
+[sub_resource type="Resource" id="Resource_kb32l"]
+script = ExtResource("6_gf3cy")
+decoration_scene = ExtResource("7_gkpin")
+lateral_offset = 3.0
+vertical_offset = -0.5
+yaw_offset_degrees = -90.0
+metadata/_custom_type_script = "uid://5w53yrcfqjnk"
+
+[node name="LocalRoad" type="Path3D" unique_id=2043120717]
+curve = SubResource("Curve3D_3pmx8")
+script = ExtResource("1_5vlbw")
+height_offset = -0.5
+smoothing_factor = 0.15
+source_road_mesh = ExtResource("2_xex5u")
+model_forward_axis = 1
+model_scale = Vector3(5, 1, 1)
+conform_cross_slope_to_terrain = true
+fallback_material_override = SubResource("StandardMaterial3D_qdsvg")
+road_chunk_max_distance = 130.0
+road_chunk_fade_margin = 16.0
+spawn_decorations = false
+decorations = Array[ExtResource("6_gf3cy")]([SubResource("Resource_kb32l")])
+auto_save_to_disk = true
+metadata/_custom_type_script = "uid://cxoxhhjaf8lvw"

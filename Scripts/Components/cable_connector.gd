@@ -42,7 +42,8 @@ class_name CableConnectorComponent extends Node3D
 static var _black_material: StandardMaterial3D
 
 func _ready() -> void:
-	_apply_baked_mesh()
+	bake_cables()
+	_apply_baked_mesh.call_deferred()
 
 func _apply_baked_mesh() -> void:
 	var mesh_inst: MeshInstance3D = _get_mesh_instance()

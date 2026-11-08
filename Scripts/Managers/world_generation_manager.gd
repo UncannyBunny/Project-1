@@ -1,7 +1,6 @@
 @tool
-## Orchestrates ordered runtime world generation and user:// caching:
+## Orchestrates ordered runtime & editor world generation and user:// caching:
 ## Terrain -> Roads -> Houses -> Scene Populators (Trees) -> MultiMesh Populators (Grass) -> Per-Chunk NavMeshes.
-## Pauses the SceneTree during generation while keeping 3D physics active for raycasting, and displays a dual-progress-bar loading UI.
 class_name WorldGenerationManager extends Node
 
 signal generation_started
@@ -20,55 +19,68 @@ signal generation_finished
 		return wipe_user_cache
 
 @export_group("Generation Pipeline Targets")
-## The TerrainGenerator node in this level. If left empty, auto-discovers the first TerrainGenerator in the scene.
 @export var terrain_generator: TerrainGenerator
-## Ordered list of road/path projectors. If empty, auto-discovers all ToolPathProjector nodes in the scene.
 @export var road_projectors: Array[ToolPathProjector] = []
-## Ordered list of procedural houses. If empty, auto-discovers all ProceduralFloorplanHouse / ProceduralHouse nodes.
 @export var procedural_houses: Array[Node3D] = []
-## Populators that spawn scenes/colliders (e.g., Trees, Rocks, Bushes) — runs BEFORE grass so grass avoids tree trunks!
 @export var scene_populators: Array[MultiMeshPopulator] = []
-## Populators that spawn MultiMeshes (e.g., ProceduralGrass) — runs AFTER trees and houses!
 @export var grass_populators: Array[MultiMeshPopulator] = []
 
+@export_group("First-Time Generation Loading UI")
+## Container shown only when the world is being generated for the first time
+@export var generation_loading_container: CanvasItem
+@export var generation_overall_bar: ProgressBar
+@export var generation_overall_label: RichTextLabel
+@export var generation_task_bar: ProgressBar
+@export var generation_task_label: RichTextLabel
+@export var overall_generating_text: String = "Generating world..."
+
+@export_group("Cached World Loading UI (From Menu / Save Slot)")
+## Container shown when loading an already-generated world from the menu (stays hidden on death/loop reload)
+@export var cached_loading_container: CanvasItem
+@export var cached_overall_bar: ProgressBar
+
 @export_group("Runtime & Cache Settings")
-## Automatically generates/loads the world when the scene starts in-game
 @export var generate_on_ready: bool = true
-## Whether to bake/load per-chunk NavigationRegion3D navmeshes as the final stage
 @export var bake_chunk_navmeshes: bool = true
-## Increment this number whenever you change the level layout (roads, house positions, terrain settings) to force cache regeneration
 @export var cache_version: int = 1
-## Subfolder inside user://world_cache/ for this level. Uses scene file basename if left empty.
 @export var cache_level_id: String = ""
-## Automatically clears generated preview nodes right before saving the scene in the Editor so your .tscn stays tiny for GitHub
 @export var strip_generated_nodes_on_editor_save: bool = true
 
-# Runtime state
-var _is_generating: bool = false
-var _was_tree_paused_before: bool = false
+# Tracks when the level scene exits so we can distinguish a direct scene reload (death/loop reset)
+# from loading the level fresh via the Main Menu / Save Slot.
+static var _last_level_exit_frame: int = -1000
+static var _last_level_scene_path: String = ""
 
-# Dual-Progress-Bar Runtime UI references
-var _ui_layer: CanvasLayer = null
-var _title_label: Label = null
-var _overall_label: Label = null
-var _overall_bar: ProgressBar = null
-var _overall_time_label: Label = null
-var _task_label: Label = null
-var _task_bar: ProgressBar = null
-var _task_time_label: Label = null
-var _start_time_msec: int = 0
-var _task_start_time_msec: int = 0
-var _last_task_stage_name: String = ""
+var _is_generating: bool = false
+var _cancel_requested: bool = false
+var _was_tree_paused_before: bool = false
+var _active_ui_mode: int = 0 # 0 = None (Silent Reload), 1 = First-Time Dual Bar, 2 = Cached Single Bar
+
+# Editor popup references
+var _editor_dialog: AcceptDialog = null
+var _ed_overall_label: Label = null
+var _ed_overall_bar: ProgressBar = null
+var _ed_task_label: Label = null
+var _ed_task_bar: ProgressBar = null
 
 
 func _ready() -> void:
-	# Always process even when the SceneTree is paused
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_hide_all_runtime_loading_containers()
+
 	if Engine.is_editor_hint():
 		return
 	if generate_on_ready:
-		# Defer by 1 frame so all nodes in the level scene have finished their _enter_tree / _ready setup
 		call_deferred(&"run_world_generation_pipeline", false)
+
+
+func _exit_tree() -> void:
+	_close_editor_progress_popup()
+	if not Engine.is_editor_hint():
+		_last_level_exit_frame = Engine.get_process_frames()
+		var root_node: Node = get_tree().current_scene
+		if root_node:
+			_last_level_scene_path = root_node.scene_file_path
 
 
 func _notification(what: int) -> void:
@@ -137,6 +149,7 @@ func run_world_generation_pipeline(is_editor_preview: bool = false) -> void:
 	if _is_generating:
 		return
 	_is_generating = true
+	_cancel_requested = false
 	generation_started.emit()
 
 	_auto_discover_targets()
@@ -146,37 +159,33 @@ func run_world_generation_pipeline(is_editor_preview: bool = false) -> void:
 		DirAccess.make_dir_recursive_absolute(cache_dir)
 
 	var is_cache_valid: bool = _check_and_prepare_manifest(cache_dir)
+	var is_scene_reload: bool = _is_reloading_same_scene()
 
-	# Pause everything else in the game while keeping 3D physics active so raycasts and StaticBody3Ds work!
 	if not is_editor_preview:
 		_was_tree_paused_before = get_tree().paused
 		get_tree().paused = true
 		PhysicsServer3D.set_active(true)
-		_create_runtime_loading_ui(is_cache_valid)
+		_setup_runtime_loading_ui(is_cache_valid, is_scene_reload)
 	else:
 		PhysicsServer3D.set_active(true)
+		_create_editor_progress_popup()
 
-	_start_time_msec = Time.get_ticks_msec()
-	_task_start_time_msec = _start_time_msec
-	_last_task_stage_name = ""
-
-	# Calculate total weighted stages for smooth Overall Progress Bar
-	# 1: Terrain (20%), 2: Roads (15%), 3: Houses (10%), 4: Scene Populators (20%), 5: Grass Populators (15%), 6: NavMeshes (20%)
 	await get_tree().process_frame
 
 	# =========================================================================
-	# STAGE 1: TERRAIN GENERATION / CACHE LOAD (0% -> 20%)
+	# STAGE 1: TERRAIN (0% -> 20%)
 	# =========================================================================
-	if is_instance_valid(terrain_generator):
-		_update_ui_progress(0.0, "Stage 1/6: Building Terrain...", 0.0, "Initializing Terrain...")
-		var terrain_cb := func(t_pct: float, t_text: String) -> void:
+	if is_instance_valid(terrain_generator) and not _cancel_requested:
+		var stage_text := "Generating terrain..."
+		_update_ui_progress(0.0, overall_generating_text, 0.0, stage_text)
+		var terrain_cb := func(t_pct: float, _t_text: String) -> void:
 			var ov_pct: float = lerpf(0.0, 20.0, clampf(t_pct / 100.0, 0.0, 1.0))
-			_update_ui_progress(ov_pct, "Stage 1/6: Building Terrain...", t_pct, t_text)
+			_update_ui_progress(ov_pct, overall_generating_text, t_pct, stage_text)
 
 		if terrain_generator.has_method(&"generate_or_load_cached"):
-			await terrain_generator.generate_or_load_cached(cache_dir, is_cache_valid, is_editor_preview, terrain_cb)
+			await terrain_generator.call(&"generate_or_load_cached", cache_dir, is_cache_valid, is_editor_preview, terrain_cb)
 		else:
-			terrain_generator.generate_terrain()
+			await terrain_generator.generate_terrain()
 
 		await _wait_physics_sync(2)
 
@@ -184,42 +193,49 @@ func run_world_generation_pipeline(is_editor_preview: bool = false) -> void:
 	# STAGE 2: ROADS & PATH PROJECTORS (20% -> 35%)
 	# =========================================================================
 	var road_count: int = road_projectors.size()
-	if road_count > 0:
+	if road_count > 0 and not _cancel_requested:
+		var stage_text := "Projecting roads..."
 		for r_idx: int in range(road_count):
+			if _cancel_requested:
+				break
 			var road: ToolPathProjector = road_projectors[r_idx]
 			if not is_instance_valid(road):
 				continue
 
 			var base_ov: float = 20.0 + (float(r_idx) / float(road_count)) * 15.0
 			var span_ov: float = 15.0 / float(road_count)
-			var r_label: String = "Stage 2/6: Projecting Roads (%d/%d: %s)..." % [r_idx + 1, road_count, road.name]
+			var base_task: float = (float(r_idx) / float(road_count)) * 100.0
+			var span_task: float = 100.0 / float(road_count)
 
-			var road_cb := func(t_pct: float, t_text: String) -> void:
-				var ov_pct: float = base_ov + (clampf(t_pct / 100.0, 0.0, 1.0) * span_ov)
-				_update_ui_progress(ov_pct, r_label, t_pct, t_text)
+			var road_cb := func(t_pct: float, _t_text: String) -> void:
+				var norm_t: float = clampf(t_pct / 100.0, 0.0, 1.0)
+				_update_ui_progress(base_ov + norm_t * span_ov, overall_generating_text, base_task + norm_t * span_task, stage_text)
 
-			await road.generate_or_load_cached(cache_dir, is_cache_valid, is_editor_preview, road_cb)
-			# Sync physics after each road so subsequent intersecting roads or decorations see its collider
+			if road.has_method(&"generate_or_load_cached"):
+				await road.call(&"generate_or_load_cached", cache_dir, is_cache_valid, is_editor_preview, road_cb)
+			elif road.has_method(&"build_complete_path"):
+				_update_ui_progress(base_ov, overall_generating_text, base_task, stage_text)
+				await get_tree().process_frame
+				await road.build_complete_path()
+
 			await _wait_physics_sync(2)
 
 	# =========================================================================
 	# STAGE 3: PROCEDURAL HOUSES (35% -> 45%)
 	# =========================================================================
 	var house_count: int = procedural_houses.size()
-	if house_count > 0:
+	if house_count > 0 and not _cancel_requested:
+		var stage_text := "Building houses..."
 		for h_idx: int in range(house_count):
+			if _cancel_requested:
+				break
 			var house: Node3D = procedural_houses[h_idx]
 			if not is_instance_valid(house):
 				continue
 
 			var pct: float = (float(h_idx) / float(house_count)) * 100.0
 			var ov_pct: float = lerpf(35.0, 45.0, float(h_idx) / float(house_count))
-			_update_ui_progress(
-				ov_pct,
-				"Stage 3/6: Constructing Buildings (%d/%d)..." % [h_idx + 1, house_count],
-				pct,
-				"Building %s..." % house.name
-			)
+			_update_ui_progress(ov_pct, overall_generating_text, pct, stage_text)
 			await get_tree().process_frame
 
 			if house.has_method(&"generate_or_load_cached"):
@@ -227,7 +243,6 @@ func run_world_generation_pipeline(is_editor_preview: bool = false) -> void:
 			elif house.has_method(&"generate_house"):
 				house.call(&"generate_house")
 
-			# Tag house static bodies so populators know to keep trees/grass away from them
 			_ensure_house_obstacle_groups(house)
 
 		await _wait_physics_sync(2)
@@ -236,22 +251,26 @@ func run_world_generation_pipeline(is_editor_preview: bool = false) -> void:
 	# STAGE 4: SCENE POPULATORS (TREES / ROCKS / PROPS) (45% -> 65%)
 	# =========================================================================
 	var s_pop_count: int = scene_populators.size()
-	if s_pop_count > 0:
+	if s_pop_count > 0 and not _cancel_requested:
+		var stage_text := "Placing objects..."
 		for p_idx: int in range(s_pop_count):
+			if _cancel_requested:
+				break
 			var pop: MultiMeshPopulator = scene_populators[p_idx]
 			if not is_instance_valid(pop):
 				continue
 
 			var base_ov: float = 45.0 + (float(p_idx) / float(s_pop_count)) * 20.0
 			var span_ov: float = 20.0 / float(s_pop_count)
-			var p_label: String = "Stage 4/6: Populating Objects (%d/%d: %s)..." % [p_idx + 1, s_pop_count, pop.name]
+			var base_task: float = (float(p_idx) / float(s_pop_count)) * 100.0
+			var span_task: float = 100.0 / float(s_pop_count)
 
-			var pop_cb := func(t_pct: float, t_text: String) -> void:
-				var ov_pct: float = base_ov + (clampf(t_pct / 100.0, 0.0, 1.0) * span_ov)
-				_update_ui_progress(ov_pct, p_label, t_pct, t_text)
+			var pop_cb := func(t_pct: float, _t_text: String) -> void:
+				var norm_t: float = clampf(t_pct / 100.0, 0.0, 1.0)
+				_update_ui_progress(base_ov + norm_t * span_ov, overall_generating_text, base_task + norm_t * span_task, stage_text)
 
 			if pop.has_method(&"generate_or_load_cached"):
-				await pop.generate_or_load_cached(cache_dir, is_cache_valid, is_editor_preview, pop_cb)
+				await pop.call(&"generate_or_load_cached", cache_dir, is_cache_valid, is_editor_preview, pop_cb)
 			else:
 				await pop.populate_surface()
 
@@ -261,22 +280,26 @@ func run_world_generation_pipeline(is_editor_preview: bool = false) -> void:
 	# STAGE 5: MULTIMESH POPULATORS (GRASS / FOLIAGE) (65% -> 80%)
 	# =========================================================================
 	var g_pop_count: int = grass_populators.size()
-	if g_pop_count > 0:
+	if g_pop_count > 0 and not _cancel_requested:
+		var stage_text := "Adding foliage..."
 		for g_idx: int in range(g_pop_count):
+			if _cancel_requested:
+				break
 			var g_pop: MultiMeshPopulator = grass_populators[g_idx]
 			if not is_instance_valid(g_pop):
 				continue
 
 			var base_ov: float = 65.0 + (float(g_idx) / float(g_pop_count)) * 15.0
 			var span_ov: float = 15.0 / float(g_pop_count)
-			var g_label: String = "Stage 5/6: Populating Foliage (%d/%d: %s)..." % [g_idx + 1, g_pop_count, g_pop.name]
+			var base_task: float = (float(g_idx) / float(g_pop_count)) * 100.0
+			var span_task: float = 100.0 / float(g_pop_count)
 
-			var g_cb := func(t_pct: float, t_text: String) -> void:
-				var ov_pct: float = base_ov + (clampf(t_pct / 100.0, 0.0, 1.0) * span_ov)
-				_update_ui_progress(ov_pct, g_label, t_pct, t_text)
+			var g_cb := func(t_pct: float, _t_text: String) -> void:
+				var norm_t: float = clampf(t_pct / 100.0, 0.0, 1.0)
+				_update_ui_progress(base_ov + norm_t * span_ov, overall_generating_text, base_task + norm_t * span_task, stage_text)
 
 			if g_pop.has_method(&"generate_or_load_cached"):
-				await g_pop.generate_or_load_cached(cache_dir, is_cache_valid, is_editor_preview, g_cb)
+				await g_pop.call(&"generate_or_load_cached", cache_dir, is_cache_valid, is_editor_preview, g_cb)
 			else:
 				await g_pop.populate_surface()
 
@@ -285,30 +308,195 @@ func run_world_generation_pipeline(is_editor_preview: bool = false) -> void:
 	# =========================================================================
 	# STAGE 6: PER-CHUNK NAVIGATION MESH BAKING / LOADING (80% -> 100%)
 	# =========================================================================
-	if bake_chunk_navmeshes and is_instance_valid(terrain_generator):
-		_update_ui_progress(80.0, "Stage 6/6: Baking Chunk NavMeshes...", 0.0, "Preparing NavigationRegions...")
-		var nav_cb := func(t_pct: float, t_text: String) -> void:
+	if bake_chunk_navmeshes and is_instance_valid(terrain_generator) and not _cancel_requested:
+		var stage_text := "Building navigation regions..."
+		_update_ui_progress(80.0, overall_generating_text, 0.0, stage_text)
+		var nav_cb := func(t_pct: float, _t_text: String) -> void:
 			var ov_pct: float = lerpf(80.0, 99.0, clampf(t_pct / 100.0, 0.0, 1.0))
-			_update_ui_progress(ov_pct, "Stage 6/6: Baking Chunk NavMeshes...", t_pct, t_text)
+			_update_ui_progress(ov_pct, overall_generating_text, t_pct, stage_text)
 
 		if terrain_generator.has_method(&"bake_or_load_chunk_navmeshes"):
-			await terrain_generator.bake_or_load_chunk_navmeshes(cache_dir, is_cache_valid, is_editor_preview, nav_cb)
+			await terrain_generator.call(&"bake_or_load_chunk_navmeshes", cache_dir, is_cache_valid, is_editor_preview, nav_cb)
 
 		await _wait_physics_sync(2)
 
-	# Save valid manifest stamp if we just built the cache
-	if not is_cache_valid and not is_editor_preview:
+	if not _cancel_requested and not is_cache_valid and not is_editor_preview:
 		_write_manifest(cache_dir)
 
-	_update_ui_progress(100.0, "World Ready!", 100.0, "Complete!")
-	await get_tree().process_frame
+	if _cancel_requested:
+		push_warning("WorldGenerationManager: World generation canceled by user.")
+	else:
+		_update_ui_progress(100.0, overall_generating_text, 100.0, "Complete")
+		await get_tree().process_frame
 
 	if not is_editor_preview:
-		await _close_runtime_loading_ui()
+		_hide_all_runtime_loading_containers()
 		get_tree().paused = _was_tree_paused_before
+	else:
+		_close_editor_progress_popup()
 
 	_is_generating = false
 	generation_finished.emit()
+#endregion
+
+
+#region Scene Reload Detection & User UI Node Management
+func _is_reloading_same_scene() -> bool:
+	# 1. Check if LoopManager is actively resetting the loop (character death / time out)
+	var loop_mgr: Node = get_node_or_null("/root/LoopManager")
+	if loop_mgr and bool(loop_mgr.get("_is_resetting")):
+		return true
+
+	# 2. Check if the same level scene just exited the tree within the last few frames (reload_current_scene)
+	var root_node: Node = get_tree().current_scene
+	var cur_path: String = root_node.scene_file_path if root_node else ""
+	var frames_since_exit: int = Engine.get_process_frames() - _last_level_exit_frame
+	if not cur_path.is_empty() and cur_path == _last_level_scene_path and frames_since_exit <= 5:
+		return true
+
+	return false
+
+
+func _setup_runtime_loading_ui(is_cache_valid: bool, is_scene_reload: bool) -> void:
+	_hide_all_runtime_loading_containers()
+
+	# Character death / scene reload: never show any loading screen (unless cache doesn't exist at all yet)
+	if is_scene_reload and is_cache_valid:
+		_active_ui_mode = 0
+		return
+
+	if not is_cache_valid:
+		# First-time world generation: show dual-bar UI
+		_active_ui_mode = 1
+		if is_instance_valid(generation_loading_container):
+			generation_loading_container.process_mode = Node.PROCESS_MODE_ALWAYS
+			generation_loading_container.visible = true
+		if is_instance_valid(generation_overall_bar):
+			generation_overall_bar.value = 0.0
+		if is_instance_valid(generation_task_bar):
+			generation_task_bar.value = 0.0
+		if is_instance_valid(generation_overall_label) and not overall_generating_text.is_empty():
+			generation_overall_label.text = overall_generating_text
+		if is_instance_valid(generation_task_label):
+			generation_task_label.text = ""
+	else:
+		# Loading an already-generated world from Main Menu / Save Slot: show single-bar UI
+		_active_ui_mode = 2
+		if is_instance_valid(cached_loading_container):
+			cached_loading_container.process_mode = Node.PROCESS_MODE_ALWAYS
+			cached_loading_container.visible = true
+		if is_instance_valid(cached_overall_bar):
+			cached_overall_bar.value = 0.0
+
+
+func _hide_all_runtime_loading_containers() -> void:
+	_active_ui_mode = 0
+	if is_instance_valid(generation_loading_container):
+		generation_loading_container.visible = false
+	if is_instance_valid(cached_loading_container):
+		cached_loading_container.visible = false
+
+
+func _update_ui_progress(
+	overall_pct: float,
+	overall_text: String,
+	task_pct: float,
+	task_text: String
+) -> void:
+	generation_progress.emit(overall_pct, overall_text, task_pct, task_text)
+
+	var clamped_ov: float = clampf(overall_pct, 0.0, 100.0)
+	var clamped_tk: float = clampf(task_pct, 0.0, 100.0)
+
+	# Runtime Mode 1: First-Time Generation (2 ProgressBars + 2 RichTextLabels)
+	if _active_ui_mode == 1:
+		if is_instance_valid(generation_overall_bar):
+			generation_overall_bar.value = clamped_ov
+		if is_instance_valid(generation_overall_label) and not overall_text.is_empty():
+			generation_overall_label.text = overall_text
+		if is_instance_valid(generation_task_bar):
+			generation_task_bar.value = clamped_tk
+		if is_instance_valid(generation_task_label):
+			generation_task_label.text = task_text
+
+	# Runtime Mode 2: Cached Load from Save Slot / Menu (1 Overall ProgressBar)
+	elif _active_ui_mode == 2:
+		if is_instance_valid(cached_overall_bar):
+			cached_overall_bar.value = clamped_ov
+
+	# Editor Preview Popup
+	if is_instance_valid(_editor_dialog):
+		if is_instance_valid(_ed_overall_bar):
+			_ed_overall_bar.value = clamped_ov
+		if is_instance_valid(_ed_overall_label):
+			_ed_overall_label.text = overall_text
+		if is_instance_valid(_ed_task_bar):
+			_ed_task_bar.value = clamped_tk
+		if is_instance_valid(_ed_task_label):
+			_ed_task_label.text = task_text
+#endregion
+
+
+#region Editor Progress Popup (Simplified)
+func _create_editor_progress_popup() -> void:
+	_close_editor_progress_popup()
+
+	_editor_dialog = AcceptDialog.new()
+	_editor_dialog.title = "Generating World Preview..."
+	_editor_dialog.dialog_hide_on_ok = false
+	_editor_dialog.get_ok_button().text = "Cancel"
+	_editor_dialog.unresizable = true
+	_editor_dialog.size = Vector2i(440, 180)
+
+	var vbox := VBoxContainer.new()
+	vbox.custom_minimum_size = Vector2(410.0, 120.0)
+	vbox.add_theme_constant_override("separation", 6)
+
+	_ed_overall_label = Label.new()
+	_ed_overall_label.text = overall_generating_text
+	vbox.add_child(_ed_overall_label)
+
+	_ed_overall_bar = ProgressBar.new()
+	_ed_overall_bar.min_value = 0.0
+	_ed_overall_bar.max_value = 100.0
+	_ed_overall_bar.value = 0.0
+	_ed_overall_bar.custom_minimum_size = Vector2(400.0, 22.0)
+	vbox.add_child(_ed_overall_bar)
+
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0.0, 4.0)
+	vbox.add_child(spacer)
+
+	_ed_task_label = Label.new()
+	_ed_task_label.text = "Initializing..."
+	vbox.add_child(_ed_task_label)
+
+	_ed_task_bar = ProgressBar.new()
+	_ed_task_bar.min_value = 0.0
+	_ed_task_bar.max_value = 100.0
+	_ed_task_bar.value = 0.0
+	_ed_task_bar.custom_minimum_size = Vector2(400.0, 22.0)
+	vbox.add_child(_ed_task_bar)
+
+	_editor_dialog.add_child(vbox)
+	_editor_dialog.confirmed.connect(_on_editor_popup_cancel_pressed)
+	_editor_dialog.canceled.connect(_on_editor_popup_cancel_pressed)
+
+	get_tree().root.add_child(_editor_dialog)
+	_editor_dialog.popup_centered()
+
+
+func _on_editor_popup_cancel_pressed() -> void:
+	_cancel_requested = true
+	_is_generating = false
+	_close_editor_progress_popup()
+
+
+func _close_editor_progress_popup() -> void:
+	if is_instance_valid(_editor_dialog):
+		_editor_dialog.hide()
+		_editor_dialog.queue_free()
+		_editor_dialog = null
 #endregion
 
 
@@ -412,7 +600,7 @@ func _auto_discover_targets() -> void:
 			if n is ProceduralFloorplanHouse or n is ProceduralHouse:
 				procedural_houses.append(n as Node3D)
 
-	if scene_populators.is_empty() and grass_populators.is_empty():
+	if scene_populators.is_empty() or grass_populators.is_empty():
 		for n: Node in root_node.find_children("*", "MultiMeshPopulator", true, false):
 			if n is MultiMeshPopulator:
 				var pop := n as MultiMeshPopulator
@@ -426,171 +614,9 @@ func _ensure_house_obstacle_groups(house: Node3D) -> void:
 	for child: Node in house.find_children("*", "StaticBody3D", true, false):
 		if child is StaticBody3D:
 			var sb := child as StaticBody3D
-			# Skip moving door panels so we don't mark them as static building shells if unneeded
 			if sb.get_parent() and sb.get_parent().name.begins_with("Door"):
 				continue
 			for grp: StringName in [&"house", &"building", &"no_grass"]:
 				if not sb.is_in_group(grp):
 					sb.add_to_group(grp)
-#endregion
-
-
-#region Runtime Dual-Progress-Bar Loading UI
-func _create_runtime_loading_ui(is_loading_from_cache: bool) -> void:
-	if is_instance_valid(_ui_layer):
-		_ui_layer.queue_free()
-
-	_ui_layer = CanvasLayer.new()
-	_ui_layer.name = "WorldGenLoadingLayer"
-	_ui_layer.layer = 125
-	_ui_layer.process_mode = Node.PROCESS_MODE_ALWAYS
-
-	var bg := ColorRect.new()
-	bg.color = Color(0.05, 0.05, 0.07, 1.0)
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_ui_layer.add_child(bg)
-
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.add_child(center)
-
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(540.0, 240.0)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.11, 0.12, 0.15, 0.96)
-	style.border_color = Color(0.28, 0.31, 0.38, 1.0)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(8)
-	style.content_margin_left = 24.0
-	style.content_margin_right = 24.0
-	style.content_margin_top = 20.0
-	style.content_margin_bottom = 20.0
-	panel.add_theme_stylebox_override("panel", style)
-	center.add_child(panel)
-
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 8)
-	panel.add_child(vbox)
-
-	_title_label = Label.new()
-	_title_label.text = "Loading Cached World..." if is_loading_from_cache else "Generating World (First-Time Setup)..."
-	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_title_label.add_theme_font_size_override("font_size", 20)
-	vbox.add_child(_title_label)
-
-	var sep := HSeparator.new()
-	vbox.add_child(sep)
-
-	_overall_label = Label.new()
-	_overall_label.text = "Overall Progress:"
-	vbox.add_child(_overall_label)
-
-	_overall_bar = ProgressBar.new()
-	_overall_bar.min_value = 0.0
-	_overall_bar.max_value = 100.0
-	_overall_bar.value = 0.0
-	_overall_bar.custom_minimum_size = Vector2(480.0, 24.0)
-	vbox.add_child(_overall_bar)
-
-	_overall_time_label = Label.new()
-	_overall_time_label.text = "Time Elapsed: 00:00   |   Estimated Remaining: --:--"
-	_overall_time_label.add_theme_Color_override("font_color", Color(0.75, 0.78, 0.82))
-	_overall_time_label.add_theme_font_size_override("font_size", 13)
-	vbox.add_child(_overall_time_label)
-
-	var spacer := Control.new()
-	spacer.custom_minimum_size = Vector2(0.0, 6.0)
-	vbox.add_child(spacer)
-
-	_task_label = Label.new()
-	_task_label.text = "Current Task: Initializing..."
-	vbox.add_child(_task_label)
-
-	_task_bar = ProgressBar.new()
-	_task_bar.min_value = 0.0
-	_task_bar.max_value = 100.0
-	_task_bar.value = 0.0
-	_task_bar.custom_minimum_size = Vector2(480.0, 24.0)
-	vbox.add_child(_task_bar)
-
-	_task_time_label = Label.new()
-	_task_time_label.text = "Task Elapsed: 00:00   |   Task Remaining: --:--"
-	_task_time_label.add_theme_color_override("font_color", Color(0.75, 0.78, 0.82))
-	_task_time_label.add_theme_font_size_override("font_size", 13)
-	vbox.add_child(_task_time_label)
-
-	get_tree().root.add_child(_ui_layer)
-
-
-func _update_ui_progress(
-	overall_pct: float,
-	overall_text: String,
-	task_pct: float,
-	task_text: String
-) -> void:
-	var now_msec: int = Time.get_ticks_msec()
-	if overall_text != _last_task_stage_name:
-		_last_task_stage_name = overall_text
-		_task_start_time_msec = now_msec
-
-	generation_progress.emit(overall_pct, overall_text, task_pct, task_text)
-
-	if not is_instance_valid(_ui_layer):
-		return
-
-	if is_instance_valid(_overall_bar):
-		_overall_bar.value = clampf(overall_pct, 0.0, 100.0)
-	if is_instance_valid(_overall_label):
-		_overall_label.text = overall_text
-	if is_instance_valid(_task_bar):
-		_task_bar.value = clampf(task_pct, 0.0, 100.0)
-	if is_instance_valid(_task_label):
-		_task_label.text = task_text
-
-	var overall_elapsed_sec: float = float(now_msec - _start_time_msec) / 1000.0
-	if is_instance_valid(_overall_time_label):
-		var ov_eta_str: String = "--:--"
-		if overall_pct > 1.5 and overall_Elapsed_valid(overall_elapsed_sec):
-			var ov_rem: float = maxf((overall_elapsed_sec * (100.0 / overall_pct)) - overall_elapsed_sec, 0.0)
-			ov_eta_str = _format_seconds_mm_ss(ov_rem)
-		_overall_time_label.text = "Time Elapsed: %s   |   Estimated Remaining: %s" % [
-			_format_seconds_mm_ss(overall_elapsed_sec),
-			ov_eta_str
-		]
-
-	var task_elapsed_sec: float = float(now_msec - _task_start_time_msec) / 1000.0
-	if is_instance_valid(_task_time_label):
-		var tk_eta_str: String = "--:--"
-		if task_pct > 2.0 and task_elapsed_sec > 0.05:
-			var tk_rem: float = maxf((task_elapsed_sec * (100.0 / task_pct)) - task_elapsed_sec, 0.0)
-			tk_eta_str = _format_seconds_mm_ss(tk_rem)
-		_task_time_label.text = "Task Elapsed: %s   |   Task Remaining: %s" % [
-			_format_seconds_mm_ss(task_elapsed_sec),
-			tk_eta_str
-		]
-
-
-func overall_Elapsed_valid(sec: float) -> bool:
-	return sec > 0.1
-
-
-func _format_seconds_mm_ss(seconds: float) -> String:
-	var total_sec: int = maxi(int(roundf(seconds)), 0)
-	var mins: int = total_sec / 60
-	var secs: int = total_sec % 60
-	return "%02d:%02d" % [mins, secs]
-
-
-func _close_runtime_loading_ui() -> void:
-	if not is_instance_valid(_ui_layer):
-		return
-	var bg := _ui_layer.get_child(0) as CanvasItem
-	if is_instance_valid(bg):
-		var tw: Tween = create_tween()
-		tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-		tw.tween_property(bg, "modulate:a", 0.0, 0.25)
-		await tw.finished
-	if is_instance_valid(_ui_layer):
-		_ui_layer.queue_free()
-		_ui_layer = null
 #endregion

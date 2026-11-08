@@ -44,6 +44,8 @@ var door_tween: Tween
 var _valid_npcs_in_area: Array[CharacterController3D] = []
 
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		return
 	add_to_group(&"doors")
 	property_path = NodePath(property)
 	value_initial = get_indexed(property_path)

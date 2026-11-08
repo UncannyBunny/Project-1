@@ -20,7 +20,7 @@ enum WindowType {
 	FIXED,
 	PICTURE,
 	COTTAGE,
-	FRENCH_DOOR_WINDOW,
+	FRENCH_WINDOW,
 	GLASS_BLOCK,
 	PALLADIAN,
 	BAY,
@@ -236,16 +236,22 @@ const WALL_BIT_LEFT_NEG_X: int = 8
 var _roof_occlusion_boxes: Array[AABB] = []
 var _is_rebuilding: bool = false
 
-
 func _ready() -> void:
-	var w_inst := get_node_or_null("WallsMesh") as MeshInstance3D
-	if w_inst and w_inst.mesh != null:
+	if Engine.is_editor_hint():
+		if baked_walls_mesh:
+			_sync_child_meshes()
 		return
-	if baked_foundation_mesh or baked_walls_mesh or baked_roof_mesh or baked_windows_mesh:
-		_sync_child_meshes()
-	elif Engine.is_editor_hint():
-		generate_house()
 
+	# At runtime, if a WorldGenerationManager is present in the level, let it orchestrate
+	# Stage 3 (generate_or_load_cached) so the house loads from user:// cache in order!
+	var root_node: Node = get_tree().current_scene
+	if root_node and not root_node.find_children("*", "WorldGenerationManager", true, false).is_empty():
+		return
+
+	if baked_walls_mesh:
+		_sync_child_meshes()
+	else:
+		generate_house()
 
 func randomize_seed_and_generate() -> void:
 	var prev_auto: bool = auto_regenerate
@@ -2507,7 +2513,7 @@ func _append_window_mesh(
 				w_width - f_w, w_height - f_w, z_center + glass_half_t
 			)
 
-		WindowType.FRENCH_DOOR_WINDOW:
+		WindowType.FRENCH_WINDOW:
 			_append_local_frame_rect(accent_mb, open_origin, w_right, up, w_normal, 0.0, 0.0, w_width, w_height, z0, z1, f_w)
 			var mid_x: float = w_width * 0.5
 			# Center vertical casement mullion
@@ -3628,44 +3634,69 @@ func _get_planar_uv_axes(n: Vector3) -> Array[Vector3]:
 
 
 #region Binary Resource Saving (Meshes, Window Meshes, Door Meshes & Collision Shapes)
+## Called by WorldGenerationManager during Stage 3 (Houses)
+func generate_or_load_cached(
+	cache_dir: String,
+	use_existing_cache: bool,
+	is_editor_preview: bool
+) -> void:
+	var cache_file: String = "%s/House_%s_cache.res" % [cache_dir, name.validate_filename()]
+
+	if use_existing_cache and not is_editor_preview and FileAccess.file_exists(cache_file):
+		var bundle: Resource = ResourceLoader.load(cache_file, "", ResourceLoader.CACHE_MODE_REPLACE)
+		if bundle and bundle.has_meta("walls"):
+			baked_foundation_mesh = bundle.get_meta("foundation") as ArrayMesh
+			baked_walls_mesh = bundle.get_meta("walls") as ArrayMesh
+			baked_roof_mesh = bundle.get_meta("roof") as ArrayMesh
+			if "baked_windows_mesh" in self and bundle.has_meta("windows"):
+				set(&"baked_windows_mesh", bundle.get_meta("windows") as ArrayMesh)
+			_sync_child_meshes()
+			return
+
+	generate_house()
+
+	if not is_editor_preview and not cache_dir.is_empty():
+		_save_house_to_cache_file(cache_file)
+
+
+## Called by WorldGenerationManager before saving the scene in the Editor so .tscn stays tiny for GitHub
+func clear_cached_preview() -> void:
+	baked_foundation_mesh = null
+	baked_walls_mesh = null
+	baked_roof_mesh = null
+	if "baked_windows_mesh" in self:
+		set(&"baked_windows_mesh", null)
+
+	for child_name: String in ["FoundationMesh", "WallsMesh", "RoofMesh", "WindowsMesh"]:
+		var node := get_node_or_null(child_name)
+		if node:
+			if is_inside_tree():
+				remove_child(node)
+			node.free()
+
+
+func _save_house_to_cache_file(cache_file: String) -> void:
+	var bundle := Resource.new()
+	bundle.set_meta("foundation", baked_foundation_mesh)
+	bundle.set_meta("walls", baked_walls_mesh)
+	bundle.set_meta("roof", baked_roof_mesh)
+	if "baked_windows_mesh" in self:
+		bundle.set_meta("windows", get(&"baked_windows_mesh"))
+	ResourceSaver.save(bundle, cache_file, ResourceSaver.FLAG_COMPRESS)
+
+
 func save_resources_to_disk() -> void:
 	var edited_root: Node = get_tree().edited_scene_root if Engine.is_editor_hint() else get_tree().current_scene
-	if not edited_root or edited_root.scene_file_path.is_empty():
-		return
-
-	var base_dir: String = edited_root.scene_file_path.get_base_dir()
-	var scene_name: String = edited_root.scene_file_path.get_file().get_basename()
-	var save_dir: String = "%s/%s_%s" % [base_dir, save_subfolder_name, scene_name]
-
+	var scene_name: String = (
+		edited_root.scene_file_path.get_file().get_basename()
+		if (edited_root and not edited_root.scene_file_path.is_empty())
+		else "default_level"
+	)
+	var save_dir: String = "user://world_cache/%s" % scene_name
 	if not DirAccess.dir_exists_absolute(save_dir):
 		DirAccess.make_dir_recursive_absolute(save_dir)
 
-	var resources_to_save: Array[Dictionary] = [
-		{"suffix": "FoundationMesh", "res": baked_foundation_mesh},
-		{"suffix": "WallsMesh", "res": baked_walls_mesh},
-		{"suffix": "RoofMesh", "res": baked_roof_mesh},
-		{"suffix": "WindowsMesh", "res": baked_windows_mesh},
-		{"suffix": "FoundationCol", "res": baked_foundation_col},
-		{"suffix": "WallsCol", "res": baked_walls_col},
-		{"suffix": "RoofCol", "res": baked_roof_col},
-		{"suffix": "WindowsCol", "res": baked_windows_col}
-	]
-
-	for item: Dictionary in resources_to_save:
-		var r: Resource = item["res"]
-		if r:
-			var res_path: String = "%s/%s_%s_%d.res" % [save_dir, name, item["suffix"], seed_value]
-			if ResourceSaver.save(r, res_path, ResourceSaver.FLAG_COMPRESS) == OK:
-				r.take_over_path(res_path)
-
-	var doors_root := get_node_or_null("DoorsContainer")
-	if doors_root:
-		var d_idx: int = 0
-		for child: Node in doors_root.get_children():
-			var door_mi := child.get_node_or_null("Door") as MeshInstance3D
-			if door_mi and door_mi.mesh:
-				var d_path: String = "%s/%s_DoorMesh_%d_%d.res" % [save_dir, name, d_idx, seed_value]
-				if ResourceSaver.save(door_mi.mesh, d_path, ResourceSaver.FLAG_COMPRESS) == OK:
-					door_mi.mesh.take_over_path(d_path)
-			d_idx += 1
+	var cache_file: String = "%s/House_%s_cache.res" % [save_dir, name.validate_filename()]
+	_save_house_to_cache_file(cache_file)
+	print("%s: Saved house meshes to '%s'." % [name, cache_file])
 #endregion

@@ -2,3 +2,6 @@ More road models
 Road decorations (Maybe)
 Town Sign (and name)(Maybe)
 Flashlight for player (Animation and model, code is there)
+
+Fix housefloorplan roofs
+Add generated houses to the "building" group

@@ -1,5 +1,6 @@
 @tool
-## Projects a Path3D onto terrain, stretches/tiles a custom 3D model into distance-culled road chunks, and spawns non-overlapping decorations.
+## Projects a Path3D onto terrain (ignoring non-terrain obstacles), stretches/tiles a custom 3D model into distance-culled road chunks,
+## spawns non-overlapping decorations, and supports runtime generation & user:// caching.
 class_name ToolPathProjector extends Path3D
 
 enum MeshForwardAxis {
@@ -22,14 +23,17 @@ enum MeshForwardAxis {
 		return save_resources_to_disk
 
 @export var seed_value: int = 1337
+@export_range(2, 30, 1) var frame_budget_ms: int = 10
 
 @export_group("Target Surface & Projection")
 @export var target_terrain: Node3D
-@export var allowed_groups: Array[StringName] = [&"grass_surface"]
+@export var allowed_groups: Array[StringName] = [&"grass_surface", &"terrain_chunk_body"]
 @export var height_offset: float = 0.05
 @export_range(0.0, 1.0, 0.01) var smoothing_factor: float = 0.28
 @export var raycast_top_height: float = 150.0
 @export var raycast_length: float = 300.0
+## Maximum number of non-terrain colliders (other paths, objects, props) a downward ray can pierce through before giving up
+@export_range(1, 64, 1) var max_raycast_pierce_hits: int = 32
 
 @export_group("Road / Path Model Stretching")
 @export var deform_model_along_path: bool = true
@@ -64,22 +68,25 @@ enum MeshForwardAxis {
 @export_range(0.0, 1000.0, 5.0) var decoration_max_distance: float = 140.0
 
 @export_group("Storage")
-@export var auto_save_to_disk: bool = true
+@export var auto_save_to_disk: bool = false
 @export var save_subfolder_name: String = "GeneratedRoads"
+
+# Stores the last generated decoration placements so they can be saved/loaded from user:// cache
+var _cached_deco_records: Array[Dictionary] = []
 
 
 func build_complete_path() -> void:
 	if not is_inside_tree() or not curve or curve.get_point_count() < 2:
-		printerr("ToolPathProjector: Path3D requires a Curve3D with at least 2 points.")
+		printerr("ToolPathProjector (%s): Path3D requires a Curve3D with at least 2 points." % name)
 		return
 
 	project_and_smooth_path()
 
 	if deform_model_along_path:
-		_deform_and_tile_mesh_along_curve()
+		await _deform_and_tile_mesh_along_curve_async(Callable(), true)
 
 	if spawn_decorations and not decorations.is_empty():
-		_spawn_all_decorations()
+		_spawn_all_decorations(true)
 
 	if auto_save_to_disk and Engine.is_editor_hint():
 		save_resources_to_disk()
@@ -89,7 +96,167 @@ func clear_generated_nodes() -> void:
 	for child_name: String in ["RoadMeshInstance3D", "RoadChunks", "RoadStaticBody3D", "RoadDecorations"]:
 		var node := get_node_or_null(child_name)
 		if node:
+			if is_inside_tree():
+				remove_child(node)
 			node.free()
+
+
+#region Orchestrated Runtime Generation & user:// Cache
+func generate_or_load_cached(
+	cache_dir: String,
+	use_existing_cache: bool,
+	is_editor_preview: bool,
+	progress_callback: Callable = Callable()
+) -> void:
+	if not is_inside_tree() or not curve or curve.get_point_count() < 2:
+		return
+
+	var cache_file: String = "%s/Road_%s_cache.res" % [cache_dir, name.validate_filename()]
+
+	if use_existing_cache and not is_editor_preview and FileAccess.file_exists(cache_file):
+		if progress_callback.is_valid():
+			progress_callback.call(20.0, "Loading cached road '%s'..." % name)
+		await get_tree().process_frame
+		if _load_from_cache_file(cache_file):
+			if progress_callback.is_valid():
+				progress_callback.call(100.0, "Loaded road '%s' from cache." % name)
+			return
+
+	if progress_callback.is_valid():
+		progress_callback.call(5.0, "Projecting curve points for '%s'..." % name)
+	project_and_smooth_path()
+	await get_tree().process_frame
+
+	if deform_model_along_path:
+		await _deform_and_tile_mesh_along_curve_async(progress_callback, is_editor_preview)
+
+	if spawn_decorations and not decorations.is_empty():
+		if progress_callback.is_valid():
+			progress_callback.call(88.0, "Spawning roadside decorations for '%s'..." % name)
+		await get_tree().process_frame
+		_spawn_all_decorations(is_editor_preview)
+
+	if not is_editor_preview:
+		if progress_callback.is_valid():
+			progress_callback.call(95.0, "Saving road '%s' to user:// cache..." % name)
+		await get_tree().process_frame
+		_save_to_cache_file(cache_file)
+
+	if progress_callback.is_valid():
+		progress_callback.call(100.0, "Finished road '%s'." % name)
+
+
+func _save_to_cache_file(cache_file: String) -> void:
+	var bundle := Resource.new()
+	var chunk_data: Array[Dictionary] = []
+	var chunks_root := get_node_or_null("RoadChunks")
+	if chunks_root:
+		for child: Node in chunks_root.get_children():
+			if child is MeshInstance3D and child.mesh:
+				var mi := child as MeshInstance3D
+				chunk_data.append({
+					"name": mi.name,
+					"pos": mi.position,
+					"mesh": mi.mesh
+				})
+
+	var col_data: Array[Dictionary] = []
+	var road_body := get_node_or_null("RoadStaticBody3D")
+	if road_body:
+		for child: Node in road_body.get_children():
+			if child is CollisionShape3D and child.shape:
+				var cs := child as CollisionShape3D
+				col_data.append({
+					"name": cs.name,
+					"pos": cs.position,
+					"shape": cs.shape
+				})
+
+	bundle.set_meta("curve_points", _serialize_curve_points())
+	bundle.set_meta("chunks", chunk_data)
+	bundle.set_meta("colliders", col_data)
+	bundle.set_meta("decorations", _cached_deco_records)
+
+	ResourceSaver.save(bundle, cache_file, ResourceSaver.FLAG_COMPRESS)
+
+
+func _load_from_cache_file(cache_file: String) -> bool:
+	var bundle: Resource = ResourceLoader.load(cache_file, "", ResourceLoader.CACHE_MODE_REPLACE)
+	if not bundle or not bundle.has_meta("chunks"):
+		return false
+
+	clear_generated_nodes()
+
+	if bundle.has_meta("curve_points"):
+		_deserialize_curve_points(bundle.get_meta("curve_points"))
+
+	var chunk_data: Array = bundle.get_meta("chunks")
+	var col_data: Array = bundle.get_meta("colliders") if bundle.has_meta("colliders") else []
+	var deco_data: Array = bundle.get_meta("decorations") if bundle.has_meta("decorations") else []
+
+	if not chunk_data.is_empty():
+		var chunks_root := Node3D.new()
+		chunks_root.name = "RoadChunks"
+		for c_dict: Dictionary in chunk_data:
+			var chunk_inst := MeshInstance3D.new()
+			chunk_inst.name = str(c_dict.get("name", "RoadChunk"))
+			chunk_inst.position = c_dict.get("pos", Vector3.ZERO)
+			chunk_inst.mesh = c_dict.get("mesh") as Mesh
+			chunk_inst.cast_shadow = road_cast_shadow
+			if road_chunk_max_distance > 0.0:
+				chunk_inst.visibility_range_end = road_chunk_max_distance
+				chunk_inst.visibility_range_end_margin = road_chunk_fade_margin
+				chunk_inst.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+			chunks_root.add_child(chunk_inst)
+		add_child(chunks_root)
+
+	if generate_road_collider and not col_data.is_empty():
+		var road_body := StaticBody3D.new()
+		road_body.name = "RoadStaticBody3D"
+		road_body.collision_layer = road_collision_layer
+		road_body.collision_mask = road_collision_mask
+		for grp: StringName in road_body_groups:
+			if grp != &"" and not road_body.is_in_group(grp):
+				road_body.add_to_group(grp, true)
+
+		for col_dict: Dictionary in col_data:
+			var col_shape := CollisionShape3D.new()
+			col_shape.name = str(col_dict.get("name", "RoadCol"))
+			col_shape.position = col_dict.get("pos", Vector3.ZERO)
+			col_shape.shape = col_dict.get("shape") as Shape3D
+			road_body.add_child(col_shape)
+		add_child(road_body)
+
+	if spawn_decorations and not deco_data.is_empty():
+		_rebuild_decorations_from_cache(deco_data)
+
+	return true
+
+
+func _serialize_curve_points() -> Array[Dictionary]:
+	var pts: Array[Dictionary] = []
+	if not curve:
+		return pts
+	for i: int in range(curve.get_point_count()):
+		pts.append({
+			"pos": curve.get_point_position(i),
+			"in": curve.get_point_in(i),
+			"out": curve.get_point_out(i),
+			"tilt": curve.get_point_tilt(i)
+		})
+	return pts
+
+
+func _deserialize_curve_points(pts: Array) -> void:
+	if not curve or pts.size() != curve.get_point_count():
+		return
+	for i: int in range(pts.size()):
+		var d: Dictionary = pts[i]
+		curve.set_point_position(i, d.get("pos", curve.get_point_position(i)))
+		curve.set_point_in(i, d.get("in", Vector3.ZERO))
+		curve.set_point_out(i, d.get("out", Vector3.ZERO))
+		curve.set_point_tilt(i, float(d.get("tilt", 0.0)))
+#endregion
 
 
 #region Step 1: Curve Projection & Handle Smoothing
@@ -144,10 +311,10 @@ func _get_active_source_mesh() -> Mesh:
 	return null
 
 
-func _deform_and_tile_mesh_along_curve() -> void:
+func _deform_and_tile_mesh_along_curve_async(progress_callback: Callable, set_editor_owner: bool) -> void:
 	var src_mesh: Mesh = _get_active_source_mesh()
 	if not src_mesh or src_mesh.get_surface_count() == 0:
-		push_warning("ToolPathProjector: No source_road_mesh or source_mesh_instance assigned to deform.")
+		push_warning("ToolPathProjector (%s): No source_road_mesh or source_mesh_instance assigned to deform." % name)
 		return
 
 	var total_curve_len: float = curve.get_baked_length()
@@ -162,7 +329,7 @@ func _deform_and_tile_mesh_along_curve() -> void:
 	var raw_mesh_len: float = (max_fwd - min_fwd) * (absf(model_scale.z) if use_z_forward else absf(model_scale.x))
 
 	if raw_mesh_len <= 0.001:
-		printerr("ToolPathProjector: Source mesh has zero length along the chosen forward axis.")
+		printerr("ToolPathProjector (%s): Source mesh has zero length along the chosen forward axis." % name)
 		return
 
 	var tile_count: int = maxi(int(roundf(total_curve_len / raw_mesh_len)), 1)
@@ -174,18 +341,15 @@ func _deform_and_tile_mesh_along_curve() -> void:
 	var chunk_count: int = int(ceilf(float(tile_count) / float(tiles_per_chunk)))
 
 	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
-	var scene_owner: Node = get_tree().edited_scene_root if Engine.is_editor_hint() else owner
+	var scene_owner: Node = get_tree().edited_scene_root if (Engine.is_editor_hint() and set_editor_owner) else null
 
 	# Clear old single mesh or old chunks
-	var old_single := get_node_or_null("RoadMeshInstance3D")
-	if old_single:
-		old_single.free()
-	var old_chunks := get_node_or_null("RoadChunks")
-	if old_chunks:
-		old_chunks.free()
-	var old_body := get_node_or_null("RoadStaticBody3D")
-	if old_body:
-		old_body.free()
+	for old_name: String in ["RoadMeshInstance3D", "RoadChunks", "RoadStaticBody3D"]:
+		var old_node := get_node_or_null(old_name)
+		if old_node:
+			if is_inside_tree():
+				remove_child(old_node)
+			old_node.free()
 
 	var chunks_root := Node3D.new()
 	chunks_root.name = "RoadChunks"
@@ -200,7 +364,6 @@ func _deform_and_tile_mesh_along_curve() -> void:
 			if grp != &"" and not road_body.is_in_group(grp):
 				road_body.add_to_group(grp, true)
 
-	# Pre-extract source surface data once outside the chunk loop
 	var surface_count: int = src_mesh.get_surface_count()
 	var pre_surfaces: Array[Dictionary] = []
 
@@ -238,7 +401,8 @@ func _deform_and_tile_mesh_along_curve() -> void:
 			"material": _resolve_surface_material(src_mesh, surf_idx)
 		})
 
-	# Build each road chunk with its own localized origin so frustum and distance culling work per chunk!
+	var frame_start: int = Time.get_ticks_msec()
+
 	for c_idx: int in range(chunk_count):
 		var start_tile: int = c_idx * tiles_per_chunk
 		var end_tile: int = mini(start_tile + tiles_per_chunk, tile_count)
@@ -309,7 +473,6 @@ func _deform_and_tile_mesh_along_curve() -> void:
 
 					var world_deformed: Vector3 = frame_origin + frame_basis.x * lat_coord + frame_basis.y * vert_y
 					var out_v_idx: int = v_offset + v_i
-					# Store vertex relative to chunk_local_center so the chunk's AABB is tight and centered!
 					out_verts[out_v_idx] = to_local(world_deformed) - chunk_local_center
 
 					if has_normals:
@@ -376,7 +539,14 @@ func _deform_and_tile_mesh_along_curve() -> void:
 			col_shape.shape = chunk_mesh.create_trimesh_shape()
 			road_body.add_child(col_shape)
 
-	# Attach populated containers to SceneTree in one shot
+		if Time.get_ticks_msec() - frame_start >= frame_budget_ms:
+			if progress_callback.is_valid():
+				var pct: float = 10.0 + (float(c_idx + 1) / float(maxi(chunk_count, 1))) * 75.0
+				progress_callback.call(pct, "Deforming road chunk %d / %d..." % [c_idx + 1, chunk_count])
+			await get_tree().process_frame
+			frame_start = Time.get_ticks_msec()
+			space_state = get_world_3d().direct_space_state
+
 	add_child(chunks_root)
 	if scene_owner:
 		chunks_root.owner = scene_owner
@@ -450,16 +620,20 @@ func _sample_curve_frame_world(
 
 
 #region Step 3: Multi-Decoration Spawner with Overlap Prevention & Distance Culling
-func _spawn_all_decorations() -> void:
+func _spawn_all_decorations(set_editor_owner: bool = false) -> void:
 	var existing := get_node_or_null("RoadDecorations")
 	if existing:
+		if is_inside_tree():
+			remove_child(existing)
 		existing.free()
+
+	_cached_deco_records.clear()
 
 	var total_len: float = curve.get_baked_length()
 	if total_len <= 0.5:
 		return
 
-	var scene_owner: Node = get_tree().edited_scene_root if Engine.is_editor_hint() else owner
+	var scene_owner: Node = get_tree().edited_scene_root if (Engine.is_editor_hint() and set_editor_owner) else null
 	var decos_root := Node3D.new()
 	decos_root.name = "RoadDecorations"
 	add_child(decos_root)
@@ -517,6 +691,50 @@ func _spawn_all_decorations() -> void:
 
 			dist += rng.randf_range(min_step, max_step)
 			step_counter += 1
+
+
+func _rebuild_decorations_from_cache(deco_data: Array) -> void:
+	var decos_root := Node3D.new()
+	decos_root.name = "RoadDecorations"
+	add_child(decos_root)
+
+	for i: int in range(deco_data.size()):
+		var rec: Dictionary = deco_data[i]
+		var entry_idx: int = int(rec.get("entry_idx", -1))
+		if entry_idx < 0 or entry_idx >= decorations.size():
+			continue
+		var entry: PathDecorationEntry = decorations[entry_idx]
+		if not entry:
+			continue
+
+		var inst_3d: Node3D = null
+		if entry.decoration_scene:
+			var inst: Node = entry.decoration_scene.instantiate()
+			if inst is Node3D:
+				inst_3d = inst as Node3D
+			else:
+				inst.free()
+				continue
+		elif entry.decoration_mesh:
+			var mi := MeshInstance3D.new()
+			mi.mesh = entry.decoration_mesh
+			if entry.mesh_material_override:
+				mi.material_override = entry.mesh_material_override
+			inst_3d = mi
+
+		if not inst_3d:
+			continue
+
+		if decoration_max_distance > 0.0:
+			if inst_3d is GeometryInstance3D:
+				(inst_3d as GeometryInstance3D).visibility_range_end = decoration_max_distance
+			for sub_vis: Node in inst_3d.find_children("*", "GeometryInstance3D", true, false):
+				if sub_vis is GeometryInstance3D:
+					(sub_vis as GeometryInstance3D).visibility_range_end = decoration_max_distance
+
+		inst_3d.name = "Deco_%d_%d" % [entry_idx, i]
+		inst_3d.transform = rec.get("local_transform", Transform3D.IDENTITY)
+		decos_root.add_child(inst_3d)
 
 
 func _resolve_entry_sides(entry: PathDecorationEntry, rng: RandomNumberGenerator, step_counter: int) -> Array[float]:
@@ -685,10 +903,15 @@ func _instantiate_decoration_at(
 		"pos": world_pos,
 		"radius": entry.clearance_radius * rand_scale
 	})
+
+	_cached_deco_records.append({
+		"entry_idx": entry_idx,
+		"local_transform": inst_3d.transform
+	})
 #endregion
 
 
-#region Terrain Raycast & Disk Saving Helpers
+#region Multi-Hit Terrain Raycast (Pierces Non-Target Paths/Objects) & Disk Saving
 func _raycast_terrain_at(space_state: PhysicsDirectSpaceState3D, world_x: float, world_z: float) -> Dictionary:
 	var base_y: float = target_terrain.global_position.y if is_instance_valid(target_terrain) else global_position.y
 	var ray_start := Vector3(world_x, base_y + raycast_top_height, world_z)
@@ -702,55 +925,66 @@ func _raycast_terrain_at(space_state: PhysicsDirectSpaceState3D, world_x: float,
 	var query := PhysicsRayQueryParameters3D.create(ray_start, ray_end)
 	query.collide_with_areas = false
 	query.collide_with_bodies = true
-	query.exclude = exclude_rids
 
-	var hit: Dictionary = space_state.intersect_ray(query)
-	if hit.is_empty():
-		return {}
+	# Loop until we either hit our actual terrain target or reach the bottom of the ray
+	for attempt: int in range(max_raycast_pierce_hits):
+		query.exclude = exclude_rids
+		var hit: Dictionary = space_state.intersect_ray(query)
+		if hit.is_empty():
+			return {}
 
-	var collider: Object = hit.get("collider")
-	if not (collider is Node):
-		return {}
-
-	var col_node := collider as Node
-	if is_instance_valid(target_terrain):
-		if col_node == target_terrain or target_terrain.is_ancestor_of(col_node):
+		var collider: Object = hit.get("collider")
+		if collider is Node and _is_valid_terrain_collider(collider as Node):
 			return hit
 
-	for grp: StringName in allowed_groups:
-		if grp != &"" and (col_node.is_in_group(grp) or (col_node.get_parent() and col_node.get_parent().is_in_group(grp))):
-			return hit
+		# Hit a non-target object (another road, house, tree, decoration, etc.):
+		# exclude its RID and keep raycasting down to the terrain!
+		if hit.has("rid"):
+			var hit_rid: RID = hit["rid"]
+			if hit_rid.is_valid() and not exclude_rids.has(hit_rid):
+				exclude_rids.append(hit_rid)
+			else:
+				break
+		else:
+			break
 
 	return {}
 
 
+func _is_valid_terrain_collider(col_node: Node) -> bool:
+	# Reject any road or spawned obstacle collider even if parented under a terrain chunk
+	if col_node.is_in_group(&"road") or col_node.is_in_group(&"object") or col_node.is_in_group(&"house") or col_node.is_in_group(&"building"):
+		return false
+
+	# If a specific target_terrain is set, verify the collider belongs to that terrain's own chunk bodies
+	if is_instance_valid(target_terrain):
+		if col_node == target_terrain:
+			return true
+		if target_terrain.is_ancestor_of(col_node):
+			if col_node.is_in_group(&"terrain_chunk_body") or col_node.name.begins_with("ChunkBody_") or col_node.name == "TerrainStaticBody3D":
+				return true
+			for grp: StringName in allowed_groups:
+				if grp != &"" and col_node.is_in_group(grp):
+					return true
+		return false
+
+	# Otherwise, check allowed_groups when no explicit target_terrain is assigned
+	for grp: StringName in allowed_groups:
+		if grp != &"" and (col_node.is_in_group(grp) or (col_node.get_parent() and col_node.get_parent().is_in_group(grp))):
+			return true
+
+	return false
+
+
 func save_resources_to_disk() -> void:
 	var edited_root: Node = get_tree().edited_scene_root if Engine.is_editor_hint() else get_tree().current_scene
-	if not edited_root or edited_root.scene_file_path.is_empty():
-		return
-
-	var base_dir: String = edited_root.scene_file_path.get_base_dir()
-	var scene_name: String = edited_root.scene_file_path.get_file().get_basename()
-	var save_dir: String = "%s/%s_%s" % [base_dir, save_subfolder_name, scene_name]
+	var scene_name: String = edited_root.scene_file_path.get_file().get_basename() if (edited_root and not edited_root.scene_file_path.is_empty()) else "default_level"
+	var save_dir: String = "user://world_cache/%s" % scene_name
 
 	if not DirAccess.dir_exists_absolute(save_dir):
 		DirAccess.make_dir_recursive_absolute(save_dir)
 
-	var chunks_root := get_node_or_null("RoadChunks")
-	if chunks_root:
-		for child: Node in chunks_root.get_children():
-			if child is MeshInstance3D and child.mesh:
-				var mi := child as MeshInstance3D
-				var m_path: String = "%s/%s_%s.res" % [save_dir, name, mi.name]
-				if ResourceSaver.save(mi.mesh, m_path, ResourceSaver.FLAG_COMPRESS) == OK:
-					mi.mesh.take_over_path(m_path)
-
-	var road_body := get_node_or_null("RoadStaticBody3D")
-	if road_body:
-		for child: Node in road_body.get_children():
-			if child is CollisionShape3D and child.shape:
-				var cs := child as CollisionShape3D
-				var s_path: String = "%s/%s_%s.res" % [save_dir, name, cs.name]
-				if ResourceSaver.save(cs.shape, s_path, ResourceSaver.FLAG_COMPRESS) == OK:
-					cs.shape.take_over_path(s_path)
+	var cache_file: String = "%s/Road_%s_cache.res" % [save_dir, name.validate_filename()]
+	_save_to_cache_file(cache_file)
+	print("ToolPathProjector (%s): Saved road cache to '%s'." % [name, cache_file])
 #endregion
