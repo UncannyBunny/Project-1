@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bvvk8owlgwjbf" path="res://Scripts/Controllers/player_controller.gd" id="1_5awlv"]
 [ext_resource type="PackedScene" uid="uid://clhwh1s6h8kqn" path="res://Assets/human.blend" id="2_41qjy"]
 [ext_resource type="AudioStream" uid="uid://guewsrvn8ymx" path="res://Assets/Audio/footstep.mp3" id="3_5awlv"]
+[ext_resource type="ArrayMesh" uid="uid://b82x32otnccy7" path="res://Assets/Meshes/flashlight.res" id="3_41qjy"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_g4v7s"]
 radius = 0.25
@@ -15,7 +16,7 @@ filter_enabled = true
 filters = ["Skeleton3D:collar.r", "Skeleton3D:hand1.r", "Skeleton3D:hand2.r", "Skeleton3D:lowerarm.r", "Skeleton3D:palm.r", "Skeleton3D:thumb1.r", "Skeleton3D:thumb2.r", "Skeleton3D:upperarm.r"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_3f2mg"]
-animation = &"RESET"
+animation = &"flashlight"
 
 [sub_resource type="AnimationNodeTransition" id="AnimationNodeTransition_41qjy"]
 xfade_time = 0.5
@@ -29,11 +30,11 @@ input_1/break_loop_at_end = false
 input_1/reset = true
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_72igq"]
-animation = &"RESET"
+animation = &"Interaction"
 
 [sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_2pnox"]
 filter_enabled = true
-filters = ["Skeleton3D:collar.r", "Skeleton3D:hand1.r", "Skeleton3D:hand2.r", "Skeleton3D:lowerarm.r", "Skeleton3D:palm.r", "Skeleton3D:thumb1.r", "Skeleton3D:thumb2.r", "Skeleton3D:upperarm.r"]
+filters = ["Skeleton3D:collar.r", "Skeleton3D:lowerarm.r", "Skeleton3D:palm.r", "Skeleton3D:upperarm.r"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ypsv4"]
 animation = &"Jump"
@@ -93,6 +94,7 @@ blend_point_2/pos = 0.0
 blend_point_2/name = &"BlendSpace1D"
 
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_g4v7s"]
+graph_offset = Vector2(-95.82187, 247.3274)
 nodes/output/position = Vector2(900, 320)
 nodes/locomotion_stand/node = SubResource("AnimationNodeBlendSpace1D_0qhpg")
 nodes/locomotion_stand/position = Vector2(-200, 240)
@@ -119,7 +121,7 @@ script = ExtResource("1_5awlv")
 camera = NodePath("human/Skeleton3D/BoneAttachment3D/Camera3D")
 collision_shape = NodePath("CollisionShape3D")
 animation_tree = NodePath("AnimationTree")
-lantern_node = NodePath("human/Skeleton3D/BoneAttachment3D/Camera3D/Flashlight")
+lantern_node = NodePath("human/Skeleton3D/BoneAttachment3D2/Flashlight")
 interaction_collision_mask = 1
 jump_force = 3.0
 step_player = NodePath("StepPlayer")
@@ -127,7 +129,7 @@ metadata/_custom_type_script = "uid://bvvk8owlgwjbf"
 
 [node name="human" parent="." unique_id=2071276015 instance=ExtResource("2_41qjy")]
 
-[node name="BoneAttachment3D" type="BoneAttachment3D" parent="human/Skeleton3D" parent_id_path=PackedInt32Array(2071276015, 2117255992) index="1" unique_id=1502635820]
+[node name="BoneAttachment3D" type="BoneAttachment3D" parent="human/Skeleton3D" parent_id_path=PackedInt32Array(2071276015, 1872304) index="1" unique_id=1502635820]
 transform = Transform3D(1.0000001, -3.8311168e-07, -5.476926e-07, 3.3495132e-07, 0.99122816, -0.1321637, 5.933508e-07, 0.13216361, 0.9912281, -4.9523504e-07, 1.5612011, 0.107255384)
 bone_name = "Head"
 bone_idx = 31
@@ -135,31 +137,36 @@ bone_idx = 31
 [node name="Camera3D" type="Camera3D" parent="human/Skeleton3D/BoneAttachment3D" unique_id=547835919]
 transform = Transform3D(-0.9999999, 6.941914e-08, -5.098803e-07, 1.6358189e-07, 0.9912276, -0.13216364, 4.923935e-07, -0.13216352, -0.9912277, 4.3566507e-07, 0.10760987, 0.078428924)
 
-[node name="Flashlight" type="Node3D" parent="human/Skeleton3D/BoneAttachment3D/Camera3D" unique_id=55157794]
-transform = Transform3D(-1, -2.3788087e-07, -8.3656914e-08, -2.3788087e-07, 1, 2.9802326e-08, 8.365691e-08, 2.9802347e-08, -1, -1.5496667e-07, -0.0015659332, -0.13851528)
-
-[node name="HighBeam" type="SpotLight3D" parent="human/Skeleton3D/BoneAttachment3D/Camera3D/Flashlight" unique_id=1925042135]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
-light_color = Color(1, 1, 0.83396184, 1)
-light_energy = 1.5
-shadow_enabled = true
-spot_range = 8.676373
-spot_attenuation = 1.5
-spot_angle = 13.388882
-
-[node name="WideBeam" type="SpotLight3D" parent="human/Skeleton3D/BoneAttachment3D/Camera3D/Flashlight" unique_id=1369081094]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
-light_color = Color(1, 1, 0.83396184, 1)
-light_energy = 0.5
-shadow_enabled = true
-spot_range = 8.676373
-spot_attenuation = 1.5
-spot_angle = 41.079376
-
 [node name="AudioListener3D" type="AudioListener3D" parent="human/Skeleton3D/BoneAttachment3D/Camera3D" unique_id=705831079]
 current = true
 
-[node name="AnimationPlayer" parent="human" index="1" unique_id=298734843]
+[node name="BoneAttachment3D2" type="BoneAttachment3D" parent="human/Skeleton3D" parent_id_path=PackedInt32Array(2071276015, 1872304) index="2" unique_id=2111426104]
+transform = Transform3D(0.008369852, -0.98386985, 0.17868952, 0.99890465, -4.4703484e-07, -0.046791583, 0.04603696, 0.17888543, 0.98279196, -0.7452344, 1.3712552, 0.025034651)
+bone_name = "palm.r"
+bone_idx = 25
+
+[node name="Flashlight" type="MeshInstance3D" parent="human/Skeleton3D/BoneAttachment3D2" unique_id=1862244698]
+transform = Transform3D(2.134449, -0.24875915, 0.32523826, 0.46694878, 1.0929211, -1.5437706, 0.017634068, 1.1696326, 1.5116928, -0.032789737, 0.06961119, 0.024127781)
+visible = false
+mesh = ExtResource("3_41qjy")
+
+[node name="HighBeam" type="SpotLight3D" parent="human/Skeleton3D/BoneAttachment3D2/Flashlight" unique_id=1925042135]
+transform = Transform3D(0.9995964, -0.027680889, -0.006389049, -0.005196282, 0.042949565, -0.99906373, 0.02792938, 0.99869365, 0.042788394, 0.0002238974, 0.07099794, -0.00075131655)
+light_color = Color(1, 1, 0.83396184, 1)
+light_energy = 2.0
+shadow_enabled = true
+spot_range = 15.0
+spot_angle = 15.0
+
+[node name="WideBeam" type="SpotLight3D" parent="human/Skeleton3D/BoneAttachment3D2/Flashlight" unique_id=1369081094]
+transform = Transform3D(0.9995964, -0.027680889, -0.006389049, -0.005196282, 0.042949565, -0.99906373, 0.02792938, 0.99869365, 0.042788394, 0.0002238974, 0.07099794, -0.00075131655)
+light_color = Color(1, 1, 0.83396184, 1)
+shadow_enabled = true
+spot_range = 10.0
+spot_attenuation = 1.5
+spot_angle = 40.0
+
+[node name="AnimationPlayer" parent="human" index="1" unique_id=240475811]
 playback_auto_capture_ease_type = 2
 playback_default_blend_time = 0.5
 

@@ -6,7 +6,7 @@ signal jumped
 signal landed
 
 @export_group("Movement")
-@export var speed_walking: float = 1.0
+@export var speed_walking: float = 1.25
 @export var speed_running: float = 4.0
 @export var _movement_run: bool = false
 @export var acceleration_ratio: float = 0.25

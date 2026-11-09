@@ -1,7 +1,56 @@
-More road models
-Road decorations (Maybe)
-Town Sign (and name)(Maybe)
-Flashlight for player (Animation and model, code is there)
+Code
+	Map?
+	Water?
+	Improve/fix/optimise chase algorithm
 
-Fix housefloorplan roofs
-Add generated houses to the "building" group
+Human Textures
+	Heads (Faces/Hair)
+	Clothes
+
+Assets
+	Decorations
+		Street Signs
+		Mailboxes
+		Fences
+	Player House Furniture
+		Boxes
+		Bed
+		Alarm Clock
+		Bathroom furniture
+			WC
+			Sink
+	NPC Houses
+		Boarded Windows (shader?)
+	Townhall Furniture
+		Office Desk
+		Office Chair
+		Filing Cabinet
+	Minimarket
+		Sign
+		Shelves
+		Register
+		Boxes*
+	Gas Station
+		Pumps
+		Shelves*
+		Register*
+		Bathroom furniture*
+		Office Desk*
+		Office Chair*
+		Filing Cabinet*
+	Train Station
+		Rails
+		Loaders
+		Containers
+		Control Panel
+	Electrical Substation
+	Plaza
+		Benches
+		Playground
+		Telephone Booth
+	Docks
+		Dock structure
+		Boats
+		Crates*
+	Roadblock
+		Barriers
