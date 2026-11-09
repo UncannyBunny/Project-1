@@ -1,11 +1,21 @@
-## Area3D target for player raycast interactions. Emits a signal, provides hover UI text, and triggers linked components.
+## Area3D target for player raycast interactions. Emits a signal, provides hover UI text from its parent node, and triggers linked components.
 class_name InteractionComponent extends Area3D
 
 signal interacted
 
 const _DEFAULT_NODE_PREFIXES: Array[String] = [
 	"InteractionComponent",
-	"Area3D"
+	"Area3D",
+	"Node3D",
+	"Node",
+	"StaticBody3D",
+	"RigidBody3D",
+	"CharacterBody3D",
+	"AnimatableBody3D",
+	"CharacterController3D",
+	"NPCController",
+	"DoorComponent",
+	"MeshInstance3D"
 ]
 
 @export_group("Direct Component Links")
@@ -13,7 +23,7 @@ const _DEFAULT_NODE_PREFIXES: Array[String] = [
 @export var target_object: Node
 
 @export_group("UI & Audio Hooks")
-## Action verb displayed when hovering (e.g., "interact", "open", "read", "chat") -> "<NodeName>: Click to <interaction_prompt>"
+## Action verb displayed when hovering (e.g., "interact", "open", "read", "chat") -> "<ParentName>: Click to <interaction_prompt>"
 @export var interaction_prompt: String = "interact"
 @export var audio_player: AudioStreamPlayer3D
 @export var interaction_sound: AudioStream
@@ -36,14 +46,18 @@ func trigger_interaction() -> bool:
 	interacted.emit()
 	return true
 
-## Returns "<NodeName>: Click to <action>" ONLY if this node's name is not a default node name; otherwise returns "".
+## Returns "<ParentName>: Click to <action>" ONLY if the parent node's name is not a default node name; otherwise returns "".
 func get_hover_display_text() -> String:
-	if _is_default_node_name(name):
+	var parent: Node = get_parent()
+	if not parent:
+		return ""
+	var parent_name: String = String(parent.name).strip_edges()
+	if _is_default_node_name(parent_name):
 		return ""
 	var action_verb: String = interaction_prompt.strip_edges()
 	if action_verb.is_empty():
 		action_verb = "interact"
-	return "%s: Click to %s" % [String(name), action_verb]
+	return "%s: Click to %s" % [parent_name, action_verb]
 
 static func _is_default_node_name(node_name: String) -> bool:
 	var clean: String = node_name.strip_edges()

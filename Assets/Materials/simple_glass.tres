@@ -3,4 +3,6 @@
 [resource]
 albedo_color = Color(1, 1, 1, 0)
 roughness = 0.0
+emission = Color(0, 0.24269372, 0.20906562, 1)
+emission_energy_multiplier = 0.5
 refraction_enabled = true

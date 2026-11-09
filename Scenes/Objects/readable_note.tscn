@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://rlgp0etjhlbw"]
+
+[ext_resource type="Script" uid="uid://ba5yjgajhffab" path="res://Scripts/Components/interaction_component.gd" id="1_1nxt5"]
+[ext_resource type="Script" uid="uid://2pl1xrcafii3" path="res://Scripts/Components/readable_component.gd" id="2_2jo8l"]
+[ext_resource type="ArrayMesh" uid="uid://dcwhg4oef7sh1" path="res://Assets/Meshes/paper.res" id="3_jljds"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_g4v7s"]
+size = Vector3(0.30300292, 0.1447998, 0.4)
+
+[node name="ReadableNote" type="Node3D" unique_id=316295408]
+
+[node name="InteractionComponent" type="Area3D" parent="." unique_id=1137898080 node_paths=PackedStringArray("target_object")]
+script = ExtResource("1_1nxt5")
+target_object = NodePath("../ReadableComponent")
+metadata/_custom_type_script = "uid://ba5yjgajhffab"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionComponent" unique_id=265373125]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.004260227, 0.07239989, 1.4901161e-08)
+shape = SubResource("BoxShape3D_g4v7s")
+
+[node name="ReadableComponent" type="Node3D" parent="." unique_id=1157933093]
+script = ExtResource("2_2jo8l")
+metadata/_custom_type_script = "uid://2pl1xrcafii3"
+
+[node name="Paper" type="MeshInstance3D" parent="." unique_id=2033405854]
+mesh = ExtResource("3_jljds")

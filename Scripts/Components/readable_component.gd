@@ -1,4 +1,4 @@
-## Filters ReadableEntry resources by active keys and priority, sending the highest priority entry and custom title name to DialogueUI.
+## Filters ReadableEntry resources by active keys and priority, sending the highest priority entry and parent node title name to DialogueUI.
 class_name ReadableComponent extends Node3D
 
 signal readable_triggered(entry: ReadableEntry)
@@ -6,7 +6,15 @@ signal readable_triggered(entry: ReadableEntry)
 const _DEFAULT_NODE_PREFIXES: Array[String] = [
 	"ReadableComponent",
 	"Node3D",
-	"Node"
+	"Node",
+	"StaticBody3D",
+	"RigidBody3D",
+	"CharacterBody3D",
+	"AnimatableBody3D",
+	"CharacterController3D",
+	"NPCController",
+	"MeshInstance3D",
+	"Area3D"
 ]
 
 @export var entries: Array[ReadableEntry] = []
@@ -20,9 +28,14 @@ var _dialogue_ui: DialogueUI = null
 func _ready() -> void:
 	_find_dialogue_ui.call_deferred()
 
-## Returns this ReadableComponent's node name ONLY if it is different from the default node name; otherwise returns "".
+## Returns the parent node's name ONLY if it is different from a default node name; otherwise returns "".
 func get_custom_readable_name() -> String:
-	var clean: String = String(name).strip_edges()
+	var parent: Node = get_parent()
+	if not parent:
+		return ""
+	var clean: String = String(parent.name).strip_edges()
+	if clean.is_empty():
+		return ""
 	for prefix: String in _DEFAULT_NODE_PREFIXES:
 		if clean.begins_with(prefix):
 			var suffix: String = clean.substr(prefix.length())

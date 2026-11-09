@@ -114,11 +114,12 @@ nodes/interact_arm/node = SubResource("AnimationNodeAnimation_72igq")
 nodes/interact_arm/position = Vector2(440, 580)
 node_connections = [&"output", 0, &"interact_shot", &"in_air", 0, &"crouch_blend", &"in_air", 1, &"jump_animation", &"crouch_blend", 0, &"locomotion_stand", &"crouch_blend", 1, &"locomotion_crouch", &"flashlight_blend", 0, &"in_air", &"flashlight_blend", 1, &"hold_lantern", &"interact_shot", 0, &"flashlight_blend", &"interact_shot", 1, &"interact_arm"]
 
-[node name="PlayerController" type="CharacterBody3D" unique_id=155462187 node_paths=PackedStringArray("camera", "collision_shape", "animation_tree", "step_player")]
+[node name="PlayerController" type="CharacterBody3D" unique_id=155462187 node_paths=PackedStringArray("camera", "collision_shape", "animation_tree", "lantern_node", "step_player")]
 script = ExtResource("1_5awlv")
 camera = NodePath("human/Skeleton3D/BoneAttachment3D/Camera3D")
 collision_shape = NodePath("CollisionShape3D")
 animation_tree = NodePath("AnimationTree")
+lantern_node = NodePath("human/Skeleton3D/BoneAttachment3D/Camera3D/Flashlight")
 interaction_collision_mask = 1
 jump_force = 3.0
 step_player = NodePath("StepPlayer")
@@ -133,6 +134,27 @@ bone_idx = 31
 
 [node name="Camera3D" type="Camera3D" parent="human/Skeleton3D/BoneAttachment3D" unique_id=547835919]
 transform = Transform3D(-0.9999999, 6.941914e-08, -5.098803e-07, 1.6358189e-07, 0.9912276, -0.13216364, 4.923935e-07, -0.13216352, -0.9912277, 4.3566507e-07, 0.10760987, 0.078428924)
+
+[node name="Flashlight" type="Node3D" parent="human/Skeleton3D/BoneAttachment3D/Camera3D" unique_id=55157794]
+transform = Transform3D(-1, -2.3788087e-07, -8.3656914e-08, -2.3788087e-07, 1, 2.9802326e-08, 8.365691e-08, 2.9802347e-08, -1, -1.5496667e-07, -0.0015659332, -0.13851528)
+
+[node name="HighBeam" type="SpotLight3D" parent="human/Skeleton3D/BoneAttachment3D/Camera3D/Flashlight" unique_id=1925042135]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+light_color = Color(1, 1, 0.83396184, 1)
+light_energy = 1.5
+shadow_enabled = true
+spot_range = 8.676373
+spot_attenuation = 1.5
+spot_angle = 13.388882
+
+[node name="WideBeam" type="SpotLight3D" parent="human/Skeleton3D/BoneAttachment3D/Camera3D/Flashlight" unique_id=1369081094]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+light_color = Color(1, 1, 0.83396184, 1)
+light_energy = 0.5
+shadow_enabled = true
+spot_range = 8.676373
+spot_attenuation = 1.5
+spot_angle = 41.079376
 
 [node name="AudioListener3D" type="AudioListener3D" parent="human/Skeleton3D/BoneAttachment3D/Camera3D" unique_id=705831079]
 current = true

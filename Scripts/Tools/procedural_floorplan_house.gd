@@ -63,7 +63,7 @@ const WALL_BIT_LEFT_NEG_X: int = 8
 		seed_value = value
 		if Engine.is_editor_hint() and auto_regenerate and is_inside_tree():
 			generate_house()
-@export var auto_regenerate: bool = true
+@export var auto_regenerate: bool = false
 
 @export_subgroup("Randomize All & Ranges")
 @export_tool_button("Randomize Enabled Parameters & Generate", "Reload") var btn_randomize_all: Callable:
@@ -144,6 +144,8 @@ const WALL_BIT_LEFT_NEG_X: int = 8
 
 @export_group("Doors & Windows")
 @export var generate_door_nodes: bool = true
+## If true, names DoorComponents "Outside Door 1", "Interior Door 1", etc. If false, wraps each door so the DoorComponent itself is named "Door".
+@export var use_numbered_door_names: bool = true
 @export var exterior_door_type: DoorType = DoorType.PANEL
 ## Makes compatible exterior doors spawn as a pair of double doors instead of a single leaf
 @export var double_doors: bool = false
@@ -201,7 +203,7 @@ const WALL_BIT_LEFT_NEG_X: int = 8
 
 @export_group("Collision & Storage")
 @export var generate_colliders: bool = true
-@export var house_body_groups: Array[StringName] = [&"building", &"no_grass"]
+@export var house_body_groups: Array[StringName] = [&"house", &"building", &"no_grass"]
 @export_flags_3d_physics var collision_layer: int = 1
 @export_flags_3d_physics var collision_mask: int = 1
 @export var auto_save_to_disk: bool = false
@@ -236,22 +238,14 @@ const WALL_BIT_LEFT_NEG_X: int = 8
 var _roof_occlusion_boxes: Array[AABB] = []
 var _is_rebuilding: bool = false
 
+
 func _ready() -> void:
-	if Engine.is_editor_hint():
-		if baked_walls_mesh:
-			_sync_child_meshes()
-		return
-
-	# At runtime, if a WorldGenerationManager is present in the level, let it orchestrate
-	# Stage 3 (generate_or_load_cached) so the house loads from user:// cache in order!
-	var root_node: Node = get_tree().current_scene
-	if root_node and not root_node.find_children("*", "WorldGenerationManager", true, false).is_empty():
-		return
-
-	if baked_walls_mesh:
+	# Houses are saved directly in the scene tree; sync their baked meshes & colliders on ready
+	if baked_walls_mesh or baked_foundation_mesh or baked_roof_mesh:
 		_sync_child_meshes()
-	else:
+	elif not Engine.is_editor_hint():
 		generate_house()
+
 
 func randomize_seed_and_generate() -> void:
 	var prev_auto: bool = auto_regenerate
@@ -1583,7 +1577,7 @@ func _shuffle_array_seeded(rng: RandomNumberGenerator, arr: Array) -> void:
 #endregion
 
 
-#region Step 4: Foundation, 2x Interior Walls, Foundation-Textured Floor Slabs & Roof Solver
+#region Step 4: Foundation, 2x Interior Walls, Foundation-Textured Floor Slabs & Stretched L/T/Shed Roof Solver
 func _build_multi_room_foundation(
 	visual_mb: Dictionary,
 	col_mb: Dictionary,
@@ -1982,45 +1976,42 @@ func _build_story_roof_wings(
 			_append_wing_roof_and_gable_walls(
 				roof_mb, walls_mb, wing, y_eave, wall_t, primary_ridge_x,
 				ext_min_x, ext_max_x, ext_min_z, ext_max_z,
-				roof_type, 0, primary_rise, false
+				roof_type, 0, primary_rise, false, true, true
 			)
 			continue
 
 		var target_box: Rect2 = ref_box
+		var found_touch: bool = false
 		if is_top_floor:
 			for p_i: int in range(w_idx):
 				if _rects_touch(wing, wings[p_i]):
 					target_box = wings[p_i]
+					found_touch = true
 					break
 		else:
 			for aw: Rect2 in above_wings:
 				if _rects_touch(wing, aw):
 					target_box = aw
+					found_touch = true
 					break
 
 		var target_center: Vector2 = target_box.get_center()
 		var high_dir: int = 0
-
-		if absf(wing.position.x - target_box.end.x) < 0.12:
+		# high_dir: 1 = +X, 2 = -X, 3 = +Z, 4 = -Z (direction from secondary wing toward the target main roof)
+		if absf(wing.position.x - target_box.end.x) < 0.15:
 			high_dir = 2
 			ext_min_x = 0.0
-		elif absf(wing.end.x - target_box.position.x) < 0.12:
+		elif absf(wing.end.x - target_box.position.x) < 0.15:
 			high_dir = 1
 			ext_max_x = 0.0
-		elif absf(wing.position.y - target_box.end.y) < 0.12:
+		elif absf(wing.position.y - target_box.end.y) < 0.15:
 			high_dir = 4
 			ext_min_z = 0.0
-		elif absf(wing.end.y - target_box.position.y) < 0.12:
+		elif absf(wing.end.y - target_box.position.y) < 0.15:
 			high_dir = 3
 			ext_max_z = 0.0
 		else:
 			high_dir = _pick_shed_high_edge_toward_point(wing, target_center)
-
-		var max_sec_rise: float = (
-			maxf(primary_rise - roof_height * 1.1, 0.25)
-			if is_top_floor
-			else (floor_height * 0.55)
-		)
 
 		var chosen_type: RoofType = roof_type
 		var wing_ridge_x: bool = (wing.size.x >= wing.size.y)
@@ -2031,10 +2022,52 @@ func _build_story_roof_wings(
 		else:
 			wing_ridge_x = (high_dir == 1 or high_dir == 2)
 
+		var build_gable_v_min: bool = true
+		var build_gable_v_max: bool = true
+
+		# Stretch top-level secondary roofs (both Shed and L/T non-Shed roofs) into the center of the main/perpendicular roof!
+		if is_top_floor and roof_type != RoofType.FLAT and (found_touch or w_idx > 0):
+			match high_dir:
+				1: # Wing is on Left (-X) of target_box, stretches +X to target_center.x
+					if target_center.x > wing.end.x:
+						wing.size.x = target_center.x - wing.position.x
+						ext_max_x = 0.0
+						if chosen_type != RoofType.SHED:
+							build_gable_v_max = false
+				2: # Wing is on Right (+X) of target_box, stretches -X to target_center.x
+					if target_center.x < wing.position.x:
+						var old_end_x: float = wing.end.x
+						wing.position.x = target_center.x
+						wing.size.x = old_end_x - target_center.x
+						ext_min_x = 0.0
+						if chosen_type != RoofType.SHED:
+							build_gable_v_min = false
+				3: # Wing is on Back (-Z) of target_box, stretches +Z to target_center.y
+					if target_center.y > wing.end.y:
+						wing.size.y = target_center.y - wing.position.y
+						ext_max_z = 0.0
+						if chosen_type != RoofType.SHED:
+							build_gable_v_max = false
+				4: # Wing is on Front (+Z) of target_box, stretches -Z to target_center.y
+					if target_center.y < wing.position.y:
+						var old_end_y: float = wing.end.y
+						wing.position.y = target_center.y
+						wing.size.y = old_end_y - target_center.y
+						ext_min_z = 0.0
+						if chosen_type != RoofType.SHED:
+							build_gable_v_min = false
+
+		var max_sec_rise: float = (
+			maxf(primary_rise - roof_height * 0.5, 0.25)
+			if is_top_floor
+			else (floor_height * 0.55)
+		)
+
 		_append_wing_roof_and_gable_walls(
 			roof_mb, walls_mb, wing, y_eave, wall_t, wing_ridge_x,
 			ext_min_x, ext_max_x, ext_min_z, ext_max_z,
-			chosen_type, high_dir, max_sec_rise, not is_top_floor
+			chosen_type, high_dir, max_sec_rise, not is_top_floor,
+			build_gable_v_min, build_gable_v_max
 		)
 
 
@@ -2069,7 +2102,9 @@ func _append_wing_roof_and_gable_walls(
 	active_roof_type: RoofType = roof_type,
 	shed_high_dir: int = 0,
 	max_allowed_rise: float = 999.0,
-	record_occlusion: bool = false
+	record_occlusion: bool = false,
+	build_gable_v_min: bool = true,
+	build_gable_v_max: bool = true
 ) -> void:
 	var min_x: float = wing.position.x - ext_min_x
 	var max_x: float = wing.end.x + ext_max_x
@@ -2127,22 +2162,24 @@ func _append_wing_roof_and_gable_walls(
 			var y_right_eave: float = y_eave - ovh_u_max * eff_tan
 			recorded_max_y = y_peak + thickness
 
-			_add_double_sided_tri(
-				walls_mb,
-				_wing_pt(wall_u_min, y_eave, wall_v_min, ridge_along_x),
-				_wing_pt(wall_u_max, y_eave, wall_v_min, ridge_along_x),
-				_wing_pt(mid_u, y_peak, wall_v_min, ridge_along_x),
-				out_neg_v,
-				wall_t
-			)
-			_add_double_sided_tri(
-				walls_mb,
-				_wing_pt(wall_u_max, y_eave, wall_v_max, ridge_along_x),
-				_wing_pt(wall_u_min, y_eave, wall_v_max, ridge_along_x),
-				_wing_pt(mid_u, y_peak, wall_v_max, ridge_along_x),
-				out_pos_v,
-				wall_t
-			)
+			if build_gable_v_min:
+				_add_double_sided_tri(
+					walls_mb,
+					_wing_pt(wall_u_min, y_eave, wall_v_min, ridge_along_x),
+					_wing_pt(wall_u_max, y_eave, wall_v_min, ridge_along_x),
+					_wing_pt(mid_u, y_peak, wall_v_min, ridge_along_x),
+					out_neg_v,
+					wall_t
+				)
+			if build_gable_v_max:
+				_add_double_sided_tri(
+					walls_mb,
+					_wing_pt(wall_u_max, y_eave, wall_v_max, ridge_along_x),
+					_wing_pt(wall_u_min, y_eave, wall_v_max, ridge_along_x),
+					_wing_pt(mid_u, y_peak, wall_v_max, ridge_along_x),
+					out_pos_v,
+					wall_t
+				)
 
 			_append_wing_slope_segment(roof_mb, u_min, y_left_eave, mid_u, y_peak, v_min, v_max, thickness, true, false, ridge_along_x)
 			_append_wing_slope_segment(roof_mb, mid_u, y_peak, u_max, y_right_eave, v_min, v_max, thickness, false, true, ridge_along_x)
@@ -2234,40 +2271,42 @@ func _append_wing_roof_and_gable_walls(
 			var y_right_eave: float = y_eave - ovh_u_max * steep_tan
 			recorded_max_y = y_peak + thickness
 
-			_add_double_sided_quad(
-				walls_mb,
-				_wing_pt(wall_u_min, y_eave, wall_v_min, ridge_along_x),
-				_wing_pt(wall_u_max, y_eave, wall_v_min, ridge_along_x),
-				_wing_pt(mid_u + knuckle_dist, y_knuckle, wall_v_min, ridge_along_x),
-				_wing_pt(mid_u - knuckle_dist, y_knuckle, wall_v_min, ridge_along_x),
-				out_neg_v,
-				wall_t
-			)
-			_add_double_sided_tri(
-				walls_mb,
-				_wing_pt(mid_u - knuckle_dist, y_knuckle, wall_v_min, ridge_along_x),
-				_wing_pt(mid_u + knuckle_dist, y_knuckle, wall_v_min, ridge_along_x),
-				_wing_pt(mid_u, y_peak, wall_v_min, ridge_along_x),
-				out_neg_v,
-				wall_t
-			)
-			_add_double_sided_quad(
-				walls_mb,
-				_wing_pt(wall_u_max, y_eave, wall_v_max, ridge_along_x),
-				_wing_pt(wall_u_min, y_eave, wall_v_max, ridge_along_x),
-				_wing_pt(mid_u - knuckle_dist, y_knuckle, wall_v_max, ridge_along_x),
-				_wing_pt(mid_u + knuckle_dist, y_knuckle, wall_v_max, ridge_along_x),
-				out_pos_v,
-				wall_t
-			)
-			_add_double_sided_tri(
-				walls_mb,
-				_wing_pt(mid_u + knuckle_dist, y_knuckle, wall_v_max, ridge_along_x),
-				_wing_pt(mid_u - knuckle_dist, y_knuckle, wall_v_max, ridge_along_x),
-				_wing_pt(mid_u, y_peak, wall_v_max, ridge_along_x),
-				out_pos_v,
-				wall_t
-			)
+			if build_gable_v_min:
+				_add_double_sided_quad(
+					walls_mb,
+					_wing_pt(wall_u_min, y_eave, wall_v_min, ridge_along_x),
+					_wing_pt(wall_u_max, y_eave, wall_v_min, ridge_along_x),
+					_wing_pt(mid_u + knuckle_dist, y_knuckle, wall_v_min, ridge_along_x),
+					_wing_pt(mid_u - knuckle_dist, y_knuckle, wall_v_min, ridge_along_x),
+					out_neg_v,
+					wall_t
+				)
+				_add_double_sided_tri(
+					walls_mb,
+					_wing_pt(mid_u - knuckle_dist, y_knuckle, wall_v_min, ridge_along_x),
+					_wing_pt(mid_u + knuckle_dist, y_knuckle, wall_v_min, ridge_along_x),
+					_wing_pt(mid_u, y_peak, wall_v_min, ridge_along_x),
+					out_neg_v,
+					wall_t
+				)
+			if build_gable_v_max:
+				_add_double_sided_quad(
+					walls_mb,
+					_wing_pt(wall_u_max, y_eave, wall_v_max, ridge_along_x),
+					_wing_pt(wall_u_min, y_eave, wall_v_max, ridge_along_x),
+					_wing_pt(mid_u - knuckle_dist, y_knuckle, wall_v_max, ridge_along_x),
+					_wing_pt(mid_u + knuckle_dist, y_knuckle, wall_v_max, ridge_along_x),
+					out_pos_v,
+					wall_t
+				)
+				_add_double_sided_tri(
+					walls_mb,
+					_wing_pt(mid_u + knuckle_dist, y_knuckle, wall_v_max, ridge_along_x),
+					_wing_pt(mid_u - knuckle_dist, y_knuckle, wall_v_max, ridge_along_x),
+					_wing_pt(mid_u, y_peak, wall_v_max, ridge_along_x),
+					out_pos_v,
+					wall_t
+				)
 
 			_append_wing_slope_segment(roof_mb, u_min, y_left_eave, mid_u - knuckle_dist, y_knuckle, v_min, v_max, thickness, true, false, ridge_along_x)
 			_append_wing_slope_segment(roof_mb, mid_u - knuckle_dist, y_knuckle, mid_u, y_peak, v_min, v_max, thickness, false, false, ridge_along_x)
@@ -2288,12 +2327,16 @@ func _append_wing_roof_and_gable_walls(
 			var fr: Vector3 = _wing_pt(u_max, y_base, v_max, ridge_along_x)
 
 			if span_v >= span_u:
-				var r_back: Vector3 = _wing_pt(mid_u, y_peak, v_min + inset, ridge_along_x)
-				var r_front: Vector3 = _wing_pt(mid_u, y_peak, v_max - inset, ridge_along_x)
+				var r_back_v: float = (v_min + inset) if build_gable_v_min else v_min
+				var r_front_v: float = (v_max - inset) if build_gable_v_max else v_max
+				var r_back: Vector3 = _wing_pt(mid_u, y_peak, r_back_v, ridge_along_x)
+				var r_front: Vector3 = _wing_pt(mid_u, y_peak, r_front_v, ridge_along_x)
 				_add_oriented_quad(roof_mb, fl, bl, r_back, r_front, Vector3.UP + out_neg_u)
 				_add_oriented_quad(roof_mb, br, fr, r_front, r_back, Vector3.UP + out_pos_u)
-				_add_oriented_tri(roof_mb, fl, fr, r_front, Vector3.UP + out_pos_v)
-				_add_oriented_tri(roof_mb, br, bl, r_back, Vector3.UP + out_neg_v)
+				if build_gable_v_max:
+					_add_oriented_tri(roof_mb, fl, fr, r_front, Vector3.UP + out_pos_v)
+				if build_gable_v_min:
+					_add_oriented_tri(roof_mb, br, bl, r_back, Vector3.UP + out_neg_v)
 			else:
 				var r_left: Vector3 = _wing_pt(u_min + inset, y_peak, mid_v, ridge_along_x)
 				var r_right: Vector3 = _wing_pt(u_max - inset, y_peak, mid_v, ridge_along_x)
@@ -2307,6 +2350,9 @@ func _append_wing_roof_and_gable_walls(
 			var hip_ratio: float = 0.42
 			var inset_u: float = (span_u * 0.5) * hip_ratio
 			var inset_v: float = minf(span_v * 0.28, inset_u)
+			var inset_v_min: float = inset_v if build_gable_v_min else 0.0
+			var inset_v_max: float = inset_v if build_gable_v_max else 0.0
+
 			var y_base: float = y_eave + thickness
 			var total_rise: float = minf(slope_tan * (span_u * 0.5), max_allowed_rise)
 			var y_mid: float = y_base + total_rise * hip_ratio
@@ -2318,28 +2364,30 @@ func _append_wing_roof_and_gable_walls(
 			var br: Vector3 = _wing_pt(u_max, y_base, v_min, ridge_along_x)
 			var fr: Vector3 = _wing_pt(u_max, y_base, v_max, ridge_along_x)
 
-			var m_bl: Vector3 = _wing_pt(u_min + inset_u, y_mid, v_min + inset_v, ridge_along_x)
-			var m_fl: Vector3 = _wing_pt(u_min + inset_u, y_mid, v_max - inset_v, ridge_along_x)
-			var m_br: Vector3 = _wing_pt(u_max - inset_u, y_mid, v_min + inset_v, ridge_along_x)
-			var m_fr: Vector3 = _wing_pt(u_max - inset_u, y_mid, v_max - inset_v, ridge_along_x)
+			var m_bl: Vector3 = _wing_pt(u_min + inset_u, y_mid, v_min + inset_v_min, ridge_along_x)
+			var m_fl: Vector3 = _wing_pt(u_min + inset_u, y_mid, v_max - inset_v_max, ridge_along_x)
+			var m_br: Vector3 = _wing_pt(u_max - inset_u, y_mid, v_min + inset_v_min, ridge_along_x)
+			var m_fr: Vector3 = _wing_pt(u_max - inset_u, y_mid, v_max - inset_v_max, ridge_along_x)
 
-			var r_back: Vector3 = _wing_pt(mid_u, y_peak, v_min + inset_v, ridge_along_x)
-			var r_front: Vector3 = _wing_pt(mid_u, y_peak, v_max - inset_v, ridge_along_x)
+			var r_back: Vector3 = _wing_pt(mid_u, y_peak, v_min + inset_v_min, ridge_along_x)
+			var r_front: Vector3 = _wing_pt(mid_u, y_peak, v_max - inset_v_max, ridge_along_x)
 
 			_add_oriented_quad(roof_mb, fl, bl, m_bl, m_fl, Vector3.UP + out_neg_u)
 			_add_oriented_quad(roof_mb, br, fr, m_fr, m_br, Vector3.UP + out_pos_u)
-			_add_oriented_quad(roof_mb, fl, fr, m_fr, m_fl, Vector3.UP + out_pos_v)
-			_add_oriented_quad(roof_mb, br, bl, m_bl, m_br, Vector3.UP + out_neg_v)
+			if build_gable_v_max:
+				_add_oriented_quad(roof_mb, fl, fr, m_fr, m_fl, Vector3.UP + out_pos_v)
+				_add_double_sided_tri(walls_mb, m_fl, m_fr, r_front, out_pos_v, wall_t)
+			if build_gable_v_min:
+				_add_oriented_quad(roof_mb, br, bl, m_bl, m_br, Vector3.UP + out_neg_v)
+				_add_double_sided_tri(walls_mb, m_br, m_bl, r_back, out_neg_v, wall_t)
 
-			_add_double_sided_tri(walls_mb, m_fl, m_fr, r_front, out_pos_v, wall_t)
-			_add_double_sided_tri(walls_mb, m_br, m_bl, r_back, out_neg_v, wall_t)
-
-			var brow: float = minf(inset_v * 0.35, 0.25)
+			var brow_min: float = minf(inset_v_min * 0.35, 0.25)
+			var brow_max: float = minf(inset_v_max * 0.35, 0.25)
 			_append_wing_slope_segment(
 				roof_mb,
 				u_min + inset_u, y_mid,
 				mid_u, y_peak,
-				v_min + inset_v - brow, v_max - inset_v + brow,
+				v_min + inset_v_min - brow_min, v_max - inset_v_max + brow_max,
 				thickness * 0.75,
 				true, false,
 				ridge_along_x
@@ -2348,7 +2396,7 @@ func _append_wing_roof_and_gable_walls(
 				roof_mb,
 				mid_u, y_peak,
 				u_max - inset_u, y_mid,
-				v_min + inset_v - brow, v_max - inset_v + brow,
+				v_min + inset_v_min - brow_min, v_max - inset_v_max + brow_max,
 				thickness * 0.75,
 				false, true,
 				ridge_along_x
@@ -2409,10 +2457,8 @@ func _append_local_frame_rect(
 	border_w: float
 ) -> void:
 	var bw: float = minf(border_w, minf(x1 - x0, y1 - y0) * 0.45)
-	# Bottom & Top rails
 	_append_local_box(mb, origin, right, up, normal, x0, y0, z0, x1, y0 + bw, z1)
 	_append_local_box(mb, origin, right, up, normal, x0, y1 - bw, z0, x1, y1, z1)
-	# Left & Right stiles
 	_append_local_box(mb, origin, right, up, normal, x0, y0 + bw, z0, x0 + bw, y1 - bw, z1)
 	_append_local_box(mb, origin, right, up, normal, x1 - bw, y0 + bw, z0, x1, y1 - bw, z1)
 
@@ -2456,7 +2502,6 @@ func _append_window_mesh(
 	w_type: WindowType
 ) -> void:
 	var up := Vector3.UP
-	# Window mesh has half the width (thickness) of the exterior wall, centered inside the wall depth!
 	var win_depth: float = wall_t * 0.5
 	var z_center: float = -wall_t * 0.5
 	var z0: float = z_center - win_depth * 0.5
@@ -2466,7 +2511,6 @@ func _append_window_mesh(
 	var f_w: float = clampf(0.055 * frame_width_multiplier, 0.015, minf(w_width, w_height) * 0.22)
 	var m_w: float = maxf(f_w * 0.52, 0.012)
 
-	# Simple collision box sealing the window opening for physics
 	_append_local_box(col_mb, open_origin, w_right, up, w_normal, 0.0, 0.0, z0, w_width, w_height, z1)
 
 	match w_type:
@@ -2488,7 +2532,6 @@ func _append_window_mesh(
 		WindowType.PICTURE:
 			var thin_f: float = f_w * 0.65
 			_append_local_frame_rect(accent_mb, open_origin, w_right, up, w_normal, 0.0, 0.0, w_width, w_height, z0, z1, thin_f)
-			# Subtle exterior sill ledge
 			_append_local_box(accent_mb, open_origin, w_right, up, w_normal, -0.02, 0.0, z0, w_width + 0.02, thin_f * 0.8, 0.03)
 			_append_local_box(
 				glass_mb, open_origin, w_right, up, w_normal,
@@ -2499,9 +2542,7 @@ func _append_window_mesh(
 		WindowType.COTTAGE:
 			_append_local_frame_rect(accent_mb, open_origin, w_right, up, w_normal, 0.0, 0.0, w_width, w_height, z0, z1, f_w)
 			var split_y: float = w_height * 0.64
-			# Horizontal transom bar at 64% height
 			_append_local_box(accent_mb, open_origin, w_right, up, w_normal, f_w, split_y - f_w * 0.45, z0, w_width - f_w, split_y + f_w * 0.45, z1)
-			# 3-pane muntin division in the upper cottage sash
 			_append_local_muntin_grid(
 				accent_mb, open_origin, w_right, up, w_normal,
 				f_w, split_y + f_w * 0.45, w_width - f_w, w_height - f_w,
@@ -2516,9 +2557,7 @@ func _append_window_mesh(
 		WindowType.FRENCH_WINDOW:
 			_append_local_frame_rect(accent_mb, open_origin, w_right, up, w_normal, 0.0, 0.0, w_width, w_height, z0, z1, f_w)
 			var mid_x: float = w_width * 0.5
-			# Center vertical casement mullion
 			_append_local_box(accent_mb, open_origin, w_right, up, w_normal, mid_x - f_w * 0.5, f_w, z0, mid_x + f_w * 0.5, w_height - f_w, z1)
-			# Left & Right 2x4 muntin grids
 			_append_local_muntin_grid(
 				accent_mb, open_origin, w_right, up, w_normal,
 				f_w, f_w, mid_x - f_w * 0.5, w_height - f_w,
@@ -2548,7 +2587,6 @@ func _append_window_mesh(
 				inner_x0, inner_y0, inner_x1, inner_y1,
 				z_center - win_depth * 0.3, z_center + win_depth * 0.3, cols, rows, m_w * 0.9
 			)
-			# Thick glass block slab
 			_append_local_box(
 				glass_mb, open_origin, w_right, up, w_normal,
 				inner_x0, inner_y0, z_center - win_depth * 0.42,
@@ -2561,30 +2599,24 @@ func _append_window_mesh(
 			var x_l: float = side_w
 			var x_r: float = w_width - side_w
 
-			# Outer frame and two vertical pilasters separating the 3 sections
 			_append_local_frame_rect(accent_mb, open_origin, w_right, up, w_normal, 0.0, 0.0, w_width, w_height, z0, z1, f_w * 0.85)
 			_append_local_box(accent_mb, open_origin, w_right, up, w_normal, x_l - f_w * 0.45, f_w * 0.85, z0, x_l + f_w * 0.45, w_height - f_w * 0.85, z1)
 			_append_local_box(accent_mb, open_origin, w_right, up, w_normal, x_r - f_w * 0.45, f_w * 0.85, z0, x_r + f_w * 0.45, w_height - f_w * 0.85, z1)
 
-			# Solid spandrel headers above the left & right sidelights (so only the center arch rises to the top)
 			_append_local_box(accent_mb, open_origin, w_right, up, w_normal, f_w * 0.85, side_top_y, z0, x_l - f_w * 0.45, w_height - f_w * 0.85, z1)
 			_append_local_box(accent_mb, open_origin, w_right, up, w_normal, x_r + f_w * 0.45, side_top_y, z0, w_width - f_w * 0.85, w_height - f_w * 0.85, z1)
-			# Horizontal transom bar across all 3 sections at side_top_y
 			_append_local_box(accent_mb, open_origin, w_right, up, w_normal, f_w * 0.85, side_top_y - f_w * 0.4, z0, w_width - f_w * 0.85, side_top_y + f_w * 0.4, z1)
 
-			# Muntin grids in sidelights and center section
 			_append_local_muntin_grid(accent_mb, open_origin, w_right, up, w_normal, f_w * 0.85, f_w * 0.85, x_l - f_w * 0.45, side_top_y - f_w * 0.4, z0, z1, 1, 3, m_w)
 			_append_local_muntin_grid(accent_mb, open_origin, w_right, up, w_normal, x_r + f_w * 0.45, f_w * 0.85, w_width - f_w * 0.85, side_top_y - f_w * 0.4, z0, z1, 1, 3, m_w)
 			_append_local_muntin_grid(accent_mb, open_origin, w_right, up, w_normal, x_l + f_w * 0.45, f_w * 0.85, x_r - f_w * 0.45, side_top_y - f_w * 0.4, z0, z1, 2, 3, m_w)
 
-			# Arch spandrel corners in the top center section
 			var arch_cx: float = w_width * 0.5
 			var arch_cy: float = side_top_y
 			var arch_rx: float = (x_r - x_l) * 0.5 - f_w * 0.45
 			var arch_ry: float = (w_height - f_w * 0.85) - side_top_y
 			_append_palladian_arch_spandrels(accent_mb, open_origin, w_right, up, w_normal, arch_cx, arch_cy, arch_rx, arch_ry, z0, z1)
 
-			# Glass panes
 			_append_local_box(glass_mb, open_origin, w_right, up, w_normal, f_w * 0.85, f_w * 0.85, z_center - glass_half_t, w_width - f_w * 0.85, side_top_y, z_center + glass_half_t)
 			_append_local_box(glass_mb, open_origin, w_right, up, w_normal, x_l + f_w * 0.45, side_top_y, z_center - glass_half_t, x_r - f_w * 0.45, w_height - f_w * 0.85, z_center + glass_half_t)
 
@@ -2654,7 +2686,6 @@ func _append_bay_window(
 	var p_front_r: Vector3 = origin + right * x2 + normal * proj
 	var p_wall_r: Vector3 = origin + right * w + normal * z_center
 
-	# Bottom sill platform & top roof cap of the bay window
 	var cap_h: float = maxf(f_w, 0.045)
 	for base_y: float in [0.0, h - cap_h]:
 		var b_wl: Vector3 = p_wall_l + up * base_y
@@ -2672,7 +2703,6 @@ func _append_bay_window(
 		_add_oriented_quad(accent_mb, b_fl, b_fr, t_fr, t_fl, normal)
 		_add_oriented_quad(accent_mb, b_fr, b_wr, t_wr, t_fr, normal + right)
 
-	# 3 framed window panels (Left angled, Center flat, Right angled)
 	var panels: Array[Array] = [
 		[p_wall_l, p_front_l],
 		[p_front_l, p_front_r],
@@ -2713,15 +2743,11 @@ func _append_garden_window(
 	var bar: float = maxf(f_w * 0.75, 0.03)
 	var g_d: float = maxf(win_depth * 0.12, 0.008)
 
-	# Bottom shelf platform
 	_append_local_box(accent_mb, origin, right, up, normal, 0.0, 0.0, z_center, w, bar, proj)
-	# Wall frame
 	_append_local_frame_rect(accent_mb, origin, right, up, normal, 0.0, 0.0, w, h, z_center - bar * 0.5, z_center + bar * 0.5, bar)
-	# Front vertical frame + glass
 	_append_local_frame_rect(accent_mb, origin, right, up, normal, 0.0, bar, w, front_top_y, proj - bar, proj, bar)
 	_append_local_box(glass_mb, origin, right, up, normal, bar, bar * 2.0, proj - bar * 0.5 - g_d, w - bar, front_top_y - bar, proj - bar * 0.5 + g_d)
 
-	# Sloped skylight glass + side rafters
 	var roof_back_l: Vector3 = origin + right * bar + up * (h - bar * 0.5) + normal * z_center
 	var roof_back_r: Vector3 = origin + right * (w - bar) + up * (h - bar * 0.5) + normal * z_center
 	var roof_front_l: Vector3 = origin + right * bar + up * front_top_y + normal * (proj - bar * 0.5)
@@ -2729,7 +2755,6 @@ func _append_garden_window(
 	_add_oriented_quad(glass_mb, roof_back_l, roof_back_r, roof_front_r, roof_front_l, up + normal)
 	_add_oriented_quad(glass_mb, roof_front_l, roof_front_r, roof_back_r, roof_back_l, -(up + normal))
 
-	# Side glass trapezoids and top sloped bars
 	for side_x: float in [bar * 0.5, w - bar * 0.5]:
 		var s_bl: Vector3 = origin + right * side_x + up * bar + normal * z_center
 		var s_fl: Vector3 = origin + right * side_x + up * bar + normal * (proj - bar)
@@ -2762,11 +2787,9 @@ func _append_round_window(
 	var rx_inner: float = maxf(rx_outer - f_w * 1.15, 0.08)
 	var ry_inner: float = maxf(ry_outer - f_w * 1.15, 0.08)
 
-	# Fill the 4 corners outside the outer ellipse so the circular window sits cleanly inside the rectangular wall opening
 	_append_palladian_arch_spandrels(accent_mb, origin, right, up, normal, cx, cy, rx_outer, ry_outer, z0, z1)
 	_append_palladian_arch_spandrels(accent_mb, origin, right, up, normal, cx, cy, rx_outer, -ry_outer, z0, z1)
 
-	# Circular ring frame (16 segments) + glass disc
 	var segs: int = 16
 	for i: int in range(segs):
 		var a0: float = TAU * (float(i) / float(segs))
@@ -2782,7 +2805,6 @@ func _append_round_window(
 		var ix1: float = cx + cos(a1) * rx_inner
 		var iy1: float = cy + sin(a1) * ry_inner
 
-		# Front & back ring faces + inner rim
 		var fo0: Vector3 = origin + right * ox0 + up * oy0 + normal * z1
 		var fo1: Vector3 = origin + right * ox1 + up * oy1 + normal * z1
 		var fi0: Vector3 = origin + right * ix0 + up * iy0 + normal * z1
@@ -2798,7 +2820,6 @@ func _append_round_window(
 		var inward_dir: Vector3 = (-right * cos(a0) - up * sin(a0)).normalized()
 		_add_oriented_quad(accent_mb, bi0, bi1, fi1, fi0, inward_dir)
 
-		# Glass disc sector
 		var gc_f: Vector3 = origin + right * cx + up * cy + normal * (z_center + glass_half_t)
 		var g0_f: Vector3 = origin + right * ix0 + up * iy0 + normal * (z_center + glass_half_t)
 		var g1_f: Vector3 = origin + right * ix1 + up * iy1 + normal * (z_center + glass_half_t)
@@ -2809,7 +2830,6 @@ func _append_round_window(
 		var g1_b: Vector3 = origin + right * ix1 + up * iy1 + normal * (z_center - glass_half_t)
 		_add_oriented_tri(glass_mb, gc_b, g1_b, g0_b, -normal)
 
-	# Cross (+) muntin bars inside the round window
 	_append_local_box(accent_mb, origin, right, up, normal, cx - m_w * 0.5, cy - ry_inner, z0, cx + m_w * 0.5, cy + ry_inner, z1)
 	_append_local_box(accent_mb, origin, right, up, normal, cx - rx_inner, cy - m_w * 0.5, z0, cx + rx_inner, cy + m_w * 0.5, z1)
 #endregion
@@ -2831,12 +2851,10 @@ func _append_door_outer_frame(
 	var z0: float = -wall_t - 0.015
 	var z1: float = 0.015
 
-	# Left jamb, Right jamb, and Top header bar
 	_append_local_box(accent_mb, open_origin, w_right, up, w_normal, 0.0, 0.0, z0, frame_t, open_h, z1)
 	_append_local_box(accent_mb, open_origin, w_right, up, w_normal, open_w - frame_t, 0.0, z0, open_w, open_h, z1)
 	_append_local_box(accent_mb, open_origin, w_right, up, w_normal, frame_t, open_h - frame_t, z0, open_w - frame_t, open_h, z1)
 
-	# Overhead sliding track rail for Barn doors
 	if d_type == DoorType.BARN:
 		var track_y0: float = open_h + 0.02
 		var track_y1: float = open_h + 0.08
@@ -2863,7 +2881,9 @@ func _rebuild_door_components(all_doors: Array[Dictionary]) -> void:
 	if scene_owner:
 		doors_root.owner = scene_owner
 
-	var door_counter: int = 0
+	var outside_door_counter: int = 1
+	var interior_door_counter: int = 1
+
 	for d_info: Dictionary in all_doors:
 		var open_origin: Vector3 = d_info["origin_walls_space"]
 		var w_right: Vector3 = d_info["right"]
@@ -2874,6 +2894,7 @@ func _rebuild_door_components(all_doors: Array[Dictionary]) -> void:
 		var frame_t: float = float(d_info["frame_t"])
 		var d_type: DoorType = d_info["door_type"]
 		var is_dbl: bool = bool(d_info["is_double"])
+		var is_interior: bool = bool(d_info.get("is_interior", false))
 
 		var inner_w: float = maxf(open_w - frame_t * 2.0, 0.3)
 		var inner_h: float = maxf(open_h - frame_t, 0.5)
@@ -2881,11 +2902,16 @@ func _rebuild_door_components(all_doors: Array[Dictionary]) -> void:
 
 		if is_dbl and _is_door_type_double_compatible(d_type):
 			var half_w: float = inner_w * 0.5
-			# Left Leaf (hinged at left edge u = 0, extends +x from 0 to half_w)
+			var label_l: String = _next_readable_door_name(is_interior, outside_door_counter, interior_door_counter)
+			if is_interior:
+				interior_door_counter += 1
+			else:
+				outside_door_counter += 1
+
 			_spawn_single_door_component(
 				doors_root,
 				scene_owner,
-				door_counter,
+				label_l,
 				inner_origin,
 				w_right,
 				w_normal,
@@ -2895,12 +2921,17 @@ func _rebuild_door_components(all_doors: Array[Dictionary]) -> void:
 				d_type,
 				false
 			)
-			door_counter += 1
-			# Right Leaf (hinged at right edge u = inner_w, extends -x from -half_w to 0)
+
+			var label_r: String = _next_readable_door_name(is_interior, outside_door_counter, interior_door_counter)
+			if is_interior:
+				interior_door_counter += 1
+			else:
+				outside_door_counter += 1
+
 			_spawn_single_door_component(
 				doors_root,
 				scene_owner,
-				door_counter,
+				label_r,
 				inner_origin + w_right * inner_w,
 				w_right,
 				w_normal,
@@ -2910,12 +2941,17 @@ func _rebuild_door_components(all_doors: Array[Dictionary]) -> void:
 				d_type,
 				true
 			)
-			door_counter += 1
 		else:
+			var label_single: String = _next_readable_door_name(is_interior, outside_door_counter, interior_door_counter)
+			if is_interior:
+				interior_door_counter += 1
+			else:
+				outside_door_counter += 1
+
 			_spawn_single_door_component(
 				doors_root,
 				scene_owner,
-				door_counter,
+				label_single,
 				inner_origin,
 				w_right,
 				w_normal,
@@ -2925,13 +2961,18 @@ func _rebuild_door_components(all_doors: Array[Dictionary]) -> void:
 				d_type,
 				false
 			)
-			door_counter += 1
+
+
+func _next_readable_door_name(is_interior: bool, outside_idx: int, interior_idx: int) -> String:
+	if is_interior:
+		return "Interior Door %d" % interior_idx
+	return "Outside Door %d" % outside_idx
 
 
 func _spawn_single_door_component(
 	doors_root: Node3D,
 	scene_owner: Node,
-	door_idx: int,
+	readable_door_label: String,
 	hinge_origin_walls_space: Vector3,
 	w_right: Vector3,
 	w_normal: Vector3,
@@ -2945,18 +2986,26 @@ func _spawn_single_door_component(
 	var door_basis := Basis(w_right, up, w_normal)
 	var leaf_depth: float = clampf(wall_t * 0.35, 0.04, 0.09)
 
-	# Barn doors sit just outside the wall face so they can slide past the wall; other doors sit centered inside the wall depth
 	var z_offset: float = (leaf_depth * 0.65) if (d_type == DoorType.BARN) else (-wall_t * 0.5)
 	var pivot_pos: Vector3 = hinge_origin_walls_space + w_normal * z_offset
 
+	var parent_for_door: Node3D = doors_root
+	if not use_numbered_door_names:
+		# Create a uniquely named wrapper Node3D so the child DoorComponent can be named literally "Door"
+		var wrapper := Node3D.new()
+		wrapper.name = readable_door_label
+		doors_root.add_child(wrapper)
+		if scene_owner:
+			wrapper.owner = scene_owner
+		parent_for_door = wrapper
+
 	var door_comp := DoorComponent.new()
-	door_comp.name = "DoorComponent_%d" % door_idx
+	door_comp.name = readable_door_label if use_numbered_door_names else "Door"
 	door_comp.transform = Transform3D(door_basis, pivot_pos)
 	door_comp.collision_layer = collision_layer
 	door_comp.collision_mask = collision_mask
 	door_comp.animation_time = door_animation_time
 
-	# Configure DoorComponent motion property and offset based on DoorType (Rotating, Horizontal Sliding, or Vertical Garage Sliding)
 	if d_type == DoorType.GARAGE:
 		door_comp.property = "position:y"
 		door_comp.open_value_offset = leaf_h * 0.92
@@ -2972,13 +3021,11 @@ func _spawn_single_door_component(
 		door_comp.property = "rotation:y"
 		door_comp.open_value_offset = (-PI * 0.5) if is_right_double_leaf else (PI * 0.5)
 
-	# In DoorComponent's local space:
-	# Left/Single leaf spans x in [0, leaf_w]; Right double leaf spans x in [-leaf_w, 0]
 	var x0: float = -leaf_w if is_right_double_leaf else 0.0
 	var x1: float = 0.0 if is_right_double_leaf else leaf_w
 	var leaf_center_x: float = (x0 + x1) * 0.5
 
-	# 1. Child 1: Area3D (InteractionComponent extends Area3D so it handles both Player clicks and NPC body_entered!)
+	# 1. Child 1: Area3D (InteractionComponent extends Area3D and reads get_parent().name for HUD display!)
 	var area_3d := InteractionComponent.new()
 	area_3d.name = "Area3D"
 	area_3d.target_object = door_comp
@@ -2999,9 +3046,9 @@ func _spawn_single_door_component(
 	area_3d.add_child(area_col)
 	door_comp.add_child(area_3d)
 
-	# 2. Child 2: Door (MeshInstance3D)
+	# 2. Child 2: DoorMesh (MeshInstance3D)
 	var door_mi := MeshInstance3D.new()
-	door_mi.name = "Door"
+	door_mi.name = "DoorMesh"
 	door_mi.mesh = _build_door_leaf_mesh(x0, x1, leaf_h, leaf_depth, d_type, is_right_double_leaf)
 	door_comp.add_child(door_mi)
 
@@ -3025,7 +3072,7 @@ func _spawn_single_door_component(
 	door_comp.npc_detection_area = area_3d
 	door_comp.navlink = nav_link
 
-	doors_root.add_child(door_comp)
+	parent_for_door.add_child(door_comp)
 	if scene_owner:
 		door_comp.owner = scene_owner
 		area_3d.owner = scene_owner
@@ -3064,14 +3111,12 @@ func _build_door_leaf_mesh(
 			_append_door_handle(accent_mb, orig, right, up, norm, x0, x1, leaf_h, half_d, is_right_double_leaf)
 
 		DoorType.PANEL:
-			# Outer stiles, top/bottom/mid rails, center vertical mullion, and recessed inner panels
 			_append_local_frame_rect(accent_mb, orig, right, up, norm, x0, 0.0, x1, leaf_h, -half_d, half_d, stile_w)
 			var mid_x: float = (x0 + x1) * 0.5
 			var rail_y1: float = leaf_h * 0.42
 			var rail_y2: float = leaf_h * 0.50
 			_append_local_box(accent_mb, orig, right, up, norm, x0 + stile_w, rail_y1, -half_d, x1 - stile_w, rail_y2, half_d)
 			_append_local_box(accent_mb, orig, right, up, norm, mid_x - stile_w * 0.4, stile_w, -half_d, mid_x + stile_w * 0.4, leaf_h - stile_w, half_d)
-			# Recessed core panel
 			_append_local_box(accent_mb, orig, right, up, norm, x0 + stile_w, stile_w, -recess_d, x1 - stile_w, leaf_h - stile_w, recess_d)
 			_append_door_handle(accent_mb, orig, right, up, norm, x0, x1, leaf_h, half_d, is_right_double_leaf)
 
@@ -3097,12 +3142,9 @@ func _build_door_leaf_mesh(
 		DoorType.DUTCH:
 			var split_y: float = leaf_h * 0.50
 			var gap: float = 0.012
-			# Bottom half (recessed panel door)
 			_append_local_frame_rect(accent_mb, orig, right, up, norm, x0, 0.0, x1, split_y - gap, -half_d, half_d, stile_w)
 			_append_local_box(accent_mb, orig, right, up, norm, x0 + stile_w, stile_w, -recess_d, x1 - stile_w, split_y - gap - stile_w, recess_d)
-			# Shelf ledge between Dutch halves
 			_append_local_box(accent_mb, orig, right, up, norm, x0, split_y - gap, -half_d * 1.25, x1, split_y + gap, half_d * 1.25)
-			# Top half (windowed with 2x2 muntin grid)
 			_append_local_frame_rect(accent_mb, orig, right, up, norm, x0, split_y + gap, x1, leaf_h, -half_d, half_d, stile_w)
 			_append_local_muntin_grid(
 				accent_mb, orig, right, up, norm,
@@ -3117,16 +3159,12 @@ func _build_door_leaf_mesh(
 			_append_door_handle(accent_mb, orig, right, up, norm, x0, x1, leaf_h, half_d, is_right_double_leaf)
 
 		DoorType.BARN:
-			# Outer frame + vertical plank backing
 			_append_local_frame_rect(accent_mb, orig, right, up, norm, x0, 0.0, x1, leaf_h, -half_d, half_d, stile_w)
 			_append_local_box(accent_mb, orig, right, up, norm, x0 + stile_w, stile_w, -recess_d, x1 - stile_w, leaf_h - stile_w, recess_d)
-			# Mid horizontal rail
 			var mid_y: float = leaf_h * 0.48
 			_append_local_box(accent_mb, orig, right, up, norm, x0 + stile_w, mid_y - stile_w * 0.45, -half_d, x1 - stile_w, mid_y + stile_w * 0.45, half_d)
-			# Diagonal X-brace bars in the bottom half
 			_append_diagonal_brace(accent_mb, x0 + stile_w, stile_w, x1 - stile_w, mid_y - stile_w * 0.45, half_d, bar_w * 1.4)
 			_append_diagonal_brace(accent_mb, x1 - stile_w, stile_w, x0 + stile_w, mid_y - stile_w * 0.45, half_d, bar_w * 1.4)
-			# Top barn-door hanger straps
 			for strap_x: float in [x0 + stile_w * 0.6, x1 - stile_w * 0.6]:
 				_append_local_box(accent_mb, orig, right, up, norm, strap_x - 0.025, leaf_h - 0.12, -half_d * 1.3, strap_x + 0.025, leaf_h + 0.08, half_d * 1.3)
 
@@ -3154,12 +3192,10 @@ func _build_door_leaf_mesh(
 				x0 + slim_w, slim_w, -glass_d,
 				x1 - slim_w, leaf_h - slim_w, glass_d
 			)
-			# Vertical pull bar handle
 			var hx: float = (x0 + slim_w + 0.06) if is_right_double_leaf else (x1 - slim_w - 0.06)
 			_append_local_box(accent_mb, orig, right, up, norm, hx - 0.015, leaf_h * 0.38, -half_d * 1.6, hx + 0.015, leaf_h * 0.62, half_d * 1.6)
 
 		DoorType.GARAGE:
-			# 4 stacked horizontal garage sections with top window row
 			var sections: int = 4
 			var sec_h: float = leaf_h / float(sections)
 			var frame_b: float = maxf(stile_w * 0.65, 0.045)
@@ -3176,10 +3212,8 @@ func _build_door_leaf_mesh(
 					if c_i > 0:
 						_append_local_box(accent_mb, orig, right, up, norm, cx0 - frame_b, sy0 + frame_b, -half_d, cx0, sy1 - frame_b, half_d)
 					if s_i == sections - 1:
-						# Top garage section has glass windows
 						_append_local_box(glass_mb, orig, right, up, norm, cx0, sy0 + frame_b, -glass_d, cx1, sy1 - frame_b, glass_d)
 					else:
-						# Lower sections have recessed solid panels
 						_append_local_box(accent_mb, orig, right, up, norm, cx0, sy0 + frame_b, -recess_d, cx1, sy1 - frame_b, recess_d)
 
 	return _commit_two_surface_mesh(accent_mb, accent_material, glass_mb, window_material)
@@ -3633,70 +3667,30 @@ func _get_planar_uv_axes(n: Vector3) -> Array[Vector3]:
 #endregion
 
 
-#region Binary Resource Saving (Meshes, Window Meshes, Door Meshes & Collision Shapes)
-## Called by WorldGenerationManager during Stage 3 (Houses)
-func generate_or_load_cached(
-	cache_dir: String,
-	use_existing_cache: bool,
-	is_editor_preview: bool
-) -> void:
-	var cache_file: String = "%s/House_%s_cache.res" % [cache_dir, name.validate_filename()]
-
-	if use_existing_cache and not is_editor_preview and FileAccess.file_exists(cache_file):
-		var bundle: Resource = ResourceLoader.load(cache_file, "", ResourceLoader.CACHE_MODE_REPLACE)
-		if bundle and bundle.has_meta("walls"):
-			baked_foundation_mesh = bundle.get_meta("foundation") as ArrayMesh
-			baked_walls_mesh = bundle.get_meta("walls") as ArrayMesh
-			baked_roof_mesh = bundle.get_meta("roof") as ArrayMesh
-			if "baked_windows_mesh" in self and bundle.has_meta("windows"):
-				set(&"baked_windows_mesh", bundle.get_meta("windows") as ArrayMesh)
-			_sync_child_meshes()
-			return
-
-	generate_house()
-
-	if not is_editor_preview and not cache_dir.is_empty():
-		_save_house_to_cache_file(cache_file)
-
-
-## Called by WorldGenerationManager before saving the scene in the Editor so .tscn stays tiny for GitHub
-func clear_cached_preview() -> void:
-	baked_foundation_mesh = null
-	baked_walls_mesh = null
-	baked_roof_mesh = null
-	if "baked_windows_mesh" in self:
-		set(&"baked_windows_mesh", null)
-
-	for child_name: String in ["FoundationMesh", "WallsMesh", "RoofMesh", "WindowsMesh"]:
-		var node := get_node_or_null(child_name)
-		if node:
-			if is_inside_tree():
-				remove_child(node)
-			node.free()
-
-
-func _save_house_to_cache_file(cache_file: String) -> void:
-	var bundle := Resource.new()
-	bundle.set_meta("foundation", baked_foundation_mesh)
-	bundle.set_meta("walls", baked_walls_mesh)
-	bundle.set_meta("roof", baked_roof_mesh)
-	if "baked_windows_mesh" in self:
-		bundle.set_meta("windows", get(&"baked_windows_mesh"))
-	ResourceSaver.save(bundle, cache_file, ResourceSaver.FLAG_COMPRESS)
-
-
+#region Optional Disk Saving
 func save_resources_to_disk() -> void:
 	var edited_root: Node = get_tree().edited_scene_root if Engine.is_editor_hint() else get_tree().current_scene
-	var scene_name: String = (
-		edited_root.scene_file_path.get_file().get_basename()
-		if (edited_root and not edited_root.scene_file_path.is_empty())
-		else "default_level"
-	)
-	var save_dir: String = "user://world_cache/%s" % scene_name
+	if not edited_root or edited_root.scene_file_path.is_empty():
+		return
+
+	var base_dir: String = edited_root.scene_file_path.get_base_dir()
+	var scene_name: String = edited_root.scene_file_path.get_file().get_basename()
+	var save_dir: String = "%s/%s_%s" % [base_dir, save_subfolder_name, scene_name]
+
 	if not DirAccess.dir_exists_absolute(save_dir):
 		DirAccess.make_dir_recursive_absolute(save_dir)
 
-	var cache_file: String = "%s/House_%s_cache.res" % [save_dir, name.validate_filename()]
-	_save_house_to_cache_file(cache_file)
-	print("%s: Saved house meshes to '%s'." % [name, cache_file])
+	var meshes_to_save: Array[Dictionary] = [
+		{"suffix": "Foundation", "mesh": baked_foundation_mesh},
+		{"suffix": "Walls", "mesh": baked_walls_mesh},
+		{"suffix": "Roof", "mesh": baked_roof_mesh},
+		{"suffix": "Windows", "mesh": baked_windows_mesh}
+	]
+
+	for item: Dictionary in meshes_to_save:
+		var m: ArrayMesh = item["mesh"]
+		if m:
+			var res_path: String = "%s/%s_%s_%d.res" % [save_dir, name.validate_filename(), item["suffix"], seed_value]
+			if ResourceSaver.save(m, res_path, ResourceSaver.FLAG_COMPRESS) == OK:
+				m.take_over_path(res_path)
 #endregion

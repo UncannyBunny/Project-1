@@ -9,7 +9,7 @@
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pbvgq"]
 
-[node name="UIController" type="Control" unique_id=966629272 node_paths=PackedStringArray("pause_menu_container", "dialogue_ui", "button_continue", "button_save_and_exit", "clock_text_label", "button_set_alarm", "button_hour", "button_minute", "notebook_lines_container", "button_prev_page", "button_next_page", "page_number_label")]
+[node name="UIController" type="Control" unique_id=966629272 node_paths=PackedStringArray("pause_menu_container", "dialogue_ui", "crosshair", "interaction_prompt_label", "button_continue", "button_save_and_exit", "clock_text_label", "button_set_alarm", "button_hour", "button_minute", "notebook_lines_container", "button_prev_page", "button_next_page", "page_number_label")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,6 +20,8 @@ script = ExtResource("1_pbvgq")
 main_menu_scene_path = "uid://drdde1jro425c"
 pause_menu_container = NodePath("PauseMenu")
 dialogue_ui = NodePath("DialogueUI")
+crosshair = NodePath("HUD/Crosshair")
+interaction_prompt_label = NodePath("HUD/RichTextLabel")
 button_continue = NodePath("PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/MarginContainer/HBoxContainer/ButtonContinue")
 button_save_and_exit = NodePath("PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/MarginContainer/HBoxContainer/ButtonSaveAndExit")
 clock_text_label = NodePath("PauseMenu/MarginContainer/VBoxContainer/MarginContainer/HBoxContainer/ClockPanel/VBoxContainer/Panel/RichTextLabel")
@@ -32,7 +34,47 @@ button_next_page = NodePath("PauseMenu/MarginContainer/VBoxContainer/NotebookPan
 page_number_label = NodePath("PauseMenu/MarginContainer/VBoxContainer/NotebookPanel/HBoxContainer/Panel/MarginContainer/NotebookLinesContainer/HBoxContainer/PageNumberLabel")
 metadata/_custom_type_script = "uid://bbw6x7xvlpo48"
 
+[node name="HUD" type="Control" parent="." unique_id=1355355891]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Crosshair" type="ColorRect" parent="HUD" unique_id=1475174138]
+custom_minimum_size = Vector2(5, 5)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 1, 1, 0.5)
+
+[node name="RichTextLabel" type="RichTextLabel" parent="HUD" unique_id=377378504]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -98.5
+offset_top = 14.394989
+offset_right = 98.50006
+offset_bottom = 54.39499
+grow_horizontal = 2
+grow_vertical = 2
+offset_transform_position = Vector2(0, 7.28)
+text = "Interaction bla bla bla bla"
+fit_content = true
+autowrap_mode = 0
+horizontal_alignment = 1
+
 [node name="PauseMenu" type="Control" parent="." unique_id=226800448]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -238,7 +280,8 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Minute"
 
-[node name="DialogueUI" type="Control" parent="." unique_id=1729640439 node_paths=PackedStringArray("text_container", "text_label", "button_container", "input_field", "keypad_container", "keypad_display_label", "keypad_buttons_container", "keypad_enter_button", "keypad_exit_button")]
+[node name="DialogueUI" type="Control" parent="." unique_id=1729640439 node_paths=PackedStringArray("text_container", "title_label", "text_label", "button_container", "input_field", "keypad_container", "keypad_display_label", "keypad_buttons_container", "keypad_enter_button", "keypad_exit_button")]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -247,6 +290,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_ttgi4")
 text_container = NodePath("TextContainer")
+title_label = NodePath("TextContainer/Panel/VBoxContainer/HBoxContainer/MarginContainer/Panel2/MarginContainer/Name")
 text_label = NodePath("TextContainer/VBoxContainer/MarginContainer/Panel/MarginContainer/Display")
 button_container = NodePath("TextContainer/VBoxContainer/MarginContainer2/ButtonContainer")
 input_field = NodePath("TextContainer/VBoxContainer/MarginContainer2/InputField")
@@ -267,6 +311,60 @@ grow_vertical = 2
 [node name="Panel" type="Panel" parent="DialogueUI/TextContainer" unique_id=1455976474]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_yf5fn")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DialogueUI/TextContainer/Panel" unique_id=1028870350]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="DialogueUI/TextContainer/Panel/VBoxContainer" unique_id=750125354]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 3.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_yf5fn")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="DialogueUI/TextContainer/Panel/VBoxContainer" unique_id=1617232454]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="DialogueUI/TextContainer/Panel/VBoxContainer/HBoxContainer" unique_id=847318037]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="Panel2" type="Panel" parent="DialogueUI/TextContainer/Panel/VBoxContainer/HBoxContainer/MarginContainer" unique_id=555185374]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="DialogueUI/TextContainer/Panel/VBoxContainer/HBoxContainer/MarginContainer/Panel2" unique_id=607470058]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="Name" type="RichTextLabel" parent="DialogueUI/TextContainer/Panel/VBoxContainer/HBoxContainer/MarginContainer/Panel2/MarginContainer" unique_id=779140064]
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 32
+vertical_alignment = 1
+
+[node name="Panel" type="Panel" parent="DialogueUI/TextContainer/Panel/VBoxContainer/HBoxContainer" unique_id=2107747300]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_yf5fn")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="DialogueUI/TextContainer" unique_id=1145215238]
@@ -316,6 +414,7 @@ layout_mode = 2
 layout_mode = 2
 
 [node name="KeypadContainer" type="HBoxContainer" parent="DialogueUI" unique_id=1980346630]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

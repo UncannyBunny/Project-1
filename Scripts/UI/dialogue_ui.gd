@@ -167,6 +167,7 @@ func _setup_keypad_buttons() -> void:
 	for child: Node in keypad_buttons_container.find_children("*", "Button", true, false):
 		var btn := child as Button
 		var btn_text: String = btn.name.strip_edges()
+		btn.disabled = false
 		if btn_text.length() == 1 and btn_text.is_valid_int():
 			btn.pressed.connect(_on_keypad_digit_pressed.bind(btn_text))
 		elif btn != keypad_enter_button and btn_text.to_lower() == "enter":

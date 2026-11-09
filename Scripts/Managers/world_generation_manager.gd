@@ -1,6 +1,7 @@
 @tool
 ## Orchestrates ordered runtime & editor world generation and user:// caching:
-## Terrain -> Roads -> Houses -> Scene Populators (Trees) -> MultiMesh Populators (Grass) -> Per-Chunk NavMeshes.
+## Terrain -> Roads -> Scene Populators (Trees) -> MultiMesh Populators (Grass) -> Per-Chunk NavMeshes.
+## (Procedural houses are saved directly in the scene so manual edits are never overwritten.)
 class_name WorldGenerationManager extends Node
 
 signal generation_started
@@ -21,7 +22,6 @@ signal generation_finished
 @export_group("Generation Pipeline Targets")
 @export var terrain_generator: TerrainGenerator
 @export var road_projectors: Array[ToolPathProjector] = []
-@export var procedural_houses: Array[Node3D] = []
 @export var scene_populators: Array[MultiMeshPopulator] = []
 @export var grass_populators: Array[MultiMeshPopulator] = []
 
@@ -115,14 +115,10 @@ func clear_all_generated_nodes() -> void:
 		if is_instance_valid(road) and road.has_method(&"clear_generated_nodes"):
 			road.clear_generated_nodes()
 
-	for house: Node3D in procedural_houses:
-		if is_instance_valid(house) and house.has_method(&"clear_cached_preview"):
-			house.call(&"clear_cached_preview")
-
 	if is_instance_valid(terrain_generator) and terrain_generator.has_method(&"clear_terrain"):
 		terrain_generator.call(&"clear_terrain")
 
-	print("WorldGenerationManager: All generated meshes, chunks, and colliders cleared from scene tree.")
+	print("WorldGenerationManager: Cleared terrain, roads, and populators (scene houses were kept intact).")
 
 
 func wipe_user_cache() -> void:
@@ -153,6 +149,7 @@ func run_world_generation_pipeline(is_editor_preview: bool = false) -> void:
 	generation_started.emit()
 
 	_auto_discover_targets()
+	_ensure_existing_houses_obstacle_groups()
 
 	var cache_dir: String = get_level_cache_dir()
 	if not DirAccess.dir_exists_absolute(cache_dir):
@@ -173,13 +170,13 @@ func run_world_generation_pipeline(is_editor_preview: bool = false) -> void:
 	await get_tree().process_frame
 
 	# =========================================================================
-	# STAGE 1: TERRAIN (0% -> 20%)
+	# STAGE 1: TERRAIN (0% -> 25%)
 	# =========================================================================
 	if is_instance_valid(terrain_generator) and not _cancel_requested:
 		var stage_text := "Generating terrain..."
 		_update_ui_progress(0.0, overall_generating_text, 0.0, stage_text)
 		var terrain_cb := func(t_pct: float, _t_text: String) -> void:
-			var ov_pct: float = lerpf(0.0, 20.0, clampf(t_pct / 100.0, 0.0, 1.0))
+			var ov_pct: float = lerpf(0.0, 25.0, clampf(t_pct / 100.0, 0.0, 1.0))
 			_update_ui_progress(ov_pct, overall_generating_text, t_pct, stage_text)
 
 		if terrain_generator.has_method(&"generate_or_load_cached"):
@@ -190,7 +187,7 @@ func run_world_generation_pipeline(is_editor_preview: bool = false) -> void:
 		await _wait_physics_sync(2)
 
 	# =========================================================================
-	# STAGE 2: ROADS & PATH PROJECTORS (20% -> 35%)
+	# STAGE 2: ROADS & PATH PROJECTORS (25% -> 45%)
 	# =========================================================================
 	var road_count: int = road_projectors.size()
 	if road_count > 0 and not _cancel_requested:
@@ -202,8 +199,8 @@ func run_world_generation_pipeline(is_editor_preview: bool = false) -> void:
 			if not is_instance_valid(road):
 				continue
 
-			var base_ov: float = 20.0 + (float(r_idx) / float(road_count)) * 15.0
-			var span_ov: float = 15.0 / float(road_count)
+			var base_ov: float = 25.0 + (float(r_idx) / float(road_count)) * 20.0
+			var span_ov: float = 20.0 / float(road_count)
 			var base_task: float = (float(r_idx) / float(road_count)) * 100.0
 			var span_task: float = 100.0 / float(road_count)
 
@@ -221,34 +218,7 @@ func run_world_generation_pipeline(is_editor_preview: bool = false) -> void:
 			await _wait_physics_sync(2)
 
 	# =========================================================================
-	# STAGE 3: PROCEDURAL HOUSES (35% -> 45%)
-	# =========================================================================
-	var house_count: int = procedural_houses.size()
-	if house_count > 0 and not _cancel_requested:
-		var stage_text := "Building houses..."
-		for h_idx: int in range(house_count):
-			if _cancel_requested:
-				break
-			var house: Node3D = procedural_houses[h_idx]
-			if not is_instance_valid(house):
-				continue
-
-			var pct: float = (float(h_idx) / float(house_count)) * 100.0
-			var ov_pct: float = lerpf(35.0, 45.0, float(h_idx) / float(house_count))
-			_update_ui_progress(ov_pct, overall_generating_text, pct, stage_text)
-			await get_tree().process_frame
-
-			if house.has_method(&"generate_or_load_cached"):
-				await house.call(&"generate_or_load_cached", cache_dir, is_cache_valid, is_editor_preview)
-			elif house.has_method(&"generate_house"):
-				house.call(&"generate_house")
-
-			_ensure_house_obstacle_groups(house)
-
-		await _wait_physics_sync(2)
-
-	# =========================================================================
-	# STAGE 4: SCENE POPULATORS (TREES / ROCKS / PROPS) (45% -> 65%)
+	# STAGE 3: SCENE POPULATORS (TREES / ROCKS / PROPS) (45% -> 65%)
 	# =========================================================================
 	var s_pop_count: int = scene_populators.size()
 	if s_pop_count > 0 and not _cancel_requested:
@@ -277,7 +247,7 @@ func run_world_generation_pipeline(is_editor_preview: bool = false) -> void:
 			await _wait_physics_sync(2)
 
 	# =========================================================================
-	# STAGE 5: MULTIMESH POPULATORS (GRASS / FOLIAGE) (65% -> 80%)
+	# STAGE 4: MULTIMESH POPULATORS (GRASS / FOLIAGE) (65% -> 80%)
 	# =========================================================================
 	var g_pop_count: int = grass_populators.size()
 	if g_pop_count > 0 and not _cancel_requested:
@@ -306,7 +276,7 @@ func run_world_generation_pipeline(is_editor_preview: bool = false) -> void:
 		await _wait_physics_sync(1)
 
 	# =========================================================================
-	# STAGE 6: PER-CHUNK NAVIGATION MESH BAKING / LOADING (80% -> 100%)
+	# STAGE 5: PER-CHUNK NAVIGATION MESH BAKING / LOADING (80% -> 100%)
 	# =========================================================================
 	if bake_chunk_navmeshes and is_instance_valid(terrain_generator) and not _cancel_requested:
 		var stage_text := "Building navigation regions..."
@@ -332,6 +302,10 @@ func run_world_generation_pipeline(is_editor_preview: bool = false) -> void:
 	if not is_editor_preview:
 		_hide_all_runtime_loading_containers()
 		get_tree().paused = _was_tree_paused_before
+		
+		var loop_mgr: Node = get_node_or_null("/root/LoopManager")
+		if loop_mgr and loop_mgr.has_method(&"preload_current_loop_scene"):
+			loop_mgr.call(&"preload_current_loop_scene")
 	else:
 		_close_editor_progress_popup()
 
@@ -342,12 +316,10 @@ func run_world_generation_pipeline(is_editor_preview: bool = false) -> void:
 
 #region Scene Reload Detection & User UI Node Management
 func _is_reloading_same_scene() -> bool:
-	# 1. Check if LoopManager is actively resetting the loop (character death / time out)
 	var loop_mgr: Node = get_node_or_null("/root/LoopManager")
 	if loop_mgr and bool(loop_mgr.get("_is_resetting")):
 		return true
 
-	# 2. Check if the same level scene just exited the tree within the last few frames (reload_current_scene)
 	var root_node: Node = get_tree().current_scene
 	var cur_path: String = root_node.scene_file_path if root_node else ""
 	var frames_since_exit: int = Engine.get_process_frames() - _last_level_exit_frame
@@ -360,13 +332,11 @@ func _is_reloading_same_scene() -> bool:
 func _setup_runtime_loading_ui(is_cache_valid: bool, is_scene_reload: bool) -> void:
 	_hide_all_runtime_loading_containers()
 
-	# Character death / scene reload: never show any loading screen (unless cache doesn't exist at all yet)
 	if is_scene_reload and is_cache_valid:
 		_active_ui_mode = 0
 		return
 
 	if not is_cache_valid:
-		# First-time world generation: show dual-bar UI
 		_active_ui_mode = 1
 		if is_instance_valid(generation_loading_container):
 			generation_loading_container.process_mode = Node.PROCESS_MODE_ALWAYS
@@ -380,7 +350,6 @@ func _setup_runtime_loading_ui(is_cache_valid: bool, is_scene_reload: bool) -> v
 		if is_instance_valid(generation_task_label):
 			generation_task_label.text = ""
 	else:
-		# Loading an already-generated world from Main Menu / Save Slot: show single-bar UI
 		_active_ui_mode = 2
 		if is_instance_valid(cached_loading_container):
 			cached_loading_container.process_mode = Node.PROCESS_MODE_ALWAYS
@@ -408,7 +377,6 @@ func _update_ui_progress(
 	var clamped_ov: float = clampf(overall_pct, 0.0, 100.0)
 	var clamped_tk: float = clampf(task_pct, 0.0, 100.0)
 
-	# Runtime Mode 1: First-Time Generation (2 ProgressBars + 2 RichTextLabels)
 	if _active_ui_mode == 1:
 		if is_instance_valid(generation_overall_bar):
 			generation_overall_bar.value = clamped_ov
@@ -419,12 +387,10 @@ func _update_ui_progress(
 		if is_instance_valid(generation_task_label):
 			generation_task_label.text = task_text
 
-	# Runtime Mode 2: Cached Load from Save Slot / Menu (1 Overall ProgressBar)
 	elif _active_ui_mode == 2:
 		if is_instance_valid(cached_overall_bar):
 			cached_overall_bar.value = clamped_ov
 
-	# Editor Preview Popup
 	if is_instance_valid(_editor_dialog):
 		if is_instance_valid(_ed_overall_bar):
 			_ed_overall_bar.value = clamped_ov
@@ -533,11 +499,6 @@ func _compute_world_signature() -> String:
 				road.curve.get_baked_length()
 			])
 
-	for house: Node3D in procedural_houses:
-		if is_instance_valid(house):
-			var h_seed: Variant = house.get(&"seed_value")
-			parts.append("hs=%s_%s_%s" % [house.name, str(house.global_position), str(h_seed)])
-
 	for pop: MultiMeshPopulator in scene_populators:
 		if is_instance_valid(pop):
 			parts.append("sp=%s_%d_%.3f_%.2f" % [pop.name, pop.seed_value, pop.density_per_m2, pop.spacing])
@@ -578,45 +539,62 @@ func _wait_physics_sync(frames: int = 2) -> void:
 
 
 func _auto_discover_targets() -> void:
+	# Priority 1: Search children/descendants of WorldGenerationManager itself
+	# Priority 2: Fallback to scene root if none are parented directly under WorldGenerationManager
+	var search_roots: Array[Node] = [self]
+	var scene_root: Node = get_tree().edited_scene_root if Engine.is_editor_hint() else get_tree().current_scene
+	if is_instance_valid(scene_root) and scene_root != self:
+		search_roots.append(scene_root)
+	elif is_instance_valid(get_parent()) and get_parent() != self:
+		search_roots.append(get_parent())
+
+	if not is_instance_valid(terrain_generator):
+		for root_n: Node in search_roots:
+			for n: Node in root_n.find_children("*", "TerrainGenerator", true, false):
+				if n is TerrainGenerator:
+					terrain_generator = n as TerrainGenerator
+					break
+			if is_instance_valid(terrain_generator):
+				break
+
+	road_projectors = road_projectors.filter(func(r: ToolPathProjector) -> bool: return is_instance_valid(r))
+	scene_populators = scene_populators.filter(func(p: MultiMeshPopulator) -> bool: return is_instance_valid(p))
+	grass_populators = grass_populators.filter(func(p: MultiMeshPopulator) -> bool: return is_instance_valid(p))
+
+	for root_n: Node in search_roots:
+		var is_self_branch: bool = (root_n == self)
+
+		if is_self_branch or road_projectors.is_empty():
+			for n: Node in root_n.find_children("*", "ToolPathProjector", true, false):
+				if n is ToolPathProjector and not road_projectors.has(n as ToolPathProjector):
+					road_projectors.append(n as ToolPathProjector)
+
+		if is_self_branch or (scene_populators.is_empty() and grass_populators.is_empty()):
+			for n: Node in root_n.find_children("*", "MultiMeshPopulator", true, false):
+				if n is MultiMeshPopulator:
+					var pop := n as MultiMeshPopulator
+					if pop is ProceduralGrass or pop.object_scenes.is_empty():
+						if not grass_populators.has(pop):
+							grass_populators.append(pop)
+					else:
+						if not scene_populators.has(pop):
+							scene_populators.append(pop)
+
+
+## Ensures any pre-existing houses saved in the scene still have the obstacle groups needed by Trees, Grass, and NavMeshes
+func _ensure_existing_houses_obstacle_groups() -> void:
 	var root_node: Node = get_tree().edited_scene_root if Engine.is_editor_hint() else get_tree().current_scene
-	if not is_instance_valid(root_node):
-		root_node = get_parent()
 	if not is_instance_valid(root_node):
 		return
 
-	if not is_instance_valid(terrain_generator):
-		for n: Node in root_node.find_children("*", "TerrainGenerator", true, false):
-			if n is TerrainGenerator:
-				terrain_generator = n as TerrainGenerator
-				break
-
-	if road_projectors.is_empty():
-		for n: Node in root_node.find_children("*", "ToolPathProjector", true, false):
-			if n is ToolPathProjector:
-				road_projectors.append(n as ToolPathProjector)
-
-	if procedural_houses.is_empty():
-		for n: Node in root_node.find_children("*", "", true, false):
-			if n is ProceduralFloorplanHouse or n is ProceduralHouse:
-				procedural_houses.append(n as Node3D)
-
-	if scene_populators.is_empty() or grass_populators.is_empty():
-		for n: Node in root_node.find_children("*", "MultiMeshPopulator", true, false):
-			if n is MultiMeshPopulator:
-				var pop := n as MultiMeshPopulator
-				if pop is ProceduralGrass or pop.object_scenes.is_empty():
-					grass_populators.append(pop)
-				else:
-					scene_populators.append(pop)
-
-
-func _ensure_house_obstacle_groups(house: Node3D) -> void:
-	for child: Node in house.find_children("*", "StaticBody3D", true, false):
-		if child is StaticBody3D:
-			var sb := child as StaticBody3D
-			if sb.get_parent() and sb.get_parent().name.begins_with("Door"):
-				continue
-			for grp: StringName in [&"house", &"building", &"no_grass"]:
-				if not sb.is_in_group(grp):
-					sb.add_to_group(grp)
+	for n: Node in root_node.find_children("*", "", true, false):
+		if n is ProceduralFloorplanHouse or n is ProceduralHouse:
+			for child: Node in n.find_children("*", "StaticBody3D", true, false):
+				if child is StaticBody3D:
+					var sb := child as StaticBody3D
+					if sb is DoorComponent or (sb.get_parent() and sb.get_parent() is DoorComponent):
+						continue
+					for grp: StringName in [&"house", &"building", &"no_grass"]:
+						if not sb.is_in_group(grp):
+							sb.add_to_group(grp)
 #endregion
