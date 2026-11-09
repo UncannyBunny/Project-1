@@ -243,6 +243,19 @@ func populate_surface() -> void:
 	await _populate_surface_internal(is_ed, is_ed, save_file, Callable())
 
 
+func _collect_terrain_floor_rids(host: Node3D) -> Array[RID]:
+	var rids: Array[RID] = []
+	if not is_instance_valid(host):
+		return rids
+	if host is CollisionObject3D:
+		rids.append((host as CollisionObject3D).get_rid())
+	for child: Node in host.find_children("*", "StaticBody3D", true, false):
+		var sb := child as StaticBody3D
+		if sb and _is_collider_whitelisted(sb, host):
+			rids.append(sb.get_rid())
+	return rids
+
+
 func _populate_surface_internal(
 	show_own_popup: bool,
 	set_editor_owner: bool,
@@ -278,7 +291,8 @@ func _populate_surface_internal(
 
 	var host: Node3D = _get_target_host()
 	var chunk_boxes: Array[Dictionary] = _collect_terrain_chunk_aabbs(host)
-
+	var terrain_rids: Array[RID] = _collect_terrain_floor_rids(host)
+	
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
 	var noises: Array[FastNoiseLite] = _create_three_seeded_noises(seed_value)
@@ -405,7 +419,7 @@ func _populate_surface_internal(
 				continue
 
 			if check_obstacle_clearance and effective_clearance > 0.001:
-				if _has_nearby_static_obstacle(space_state, hit_pos, effective_clearance, host):
+				if _has_nearby_static_obstacle(space_state, hit_pos, effective_clearance, host, terrain_rids):
 					continue
 
 			if spacing > 0.001:
@@ -860,7 +874,8 @@ func _has_nearby_static_obstacle(
 	space_state: PhysicsDirectSpaceState3D,
 	hit_pos: Vector3,
 	radius: float,
-	host: Node3D
+	host: Node3D,
+	terrain_rids: Array[RID] = []
 ) -> bool:
 	if not _clearance_sphere:
 		_clearance_sphere = SphereShape3D.new()
@@ -871,6 +886,7 @@ func _has_nearby_static_obstacle(
 	sq.transform = Transform3D(Basis.IDENTITY, hit_pos + Vector3(0.0, radius * 0.5, 0.0))
 	sq.collide_with_bodies = true
 	sq.collide_with_areas = false
+	sq.exclude = terrain_rids
 
 	var hits: Array[Dictionary] = space_state.intersect_shape(sq, 16)
 	for h: Dictionary in hits:

@@ -34,10 +34,13 @@ signal generation_finished
 @export var generation_task_label: RichTextLabel
 @export var overall_generating_text: String = "Generating world..."
 
-@export_group("Cached World Loading UI (From Menu / Save Slot)")
+@export_group("Cached World Loading UI")
 ## Container shown when loading an already-generated world from the menu (stays hidden on death/loop reload)
 @export var cached_loading_container: CanvasItem
-@export var cached_overall_bar: ProgressBar
+
+@export_group("Scene / Loop Reload Cover UI")
+## Full-screen Control / CanvasItem enabled during silent cached reloads (e.g. death / loop reset) to hide objects popping in
+@export var reload_cover_control: CanvasItem
 
 @export_group("Runtime & Cache Settings")
 @export var generate_on_ready: bool = true
@@ -54,7 +57,7 @@ static var _last_level_scene_path: String = ""
 var _is_generating: bool = false
 var _cancel_requested: bool = false
 var _was_tree_paused_before: bool = false
-var _active_ui_mode: int = 0 # 0 = None (Silent Reload), 1 = First-Time Dual Bar, 2 = Cached Single Bar
+var _active_ui_mode: int = 0 # 0 = Silent Reload (Cover Only), 1 = First-Time Dual Bar, 2 = Cached Single Bar
 
 # Editor popup references
 var _editor_dialog: AcceptDialog = null
@@ -71,6 +74,10 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
 	if generate_on_ready:
+		# Enable the cover immediately on frame 0 before call_deferred runs so not even 1 frame of unbuilt world is visible
+		if is_instance_valid(reload_cover_control):
+			reload_cover_control.process_mode = Node.PROCESS_MODE_ALWAYS
+			reload_cover_control.visible = true
 		call_deferred(&"run_world_generation_pipeline", false)
 
 
@@ -332,8 +339,13 @@ func _is_reloading_same_scene() -> bool:
 func _setup_runtime_loading_ui(is_cache_valid: bool, is_scene_reload: bool) -> void:
 	_hide_all_runtime_loading_containers()
 
+	# Silent reload (death / loop reset) when cache is already generated:
+	# Enable the cover UI control so objects are not seen popping in.
 	if is_scene_reload and is_cache_valid:
 		_active_ui_mode = 0
+		if is_instance_valid(reload_cover_control):
+			reload_cover_control.process_mode = Node.PROCESS_MODE_ALWAYS
+			reload_cover_control.visible = true
 		return
 
 	if not is_cache_valid:
@@ -351,11 +363,13 @@ func _setup_runtime_loading_ui(is_cache_valid: bool, is_scene_reload: bool) -> v
 			generation_task_label.text = ""
 	else:
 		_active_ui_mode = 2
+		# Also enable the cover control if cached_loading_container is transparent or shares the UI container
+		if is_instance_valid(reload_cover_control):
+			reload_cover_control.process_mode = Node.PROCESS_MODE_ALWAYS
+			reload_cover_control.visible = true
 		if is_instance_valid(cached_loading_container):
 			cached_loading_container.process_mode = Node.PROCESS_MODE_ALWAYS
 			cached_loading_container.visible = true
-		if is_instance_valid(cached_overall_bar):
-			cached_overall_bar.value = 0.0
 
 
 func _hide_all_runtime_loading_containers() -> void:
@@ -364,6 +378,8 @@ func _hide_all_runtime_loading_containers() -> void:
 		generation_loading_container.visible = false
 	if is_instance_valid(cached_loading_container):
 		cached_loading_container.visible = false
+	if is_instance_valid(reload_cover_control):
+		reload_cover_control.visible = false
 
 
 func _update_ui_progress(
@@ -388,8 +404,7 @@ func _update_ui_progress(
 			generation_task_label.text = task_text
 
 	elif _active_ui_mode == 2:
-		if is_instance_valid(cached_overall_bar):
-			cached_overall_bar.value = clamped_ov
+		pass
 
 	if is_instance_valid(_editor_dialog):
 		if is_instance_valid(_ed_overall_bar):
