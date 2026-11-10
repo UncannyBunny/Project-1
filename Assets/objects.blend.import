@@ -57,6 +57,15 @@ _subresources={
 "save_to_file/fallback_path": "res://Assets/Meshes/keypad.res",
 "save_to_file/path": "uid://cdrpo34wx44yq"
 },
+"objects_Cube_002": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://Assets/Meshes/substation.res",
+"save_to_file/path": "uid://b0ct77qthjccl"
+},
 "objects_Cylinder_002": {
 "generate/lightmap_uv": 0,
 "generate/lods": 0,
@@ -74,6 +83,15 @@ _subresources={
 "save_to_file/enabled": true,
 "save_to_file/fallback_path": "res://Assets/Meshes/paper.res",
 "save_to_file/path": "uid://dcwhg4oef7sh1"
+},
+"objects_Plane_001": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://Assets/Meshes/pylon.res",
+"save_to_file/path": "uid://dd4i6v80ahy4i"
 }
 }
 }

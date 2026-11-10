@@ -6,7 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://bfgy7macuwmdu" path="res://Assets/textures/rocky_trail_02_arm_1k.jpg" id="4_lx8n5"]
 [ext_resource type="Texture2D" uid="uid://dainfyiumx4sd" path="res://Assets/textures/rocky_trail_02_nor_gl_1k.jpg" id="5_pmcrx"]
 [ext_resource type="Script" uid="uid://5w53yrcfqjnk" path="res://Scripts/Resources/path_decoration_entry.gd" id="6_gf3cy"]
-[ext_resource type="PackedScene" uid="uid://cuptcf1kg4pl6" path="res://Scenes/Objects/lightpole_2.tscn" id="7_gkpin"]
+[ext_resource type="PackedScene" uid="uid://cuptcf1kg4pl6" path="res://Scenes/Buildings/lightpole_2.tscn" id="7_gkpin"]
 
 [sub_resource type="Curve3D" id="Curve3D_3pmx8"]
 _data = {

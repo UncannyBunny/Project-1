@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://dhlpyn4l68cb6"]
+
+[ext_resource type="ArrayMesh" uid="uid://dd4i6v80ahy4i" path="res://Assets/Meshes/pylon.res" id="1_oe0ii"]
+[ext_resource type="Script" uid="uid://66h7vbun5dhm" path="res://Scripts/Components/cable_connector.gd" id="2_xhr7n"]
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_v0am3"]
+points = PackedVector3Array(-1.3204424, 24.056734, -8.16017, 1.21756, 24.559305, 8.0875, 1.21756, 29.130154, 0.9767587, 2.2333872, -0.31476974, -2.5746357, -2.3362696, -0.31476974, 2.5019658, -1.3204424, 24.559305, 8.0875, 1.21756, 24.559305, -8.16017, 2.2333872, -0.31476974, 2.5019658, -2.3362696, -0.31476974, -2.5746357, -0.8127525, 31.671637, -0.54208666, 2.2333872, 9.335862, -2.064113, -2.3362696, 7.3033133, -2.064113, 0.7098701, 32.18057, 0.46941668, -1.3204424, 27.097607, -1.0494287, -0.30506253, 29.639088, 5.0402665, 0.7098701, 30.14802, -4.0982523, 2.2333872, 9.335862, 1.9946237, -2.3362696, 7.3033133, 1.9946237, -0.30506253, 29.130154, -5.1129365, -1.3204424, 24.056734, 8.0875, 1.21756, 29.130154, -1.0494287, -1.3204424, 24.559305, -8.16017, 0.7098701, 30.14802, 4.0255823, -0.8127525, 31.671637, 0.46941668, -1.3204424, 27.097607, 0.9767587, 1.21756, 24.056734, 8.0875, 1.21756, 24.056734, -8.16017, -0.8127525, 30.656952, -2.5746357, 0.7098701, 32.18057, -0.54208666, -0.30506253, 32.18057, 0.46941668, -0.8127525, 30.656952, 2.5019658, -1.8281324, 17.450155, -1.5583612)
+
+[node name="PowerPylon" type="Node3D" unique_id=1019992607]
+
+[node name="Pylon" type="MeshInstance3D" parent="." unique_id=164159737]
+mesh = ExtResource("1_oe0ii")
+
+[node name="CableConnectorComponent" type="Node3D" parent="." unique_id=760348757 node_paths=PackedStringArray("target_mesh_instance")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 26.526712, 4.4857435)
+script = ExtResource("2_xhr7n")
+target_mesh_instance = NodePath("Cable1")
+slack_factor = 1.001
+radius = 0.15
+metadata/_custom_type_script = "uid://66h7vbun5dhm"
+
+[node name="Cable1" type="MeshInstance3D" parent="CableConnectorComponent" unique_id=1437851364]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -26.526712, -4.4857435)
+
+[node name="CableConnectorComponent2" type="Node3D" parent="." unique_id=109104133 node_paths=PackedStringArray("target_mesh_instance")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 26.572874, -4.5232277)
+script = ExtResource("2_xhr7n")
+target_mesh_instance = NodePath("Cable2")
+connection_radius = 50.0
+slack_factor = 1.001
+radius = 0.15
+metadata/_custom_type_script = "uid://66h7vbun5dhm"
+
+[node name="Cable2" type="MeshInstance3D" parent="CableConnectorComponent2" unique_id=1603430803]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -26.572874, 4.5232277)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=1901094507 groups=["building"]]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=242208976]
+shape = SubResource("ConvexPolygonShape3D_v0am3")

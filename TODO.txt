@@ -43,7 +43,6 @@ Assets
 		Loaders
 		Containers
 		Control Panel
-	Electrical Substation
 	Plaza
 		Benches
 		Playground

@@ -2,8 +2,6 @@
 ## Editor tool component that bakes catenary power cables between nearby poles with the same script.
 class_name CableConnectorComponent extends Node3D
 
-# Cable algorithm from https://github.com/Ombarus/dfcyberpunk
-
 @export_group("Actions")
 ## Click in the Inspector (in Editor) to bake cables to all nearby CableConnectorComponents
 @export_tool_button("Bake Cables", "MeshInstance3D") var bake_action: Callable:
@@ -19,7 +17,9 @@ class_name CableConnectorComponent extends Node3D
 @export var target_mesh_instance: MeshInstance3D
 ## The Node3D where the cable physically attaches (defaults to self if left empty)
 @export var origin_node: Node3D
-## Maximum distance (in meters) to search for other CableConnectorComponent nodes
+## If filled, this pole will ONLY generate cables to these specific nodes (ignoring connection_radius)
+@export var target_overrides: Array[Node3D] = []
+## Maximum distance (in meters) to search for other CableConnectorComponent nodes (ignored if target_overrides is filled)
 @export var connection_radius: float = 10.0
 ## Tracks connected peer nodes so two poles never generate duplicate overlapping cables
 @export var connected_peers: Array[NodePath] = []
@@ -31,9 +31,9 @@ class_name CableConnectorComponent extends Node3D
 
 @export_group("Cable Geometry")
 ## Slack factor (1.001 = taut, higher values = more sag)
-@export_range(1.001, 20.0, 0.001, "or_greater") var slack_factor: float = 1.01
+@export_range(1.001, 20.0, 0.001, "or_greater") var slack_factor: float = 1.05
 ## Thickness radius of the cable tube
-@export var radius: float = 0.02
+@export var radius: float = 0.05
 ## Number of lengthwise subdivisions along the catenary curve
 @export var segments: int = 12
 ## Number of radial sides around the cylinder cross-section
@@ -80,33 +80,69 @@ func bake_cables() -> void:
 		var new_mesh := ArrayMesh.new()
 		var has_surfaces: bool = false
 		
-		for j: int in range(i + 1, all_connectors.size()):
-			var other: CableConnectorComponent = all_connectors[j]
-			var end_global: Vector3 = other.get_origin_global_position()
-			var dist: float = start_global.distance_to(end_global)
-			
-			if dist <= 0.01 or dist > minf(current.connection_radius, other.connection_radius):
-				continue
-			if current.is_connected_to(other) or other.is_connected_to(current):
-				continue
+		# 1. Manual Overrides (Ignores automatic radius logic)
+		if not current.target_overrides.is_empty():
+			for override_node: Node3D in current.target_overrides:
+				if not is_instance_valid(override_node):
+					continue
+					
+				var is_peer: bool = override_node is CableConnectorComponent
+				# Prevent duplicate cables if two connectors explicitly target each other
+				if is_peer and (current.is_connected_to(override_node) or (override_node as CableConnectorComponent).is_connected_to(current)):
+					continue
+					
+				var end_global: Vector3 = override_node.global_position
+				if is_peer:
+					end_global = (override_node as CableConnectorComponent).get_origin_global_position()
+					
+				var local_start: Vector3 = mesh_inst.to_local(start_global)
+				var local_end: Vector3 = mesh_inst.to_local(end_global)
 				
-			# Convert global positions into the target MeshInstance3D's local space
-			var local_start: Vector3 = mesh_inst.to_local(start_global)
-			var local_end: Vector3 = mesh_inst.to_local(end_global)
-			
-			# Use the average slack_factor of the two poles (or self's if self is one of them)
-			var effective_slack: float = self.slack_factor if (current == self or other == self) else (current.slack_factor + other.slack_factor) * 0.5
-			
-			var arrays: Array = current._build_catenary_surface_arrays(local_start, local_end, effective_slack)
-			if not arrays.is_empty():
-				new_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-				new_mesh.surface_set_material(new_mesh.get_surface_count() - 1, mat)
-				has_surfaces = true
+				var effective_slack: float = current.slack_factor
+				if is_peer:
+					effective_slack = (current.slack_factor + (override_node as CableConnectorComponent).slack_factor) * 0.5
+					
+				var arrays: Array = current._build_catenary_surface_arrays(local_start, local_end, effective_slack)
+				if not arrays.is_empty():
+					new_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+					new_mesh.surface_set_material(new_mesh.get_surface_count() - 1, mat)
+					has_surfaces = true
+					
+					if is_peer:
+						current.register_connection(override_node)
+						(override_node as CableConnectorComponent).register_connection(current)
+		
+		# 2. Automatic Radius Search (Only runs if target_overrides is empty)
+		else:
+			for j: int in range(i + 1, all_connectors.size()):
+				var other: CableConnectorComponent = all_connectors[j]
 				
-				# Record connection on both poles to prevent duplicates
-				current.register_connection(other)
-				other.register_connection(current)
+				# Skip if the other pole is strictly using manual overrides to avoid forcing a connection on it
+				if not other.target_overrides.is_empty():
+					continue
+					
+				var end_global: Vector3 = other.get_origin_global_position()
+				var dist: float = start_global.distance_to(end_global)
 				
+				if dist <= 0.01 or dist > minf(current.connection_radius, other.connection_radius):
+					continue
+				if current.is_connected_to(other) or other.is_connected_to(current):
+					continue
+					
+				var local_start: Vector3 = mesh_inst.to_local(start_global)
+				var local_end: Vector3 = mesh_inst.to_local(end_global)
+				
+				var effective_slack: float = self.slack_factor if (current == self or other == self) else (current.slack_factor + other.slack_factor) * 0.5
+				
+				var arrays: Array = current._build_catenary_surface_arrays(local_start, local_end, effective_slack)
+				if not arrays.is_empty():
+					new_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+					new_mesh.surface_set_material(new_mesh.get_surface_count() - 1, mat)
+					has_surfaces = true
+					
+					current.register_connection(other)
+					other.register_connection(current)
+					
 		if has_surfaces:
 			current.baked_cable_mesh = new_mesh
 		current.notify_property_list_changed()
@@ -139,12 +175,12 @@ func get_origin_global_position() -> Vector3:
 	return global_position
 
 ## Returns true if this connector already has a registered link to other
-func is_connected_to(other: CableConnectorComponent) -> bool:
+func is_connected_to(other: Node) -> bool:
 	var path_to_other: NodePath = get_path_to(other)
 	return connected_peers.has(path_to_other)
 
 ## Stores a NodePath reference to a connected peer
-func register_connection(other: CableConnectorComponent) -> void:
+func register_connection(other: Node) -> void:
 	var path_to_other: NodePath = get_path_to(other)
 	if not connected_peers.has(path_to_other):
 		connected_peers.append(path_to_other)
@@ -199,16 +235,13 @@ func _build_catenary_surface_arrays(start: Vector3, end: Vector3, custom_slack: 
 		
 	return _build_tube_arrays(points, start, end)
 
-## Solves sinh(x2 / (2*a)) = sqrt(L^2 - y2^2) / (2*a) using monotonic binary search on z = x2 / (2*a)
 func _solve_catenary_parameter(x2: float, y2: float, rope_length: float) -> float:
 	var vertical_span_sq: float = maxf((rope_length * rope_length) - (y2 * y2), 0.0)
 	var ratio: float = sqrt(vertical_span_sq) / maxf(x2, 0.0001)
 	
-	# If rope_length is barely longer than straight distance, return a very large 'a' (nearly straight line)
 	if ratio <= 1.00001:
 		return x2 * 100.0
 		
-	# Solve sinh(z) / z = ratio for z > 0, where z = x2 / (2 * a)
 	var low_z: float = 0.00001
 	var high_z: float = 1.0
 	while (sinh(high_z) / high_z) < ratio and high_z < 50.0:

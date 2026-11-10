@@ -30,6 +30,7 @@ window/stretch/aspect="expand"
 [global_group]
 
 grass_surface="for the grass tool to add grass onto an object"
+building=""
 
 [input]
 

@@ -7,6 +7,7 @@
 [resource]
 resource_name = "rough_concrete"
 cull_mode = 2
+albedo_color = Color(0.31431612, 0.31431612, 0.3143161, 1)
 albedo_texture = ExtResource("1_0tj4e")
 metallic_texture = ExtResource("2_sp2fx")
 metallic_texture_channel = 2
